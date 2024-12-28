@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPC Example</title>
+</head>
+<body>
+  <form id="exampleForm" action="echo" method="post">
+    <input type="text" name="example" required />
+    <button type="submit">Submit</button>
+  </form>
+
+  <script type="module">
+    import { useSubmission } from './src/client.ts';
+
+    document.getElementById('exampleForm').addEventListener('submit', useSubmission('echo'));
+  </script>
+</body>
+</html>
