@@ -16,7 +16,7 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node server.ts"
+    "dev": "deno --allow-read --allow-env --allow-net --allow-sys --allow-ffi --allow-run --allow-write server.ts"
   },
   "dependencies": {
     "express": "^4.18.2",
