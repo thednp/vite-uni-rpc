@@ -2,11 +2,10 @@
 import type { Plugin } from 'vite'
 // import MagicString from 'magic-string'
 import { createHash } from 'node:crypto'
-import { readBody, generateClientProxy, transformServerFunctions } from './utils'
+import { readBody } from './utils'
 import { serverFunctionsMap } from './server'
 
 export default function trpcPlugin(): Plugin {
-  let isSSR = false
   // const serverFiles = new Set<string>()
 
   const VIRTUAL_MODULE_PREFIX = 'virtual:@rpc/';
@@ -14,13 +13,10 @@ export default function trpcPlugin(): Plugin {
 
   return {
     name: 'vite-plugin-rpc',
-    
-    config(config) {
-      isSSR = !!config.build?.ssr
-    },
-    resolveId(id: string) {
-      if (id.startsWith(VIRTUAL_MODULE_PREFIX)) {
-        return '\0' + id
+    enforce: 'pre',
+    resolveId(source: string, /*importer: string | undefined, { ssr }: { ssr: boolean}*/) {
+      if (source.startsWith(VIRTUAL_MODULE_PREFIX)) {
+        return '\0' + source
       }
       return null
     },
@@ -53,16 +49,19 @@ export default function trpcPlugin(): Plugin {
       }
 
       if (ssr) {
-        // Server-side: Register the function and keep original implementation
-        const functionMatches = code.matchAll(/createServerFunction\(['"]([\w-]+)['"],\s*async?\s*\((.*?)\)\s*=>\s*{/g)
-        for (const match of functionMatches) {
-          const [_, fnName] = match
-          serverFunctionsMap.set(fnName, code)
-        }
-        return {
-          code,
-          map: null
-        }
+        // // Server-side: Register the function and keep original implementation
+        // const functionMatches = code.matchAll(/createServerFunction\(['"]([\w-]+)['"],\s*async?\s*\((.*?)\)\s*=>\s*{/g)
+        // for (const match of functionMatches) {
+        //   const [_, fnName] = match
+        //   serverFunctionsMap.set(fnName, code)
+        // }
+        // return {
+        //   code,
+        //   map: null
+        // }
+
+        // let vite do its thing
+        return null;
       } else {
         // Client-side: Replace with imports to virtual modules
         return {

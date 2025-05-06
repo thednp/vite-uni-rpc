@@ -64,17 +64,14 @@ var serverFunctionsMap = /* @__PURE__ */ new Map();
 
 // src/index.ts
 function trpcPlugin() {
-  let isSSR = false;
   const VIRTUAL_MODULE_PREFIX = "virtual:@rpc/";
   const RESOLVED_VIRTUAL_MODULE_PREFIX = "\0" + VIRTUAL_MODULE_PREFIX;
   return {
     name: "vite-plugin-rpc",
-    config(config) {
-      isSSR = !!config.build?.ssr;
-    },
-    resolveId(id) {
-      if (id.startsWith(VIRTUAL_MODULE_PREFIX)) {
-        return "\0" + id;
+    enforce: "pre",
+    resolveId(source) {
+      if (source.startsWith(VIRTUAL_MODULE_PREFIX)) {
+        return "\0" + source;
       }
       return null;
     },
@@ -102,15 +99,7 @@ function trpcPlugin() {
         return null;
       }
       if (ssr) {
-        const functionMatches = code.matchAll(/createServerFunction\(['"]([\w-]+)['"],\s*async?\s*\((.*?)\)\s*=>\s*{/g);
-        for (const match of functionMatches) {
-          const [_, fnName] = match;
-          serverFunctionsMap.set(fnName, code);
-        }
-        return {
-          code,
-          map: null
-        };
+        return null;
       } else {
         return {
           code: code.replace(
