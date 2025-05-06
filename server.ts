@@ -5,6 +5,7 @@ async function startServer() {
   const app = express();
   const vite = await createViteServer({
     server: { middlewareMode: true },
+    appType: "spa"
   });
 
   app.use(vite.middlewares);

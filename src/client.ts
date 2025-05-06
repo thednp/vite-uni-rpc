@@ -8,7 +8,7 @@ export async function callRpc(action: string, body: any) {
 }
 
 export function useSubmission(actionName: string) {
-    return async function handleSubmit(event: Event) {
+    return async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
         const form = event.target as HTMLFormElement;
         const formData = new FormData(form);

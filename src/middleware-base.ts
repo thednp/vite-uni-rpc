@@ -1,6 +1,5 @@
 import { ViteDevServer } from 'vite';
-import { IncomingMessage } from 'connect';
-import { ServerResponse } from 'http';
+import { ServerResponse, IncomingMessage } from 'node:http';
 
 export function serverMiddleware() {
   return {
@@ -9,7 +8,7 @@ export function serverMiddleware() {
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
         if (req.url?.startsWith('/rpc')) {
           // Handle RPC calls here
-          const [_, action] = req.url.split('/rpc/');
+          const [_, action] = req.url.split('/rpc/') as [string, keyof ActionHandler];
           if (action) {
             console.log(action)
             try {
@@ -41,6 +40,7 @@ export function serverMiddleware() {
 }
 
 type ActionHandler = (body: Request['body']) => Promise<any>;
+// type Action = Record<string, ActionHandler>
 
 async function handleAction(action: string, body: unknown) {
   // Define your server functions here

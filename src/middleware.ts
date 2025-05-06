@@ -1,4 +1,4 @@
-import { ViteDevServer } from 'vite';
+import type { ViteDevServer, Connect } from 'vite';
 import * as v from 'valibot';
 
 export function serverMiddleware() {
@@ -30,7 +30,7 @@ export function serverMiddleware() {
   };
 }
 
-async function parseRequestBody(req: any): Promise<any> {
+async function parseRequestBody(req: Connect.IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     let data = '';
     req.on('data', (chunk: string) => (data += chunk));
@@ -46,24 +46,23 @@ async function parseRequestBody(req: any): Promise<any> {
 }
 
 const ActionSchema = v.object({
-  example: v.pipe(v.string(), v.minLength(1, "What's that?")),
+  example: v.pipe(v.string(), v.minLength(3, "What's that?")),
 });
 
-async function handleAction(action: string, body: any) {
+async function handleAction(action: string, body: string) {
   // Define a schema for body validation using valibot
   const actionSchemas: { [key: string]: any } = {
     echo: ActionSchema,
     // Add schemas for other actions here
   };
-  console.log(body)
-
+  // console.log(body)
 
   // Define your server functions here
   const actions: { [key: string]: (body: any) => any } = {
     echo: async (body) => {
       // Validate input
-      console.log('handleAction.body', body)
       const validatedBody = v.parse(actionSchemas['echo'], body);
+      console.log('handleAction.body', body, validatedBody)
       return validatedBody;
     },
     // Add more actions here
