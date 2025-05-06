@@ -1,0 +1,58 @@
+{
+  "name": "vite-plugin-trpc",
+  "version": "0.0.0",
+  "description": "Basic RPC",
+  "homepage": "https://github.com/thednp/rpc#readme",
+  "bugs": {
+    "url": "https://github.com/thednp/rpc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thednp/rpc.git"
+  },
+  "license": "MIT",
+  "author": "thednp",
+  "type": "module",
+  "main": "plugin.ts",
+  "exports": {
+    ".": {
+      "default": "./plugin.ts",
+      "types": "./types.d.ts"
+    },
+    "./client": {
+      "default": "./client.ts",
+      "types": "./types.d.ts"
+    },
+    "./server": {
+      "default": "./server.ts",
+      "types": "./types.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev__": "deno -A server.ts",
+    "dev": "node --experimental-transform-types server.ts",
+    "dev_": "deno --allow-read --allow-env --allow-net --allow-sys --allow-ffi --allow-run --allow-write server.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "magic-string": "0.30.17",
+    "valibot": "^1.0.0",
+    "vanjs-core": "^1.5.3",
+    "vanjs-ext": "^0.6.2",
+    "vite": "^6.2.2",
+    "vite-plugin-trpc": "link:../../../.local/share/pnpm/global/5/node_modules/vite-plugin-trpc",
+    "vite-plugin-vanjs": "^0.0.9"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.24",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite-plugin-trpc": "link:../../../.local/share/pnpm/global/5/node_modules/vite-plugin-trpc"
+    }
+  }
+}
