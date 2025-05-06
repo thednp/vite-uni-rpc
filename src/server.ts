@@ -1,5 +1,5 @@
 // packages/vite-plugin-trpc/src/server/index.ts
-'use server'
+// 'use server'
 
 import { serverCache } from './cache'
 import type { ServerFunction, ServerFunctionOptions } from './types'

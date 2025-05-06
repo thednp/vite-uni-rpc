@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-trpc",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Basic RPC",
   "homepage": "https://github.com/thednp/rpc#readme",
   "bugs": {
@@ -13,26 +13,31 @@
   "license": "MIT",
   "author": "thednp",
   "type": "module",
-  "main": "server.ts",
+  "main": "src/plugin.ts",
+  "exports": {
+    ".": {
+      "import": "./src/plugin.ts",
+      "types": "./src/types.d.ts"
+    },
+    "./client": {
+      "defimportault": "./src/client.ts",
+      "types": "./src/types.d.ts"
+    },
+    "./server": {
+      "import": "./src/server.ts",
+      "types": "./src/types.d.ts"
+    }
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev__": "deno -A server.ts",
-    "dev": "node --experimental-transform-types server.ts",
-    "dev_": "deno --allow-read --allow-env --allow-net --allow-sys --allow-ffi --allow-run --allow-write server.ts"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "express": "^4.21.2",
     "magic-string": "0.30.17",
-    "valibot": "^1.0.0",
-    "vanjs-core": "^1.5.3",
-    "vanjs-ext": "^0.6.2",
-    "vite": "^6.2.2",
-    "vite-plugin-vanjs": "^0.0.9"
+    "vanjs-core": "^1.5.5",
+    "vanjs-ext": "^0.6.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.17.24",
-    "ts-node": "^10.9.2",
-    "typescript": "~5.7.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }

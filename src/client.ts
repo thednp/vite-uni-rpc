@@ -1,19 +1,49 @@
-export async function callRpc(action: string, body: any) {
-    const response = await fetch(`/rpc/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-    });
-    return response.json();
+// packages/vite-plugin-trpc/client.ts
+export type ServerFunction<TArgs extends unknown[], TResult> = {
+  (...args: TArgs): Promise<TResult>
+  __fn__: (...args: TArgs) => Promise<TResult>
 }
 
-export function useSubmission(actionName: string) {
-    return async function handleSubmit(event: SubmitEvent) {
-        event.preventDefault();
-        const form = event.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        const result = await callRpc(actionName, data);
-        console.log(result);
-    };
+export async function createServerProxy<TArgs extends unknown[], TResult>(
+  name: string,
+  fn: (...args: TArgs) => Promise<TResult>
+): Promise<ServerFunction<TArgs, TResult>> {
+  const proxyFn = async (...args: TArgs): Promise<TResult> => {
+    try {
+      const response = await fetch('/__rpc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          args,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (result.error) {
+        throw new Error(result.error)
+      }
+
+      return result.data as TResult
+    } catch (error) {
+      console.error('RPC call failed:', error)
+      throw error
+    }
+  }
+
+    // Attach the original function for type information
+    ; (proxyFn as any).__fn__ = fn
+
+  return proxyFn as ServerFunction<TArgs, TResult>
+}
+
+export function isServerFunction(fn: unknown): fn is ServerFunction<any[], any> {
+  return typeof fn === 'function' && '__fn__' in fn
 }
