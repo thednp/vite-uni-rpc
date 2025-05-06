@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto'
 import { readBody, generateClientProxy, transformServerFunctions } from './utils'
 import { serverFunctionsMap } from './server'
 
-export function trpcPlugin(): Plugin {
+export default function trpcPlugin(): Plugin {
   let isSSR = false
   const serverFiles = new Set<string>()
 

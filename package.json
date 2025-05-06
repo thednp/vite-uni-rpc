@@ -13,23 +13,33 @@
   "license": "MIT",
   "author": "thednp",
   "type": "module",
-  "main": "src/plugin.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
-      "import": "./src/plugin.ts",
-      "types": "./src/types.d.ts"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
     },
     "./client": {
-      "defimportault": "./src/client.ts",
-      "types": "./src/types.d.ts"
+      "types": "./dist/client.d.ts",
+      "require": "./dist/client.cjs",
+      "import": "./dist/client.js"
     },
     "./server": {
-      "import": "./src/server.ts",
-      "types": "./src/types.d.ts"
-    }
+      "types": "./dist/server.d.ts",
+      "require": "./dist/server.cjs",
+      "import": "./dist/server.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsup"
   },
   "dependencies": {
     "magic-string": "0.30.17",
@@ -37,7 +47,9 @@
     "vanjs-ext": "^0.6.2"
   },
   "devDependencies": {
+    "@types/node": "^22.15.14",
     "typescript": "^5.8.3",
+    "tsup": "^8.4.0",
     "vite": "^6.3.5"
   }
 }

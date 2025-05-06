@@ -1,4 +1,8 @@
 // packages/vite-plugin-trpc/client.ts
+export * from "./action";
+export * from "./async";
+export * from "./resource";
+
 export type ServerFunction<TArgs extends unknown[], TResult> = {
   (...args: TArgs): Promise<TResult>
   __fn__: (...args: TArgs) => Promise<TResult>
