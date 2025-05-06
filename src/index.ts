@@ -14,9 +14,11 @@ export default function trpcPlugin(): Plugin {
   return {
     name: 'vite-plugin-rpc',
     enforce: 'pre',
-    resolveId(source: string, /*importer: string | undefined, { ssr }: { ssr: boolean}*/) {
+
+    resolveId(source: string) {
       if (source.startsWith(VIRTUAL_MODULE_PREFIX)) {
-        return '\0' + source
+        // Important: return the resolved virtual module ID
+        return RESOLVED_VIRTUAL_MODULE_PREFIX + source.slice(VIRTUAL_MODULE_PREFIX.length)
       }
       return null
     },
@@ -24,13 +26,15 @@ export default function trpcPlugin(): Plugin {
     load(id: string) {
       if (id.startsWith(RESOLVED_VIRTUAL_MODULE_PREFIX)) {
         const fnName = id.slice(RESOLVED_VIRTUAL_MODULE_PREFIX.length)
-        // Return client-side proxy for the function
         return `
           export default async function ${fnName}(...args) {
-            const response = await fetch('/__rpc', {
+            const response = await fetch('/__rpc/${fnName}', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: '${fnName}', args })
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+              },
+              body: JSON.stringify(args)
             });
             if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
             const result = await response.json();
@@ -49,31 +53,27 @@ export default function trpcPlugin(): Plugin {
       }
 
       if (ssr) {
-        // // Server-side: Register the function and keep original implementation
-        // const functionMatches = code.matchAll(/createServerFunction\(['"]([\w-]+)['"],\s*async?\s*\((.*?)\)\s*=>\s*{/g)
-        // for (const match of functionMatches) {
-        //   const [_, fnName] = match
-        //   serverFunctionsMap.set(fnName, code)
-        // }
-        // return {
-        //   code,
-        //   map: null
-        // }
+        // In SSR mode, let Vite handle it
+        return null
+      }
 
-        // let vite do its thing
-        return null;
-      } else {
-        // Client-side: Replace with imports to virtual modules
-        return {
-          code: code.replace(
-            /export const (\w+)\s*=\s*createServerFunction\(['"]([^'"]+)['"]/g,
-            (_, varName, fnName) => `
-              import ${varName}Impl from '${VIRTUAL_MODULE_PREFIX}${fnName}';
-              export const ${varName} = ${varName}Impl;
-            `
-          ),
-          map: null
-        }
+      // Client-side: Replace all server functions with virtual module imports
+      const matches = Array.from(code.matchAll(/export\s+(?:const|let|var)\s+(\w+)\s*=\s*createServerFunction\s*\(\s*['"]([^'"]+)['"]/g))
+      
+      if (matches.length === 0) return null
+
+      let transformedCode = code
+      for (const [fullMatch, varName, fnName] of matches) {
+        const importStatement = `
+import ${varName}Impl from '${VIRTUAL_MODULE_PREFIX}${fnName}';
+export const ${varName} = ${varName}Impl;`
+        
+        transformedCode = transformedCode.replace(fullMatch, importStatement)
+      }
+
+      return {
+        code: transformedCode,
+        map: null
       }
     },
 

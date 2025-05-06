@@ -93,7 +93,7 @@ function trpcPlugin() {
     enforce: "pre",
     resolveId(source) {
       if (source.startsWith(VIRTUAL_MODULE_PREFIX)) {
-        return "\0" + source;
+        return RESOLVED_VIRTUAL_MODULE_PREFIX + source.slice(VIRTUAL_MODULE_PREFIX.length);
       }
       return null;
     },
@@ -102,10 +102,13 @@ function trpcPlugin() {
         const fnName = id.slice(RESOLVED_VIRTUAL_MODULE_PREFIX.length);
         return `
           export default async function ${fnName}(...args) {
-            const response = await fetch('/__rpc', {
+            const response = await fetch('/__rpc/${fnName}', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: '${fnName}', args })
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+              },
+              body: JSON.stringify(args)
             });
             if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
             const result = await response.json();
@@ -122,18 +125,20 @@ function trpcPlugin() {
       }
       if (ssr) {
         return null;
-      } else {
-        return {
-          code: code.replace(
-            /export const (\w+)\s*=\s*createServerFunction\(['"]([^'"]+)['"]/g,
-            (_, varName, fnName) => `
-              import ${varName}Impl from '${VIRTUAL_MODULE_PREFIX}${fnName}';
-              export const ${varName} = ${varName}Impl;
-            `
-          ),
-          map: null
-        };
       }
+      const matches = Array.from(code.matchAll(/export\s+(?:const|let|var)\s+(\w+)\s*=\s*createServerFunction\s*\(\s*['"]([^'"]+)['"]/g));
+      if (matches.length === 0) return null;
+      let transformedCode = code;
+      for (const [fullMatch, varName, fnName] of matches) {
+        const importStatement = `
+import ${varName}Impl from '${VIRTUAL_MODULE_PREFIX}${fnName}';
+export const ${varName} = ${varName}Impl;`;
+        transformedCode = transformedCode.replace(fullMatch, importStatement);
+      }
+      return {
+        code: transformedCode,
+        map: null
+      };
     },
     // transform(code, id) {
     //   // Skip node_modules
