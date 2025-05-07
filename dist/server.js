@@ -5,12 +5,11 @@ import {
 } from "./chunk-53BM2ESW.js";
 
 // src/cache.ts
-var DEFAULT_TTL = 5e3;
 var ServerCache = class {
   constructor() {
     __publicField(this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = DEFAULT_TTL, fetcher) {
+  async get(key, ttl = defaultOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (entry?.promise) return entry.promise;

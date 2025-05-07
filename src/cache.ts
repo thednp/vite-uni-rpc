@@ -1,7 +1,6 @@
 // /vite-mini-rpc/src/cache.ts
 import { type CacheEntry } from "./types";
-
-const DEFAULT_TTL = 5000; // 5 seconds default TTL
+import { defaultOptions } from "./options";
 
 export class ServerCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map<string, {
@@ -12,7 +11,7 @@ export class ServerCache {
 
   async get<T>(
     key: string,
-    ttl: number = DEFAULT_TTL,
+    ttl: number = defaultOptions.ttl,
     fetcher: () => Promise<T>,
   ): Promise<T> {
     const entry = this.cache.get(key) as CacheEntry<T>;

@@ -5,12 +5,11 @@
 var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 
 // src/cache.ts
-var DEFAULT_TTL = 5e3;
 var ServerCache = class {
   constructor() {
     _chunkMVVEXO4Ucjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = DEFAULT_TTL, fetcher) {
+  async get(key, ttl = _chunkMVVEXO4Ucjs.defaultOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
