@@ -87,15 +87,15 @@ export const ${fnEntry} = async (...args) => {
   if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
   const result = await response.json();
   if (result.error) throw new Error(result.error);
-  return JSON.parse(JSON.stringify(result)).data;
+  return result.data;
 }
-`;
+`.trim();
       const transformedCode = `
 // Client-side RPC modules
 ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName)
-      ).join("\n\n")}
-`;
+      ).join("\n")}
+`.trim();
       return {
         // code: result.code,
         code: transformedCode,
