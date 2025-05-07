@@ -1,6 +1,5 @@
 // packages/vite-plugin-trpc/src/plugin.ts
 import type { Plugin } from 'vite'
-// import MagicString from 'magic-string'
 import { createHash } from 'node:crypto'
 import { readBody } from './utils'
 import { serverFunctionsMap } from './serverFunctionsMap'
@@ -17,50 +16,54 @@ export default function trpcPlugin(): Plugin {
 
   const VIRTUAL_MODULE_PREFIX = 'virtual:@rpc/';
   const RESOLVED_VIRTUAL_MODULE_PREFIX = '\0' + VIRTUAL_MODULE_PREFIX;
-  const REGISTRY_MODULE_ID = 'virtual:@rpc-registry/entries';
+  const REGISTRY_MODULE_ID = 'virtual:@rpc-registry';
   const RESOLVED_REGISTRY_MODULE_ID = '\0' + REGISTRY_MODULE_ID;
-  // let registeredFunctions = new Set();
 
   return {
     name: 'vite-plugin-rpc',
     enforce: 'pre',
-    resolve: {
-      alias: {
-        "virtual:@rpc-registry": toAbsolute("./serverFunctionsMap.ts"),
-      },
-      ssr: {
-        noExternal: ["virtual:@rpc-registry", "virtual:@rpc/*"]
-      }
-    },
 
     buildStart() {
       // registeredFunctions.clear();
       serverFunctionsMap.clear();
     },
-    resolveId(source: string) {
+    resolveId(source: string, importer, { ssr }) {
+      // Handle registry module
       if (source === REGISTRY_MODULE_ID) {
-        return RESOLVED_REGISTRY_MODULE_ID
+        console.log('Resolving registry module:', source, ssr);
+        // return RESOLVED_REGISTRY_MODULE_ID;
+        return ssr ? toAbsolute('./serverFunctionsMap.ts') : RESOLVED_REGISTRY_MODULE_ID
       }
+      // Handle RPC function modules
       if (source.startsWith(VIRTUAL_MODULE_PREFIX)) {
-        // Important: return the resolved virtual module ID
-        return RESOLVED_VIRTUAL_MODULE_PREFIX + source.slice(VIRTUAL_MODULE_PREFIX.length)
+        console.log('Resolving RPC module:', source);
+        // return RESOLVED_VIRTUAL_MODULE_PREFIX + source.slice(VIRTUAL_MODULE_PREFIX.length);
       }
-      return null
+      return null;
     },
 
-    load(id: string) {
+    load(id: string, ops) {
+      // Handle registry module
       if (id === RESOLVED_REGISTRY_MODULE_ID) {
-        console.log('Loading registry with functions:', Array.from(serverFunctionsMap))
+        console.log('Loading registry with functions:', Array.from(serverFunctionsMap.keys()));
+        // if (ops.ssr) {
+        //   return toAbsolute('./serverFunctionsMap.ts');
+        // }
+
         return `
-        import { serverFunctionsMap } from "${toAbsolute("./serverFunctionsMap.ts")}";
-        export { serverFunctionsMap };
-        // export const serverFunctionsMap = ${serverFunctionsMap};
-        // export const registeredFunctions = ${JSON.stringify(Array.from(serverFunctionsMap))};
-        `
+          // Generated registry module
+          const functions = ${JSON.stringify(Array.from(serverFunctionsMap.keys()))};
+          console.log('Registry loaded with:', functions);
+          export default functions;
+        `;
       }
+
+      // Handle RPC function modules
       if (id.startsWith(RESOLVED_VIRTUAL_MODULE_PREFIX)) {
-        const fnName = id.slice(RESOLVED_VIRTUAL_MODULE_PREFIX.length)
+        const fnName = id.slice(RESOLVED_VIRTUAL_MODULE_PREFIX.length);
+        console.log('Loading RPC module:', fnName);
         return `
+          console.log('RPC function loaded:', '${fnName}');
           export default async function ${fnName}(...args) {
             const response = await fetch('/__rpc/${fnName}', {
               method: 'POST',
@@ -74,93 +77,47 @@ export default function trpcPlugin(): Plugin {
             if (result.error) throw new Error(result.error);
             return result.data;
           }
-        `
+        `;
       }
-      return null
+      return null;
     },
 
-    transform(code: string, id: string, { ssr }: { ssr: boolean }) {
-      // Only transform files with server functions
+transform(code: string, id: string, { ssr }) {
       if (!code.includes('createServerFunction')) {
-        return null
+        return null;
       }
-      console.log("transform", { id, ssr })
 
+      console.log('Transform:', { id, ssr, functions: Array.from(serverFunctionsMap.keys()) });
 
       if (ssr) {
-        // In SSR mode, let Vite handle it
-        return null
+        // Let the original code execute in SSR mode
+        return null;
       }
 
-      // Client-side: Replace all server functions with virtual module imports
-      // const matches = Array.from(code.matchAll(/export\s+(?:function|const|let|var)\s+(\w+)\s*=\s*createServerFunction\s*\(\s*['"]([^'"]+)['"]/g))
-      // if (matches.length === 0) return null
-      // for (const [, name] of matches) {
-      //   console.log("createServerFunction called:", name)
-      //   registeredFunctions.add(name);
-      // }
-
-      console.log('Client: Transforming server file with functions:', Array.from(serverFunctionsMap));
-      if (!id.includes("node_modules") /*&& (id.includes('api/server.ts') || id.includes('api/server.js'))*/) {
-        const fnNames = Array.from(serverFunctionsMap.keys());
+      // Only transform non-node_modules files that use server functions
+      if (!id.includes('node_modules')) {
+        console.log('Transforming client code');
         
-        // Generate imports for each function
-        const imports = Array.from(fnNames)
-          .map(name => `import ${name}Impl from '${VIRTUAL_MODULE_PREFIX}${name}';`)
-          .join('\n');
-        
-        // Generate exports for each function
-        const exports = Array.from(fnNames)
-          .map(name => `export const ${name} = ${name}Impl;`)
-          .join('\n');
-
+        // Import the functions list from the registry
         const transformedCode = `
-          // Generated by vite-plugin-rpc
-          ${imports}
-          ${exports}
+          import registeredFunctions from '${REGISTRY_MODULE_ID}';
+          ${Array.from(serverFunctionsMap.keys())
+            .map(name => `
+              import ${name}Impl from '${VIRTUAL_MODULE_PREFIX}${name}';
+              export const ${name} = ${name}Impl;
+            `)
+            .join('\n')}
         `;
 
-        console.log('Generated client code:', transformedCode);
+        console.log('Generated:', transformedCode);
         return {
           code: transformedCode,
           map: null
         };
       }
+
       return null;
     },
-
-    // transform(code, id) {
-    //   // Skip node_modules
-    //   if (id.includes('node_modules')) return
-
-    //   // Check for 'use server' directive at file level
-    //   const isServerFile = code.trim().startsWith("'use server'") || 
-    //                       code.trim().startsWith('"use server"')
-
-    //   if (isServerFile) {
-    //     serverFiles.add(id)
-    //     // If client build, replace with proxy imports
-    //     if (!isSSR) {
-    //       return {
-    //         code: generateClientProxy(id),
-    //         map: null
-    //       }
-    //     }
-    //     return
-    //   }
-
-    //   // Handle individual server functions
-    //   if (code.includes('use server')) {
-    //     if (!isSSR) {
-    //       const s = new MagicString(code)
-    //       // Transform server functions to client proxies
-    //       return {
-    //         code: transformServerFunctions(code, s),
-    //         map: s.generateMap({ hires: true })
-    //       }
-    //     }
-    //   }
-    // },
 
     configureServer(server) {
       // Set CSRF token
