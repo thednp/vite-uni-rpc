@@ -19,6 +19,6 @@ type ServerFnEntry<
 > = (...args: TArgs) => Promise<TResult> | TResult;
 
 declare function registerServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): void;
-declare function createServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): void;
+declare function createServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): (...args: unknown[]) => Promise<unknown>;
 
 export { createServerFunction, registerServerFunction };

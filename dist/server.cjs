@@ -68,6 +68,7 @@ function createServerFunction(name, fn, options = {}) {
     return result;
   };
   registerServerFunction(name, wrappedFunction, options);
+  return wrappedFunction;
 }
 
 
