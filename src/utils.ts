@@ -1,10 +1,10 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage } from "node:http";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { serverFunctionsMap } from "./serverFunctionsMap";
 import { type ServerFnEntry } from "./types";
-import { ResolvedConfig, transformWithEsbuild } from "vite";
+import { ResolvedConfig, ViteDevServer } from "vite";
 
 export const readBody = (req: IncomingMessage): Promise<string> => {
   return new Promise((resolve) => {
@@ -16,7 +16,10 @@ export const readBody = (req: IncomingMessage): Promise<string> => {
 
 export const functionMappings = new Map<string, string>();
 
-export const scanForServerFiles = async (config: ResolvedConfig) => {
+export const scanForServerFiles = async (
+  config: ResolvedConfig,
+  server: ViteDevServer,
+) => {
   functionMappings.clear();
   const apiDir = join(config.root, "src", "api");
 
@@ -29,30 +32,25 @@ export const scanForServerFiles = async (config: ResolvedConfig) => {
   for (const file of files) {
     try {
       // Read the file content
-      const code = await readFile(file, 'utf-8');
-      
+      // const code = await readFile(file, 'utf-8');
+
       // Transform TypeScript to JavaScript using the loaded transform function
-      const result = await transformWithEsbuild(code, file, {
-        loader: 'ts',
-        format: 'esm',
-        target: 'es2020',
-      });
+      const moduleExports = await server.ssrLoadModule(file) as Record<
+        string,
+        ServerFnEntry
+      >;
 
-      const moduleExports = await import(
-        `data:text/javascript;base64,${Buffer.from(result.code).toString('base64')}`
-      );
-
-        // Examine each export
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-            if (
-              serverFn.name === registeredName &&
-              serverFn.fn === exportValue
-            ) {
-              functionMappings.set(registeredName, exportName);
-            }
+      // Examine each export
+      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+          if (
+            serverFn.name === registeredName &&
+            serverFn.fn === exportValue
+          ) {
+            functionMappings.set(registeredName, exportName);
           }
         }
+      }
     } catch (error) {
       console.error("Error loading server file:", file, error);
     }

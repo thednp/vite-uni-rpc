@@ -5,12 +5,11 @@ import {
 
 // src/index.ts
 import { createHash } from "node:crypto";
-import { transformWithEsbuild as transformWithEsbuild2 } from "vite";
+import { transformWithEsbuild } from "vite";
 
 // src/utils.ts
-import { readdir, readFile } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { transformWithEsbuild } from "vite";
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
@@ -19,19 +18,13 @@ var readBody = (req) => {
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (config) => {
+var scanForServerFiles = async (config, server) => {
   functionMappings.clear();
   const apiDir = join(config.root, "src", "api");
   const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
   for (const file of files) {
     try {
-      const code = await readFile(file, "utf-8");
-      const result = await transformWithEsbuild(code, file, {
-        loader: "ts",
-        format: "esm",
-        target: "es2020"
-      });
-      const moduleExports = await import(`data:text/javascript;base64,${Buffer.from(result.code).toString("base64")}`);
+      const moduleExports = await server.ssrLoadModule(file);
       for (const [exportName, exportValue] of Object.entries(moduleExports)) {
         for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
           if (serverFn.name === registeredName && serverFn.fn === exportValue) {
@@ -83,6 +76,7 @@ function setSecureCookie(res, name, value, options = {}) {
 function rpcPlugin(initialOptions = {}) {
   const options = { ...defaultOptions, ...initialOptions };
   let config;
+  let viteServer;
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
@@ -98,7 +92,7 @@ function rpcPlugin(initialOptions = {}) {
         return null;
       }
       if (functionMappings.size === 0) {
-        await scanForServerFiles(config);
+        await scanForServerFiles(config, viteServer);
       }
       const transformedCode = `
 // Client-side RPC modules
@@ -106,7 +100,7 @@ ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName, options)
       ).join("\n")}
 `.trim();
-      const result = await transformWithEsbuild2(transformedCode, id, {
+      const result = await transformWithEsbuild(transformedCode, id, {
         loader: "js",
         target: "es2020"
       });
@@ -117,7 +111,8 @@ ${Array.from(functionMappings.entries()).map(
       };
     },
     configureServer(server) {
-      scanForServerFiles(config);
+      viteServer = server;
+      scanForServerFiles(config, server);
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");

@@ -1,4 +1,4 @@
-import type { Plugin, ResolvedConfig } from "vite";
+import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
 import { createHash } from "node:crypto";
 // import process from "node:process";
 import { transformWithEsbuild } from "vite";
@@ -18,6 +18,7 @@ export default function rpcPlugin(
 ): Plugin {
   const options = { ...defaultOptions, ...initialOptions };
   let config: ResolvedConfig;
+  let viteServer: ViteDevServer;
 
   return {
     name: "vite-mini-rpc",
@@ -39,7 +40,7 @@ export default function rpcPlugin(
         return null;
       }
       if (functionMappings.size === 0) {
-        await scanForServerFiles(config);
+        await scanForServerFiles(config, viteServer);
       }
 
       const transformedCode = `
@@ -65,7 +66,8 @@ ${
     },
 
     configureServer(server) {
-      scanForServerFiles(config);
+      viteServer = server;
+      scanForServerFiles(config, server);
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");
