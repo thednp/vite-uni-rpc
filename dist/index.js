@@ -1,13 +1,9 @@
 import {
-  defaultOptions,
   serverFunctionsMap
-} from "./chunk-53BM2ESW.js";
+} from "./chunk-S62OQ7GK.js";
 
 // src/index.ts
 import { createHash } from "node:crypto";
-import process from "node:process";
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
 
 // src/utils.ts
 var readBody = (req) => {
@@ -18,54 +14,46 @@ var readBody = (req) => {
   });
 };
 
-// src/cookie.ts
-import { parse as parseCookies } from "node:querystring";
-function getCookies(cookieHeader) {
-  if (!cookieHeader) return {};
-  return parseCookies(cookieHeader.replace(/; /g, "&"));
-}
-function setSecureCookie(res, name, value, options = {}) {
-  const defaults = {
-    HttpOnly: "true",
-    Secure: "true",
-    SameSite: "Strict",
-    Path: "/"
-  };
-  const cookieOptions = { ...defaults, ...options };
-  const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  res.setHeader("Set-Cookie", cookieString);
-}
-
 // src/index.ts
-function rpcPlugin(initialOptions = {}) {
-  const options = { ...defaultOptions, ...initialOptions };
+import { join } from "node:path";
+import { readdir } from "fs/promises";
+function trpcPlugin() {
   let config;
+  let serverFiles = /* @__PURE__ */ new Set();
   const functionMappings = /* @__PURE__ */ new Map();
-  const scanForServerFiles = async (root) => {
+  async function scanForServerFiles(root) {
     const apiDir = join(root, "src", "api");
-    const files = (await readdir(apiDir, { withFileTypes: true })).filter(
-      (f) => {
-        return f.name.includes("server.ts") || f.name.includes("server.js");
-      }
-    ).map((f) => join(apiDir, f.name));
+    console.log("Scanning for server files in:", apiDir);
+    const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => {
+      return f.name.includes("server.ts") || f.name.includes("server.js");
+    }).map((f) => join(apiDir, f.name));
+    console.log("Found server files:", files);
     for (const file of files) {
       try {
+        serverFiles.add(file);
         const fileUrl = `file://${file}`;
         const moduleExports = await import(fileUrl);
         for (const [exportName, exportValue] of Object.entries(moduleExports)) {
           for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
             if (serverFn.fn === exportValue) {
               functionMappings.set(registeredName, exportName);
+              console.log("Mapped function:", { exportName, registeredName });
             }
           }
         }
+        console.log(
+          "Registered server file:",
+          file,
+          "with functions:",
+          Array.from(functionMappings.values())
+        );
       } catch (error) {
         console.error("Error loading server file:", file, error);
       }
     }
-  };
+  }
   return {
-    name: "vite-mini-rpc",
+    name: "vite-plugin-rpc",
     enforce: "pre",
     configResolved(resolvedConfig) {
       config = resolvedConfig;
@@ -73,17 +61,32 @@ function rpcPlugin(initialOptions = {}) {
     buildStart() {
       serverFunctionsMap.clear();
     },
-    transform(code, _id, ops) {
-      if (!code.includes("createServerFunction") || process.env.MODE !== "production" || ops?.ssr) {
+    // Add this to handle server file imports
+    // handleHotUpdate({ file, server }) {
+    //   if (serverFiles.has(file)) {
+    //     console.log('Server file changed:', file)
+    //     // Clear and reload server functions
+    //     serverFunctionsMap.clear()
+    //     // Force reloading the server file
+    //     server.reloadModule(file)
+    //     // Notify clients to reload
+    //     server.ws.send({ type: 'full-reload' })
+    //   }
+    // },
+    async transform(code, id, ops) {
+      if (!code.includes("createServerFunction") || ops?.ssr) {
         return null;
       }
+      console.log("Transform client code:", id);
       const getModule = (fnName, fnEntry) => `
+// RPC client for ${fnEntry}
 export const ${fnEntry} = async (...args) => {
-  // const requestToken = await getToken();
-  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+  const requestToken = await getToken();
+  const response = await fetch('/__rpc/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-CSRF-Token': requestToken
     },
     body: JSON.stringify(args)
   });
@@ -92,13 +95,17 @@ export const ${fnEntry} = async (...args) => {
   if (result.error) throw new Error(result.error);
   return result.data;
 }
-`.trim();
+    `.trim();
       const transformedCode = `
-// Client-side RPC modules
-${Array.from(functionMappings.entries()).map(
+        // Client-side methods
+        const getToken = async () => {
+          const tokenResponse = await fetch('/__rpc/token', { method: 'GET' });
+          return tokenResponse.headers.get('X-CSRF-Token');
+        }
+        ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName)
       ).join("\n")}
-`.trim();
+      `.trim();
       return {
         code: transformedCode,
         map: null
@@ -106,25 +113,12 @@ ${Array.from(functionMappings.entries()).map(
     },
     configureServer(server) {
       scanForServerFiles(config.root);
+      console.log("Server functions:", Array.from(serverFunctionsMap.keys()));
       server.middlewares.use((req, res, next) => {
-        res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
+        res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-        res.setHeader(
-          "Access-Control-Allow-Headers",
-          "Content-Type,X-CSRF-Token"
-        );
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-CSRF-Token");
         res.setHeader("Access-Control-Allow-Credentials", "true");
-        const cookies = getCookies(req.headers.cookie);
-        if (!cookies["X-CSRF-Token"]) {
-          const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
-          setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-            // Can add additional options here
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1e3).toUTCString(),
-            // 24h
-            SameSite: "Strict"
-            // Prevents CSRF attacks
-          });
-        }
         if (req.method === "OPTIONS") {
           res.statusCode = 204;
           res.end();
@@ -132,22 +126,30 @@ ${Array.from(functionMappings.entries()).map(
         }
         next();
       });
+      server.middlewares.use((req, res, next) => {
+        if (req.method === "GET") {
+          if (req.url === "/__rpc/token") {
+            const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
+            res.setHeader("X-CSRF-Token", csrfToken);
+            res.end();
+            return;
+          }
+        }
+        next();
+      });
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith(`/${options.urlPrefix}/`)) return next();
-        const cookies = getCookies(req.headers.cookie);
-        const csrfToken = cookies["X-CSRF-Token"];
+        if (!req.url?.startsWith("/__rpc/") || req.url === "/__rpc/token") return next();
+        const csrfToken = req.headers["x-csrf-token"];
         if (!csrfToken) {
           res.statusCode = 403;
           res.end(JSON.stringify({ error: "Invalid CSRF token" }));
           return;
         }
-        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
+        const functionName = req.url.replace("/__rpc/", "");
         const serverFunction = serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
-          res.end(
-            JSON.stringify({ error: `Function "${functionName}" not found` })
-          );
+          res.end(JSON.stringify({ error: `Function "${functionName}" not found` }));
           return;
         }
         try {
@@ -165,5 +167,5 @@ ${Array.from(functionMappings.entries()).map(
   };
 }
 export {
-  rpcPlugin as default
+  trpcPlugin as default
 };

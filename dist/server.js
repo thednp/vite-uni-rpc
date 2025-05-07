@@ -1,8 +1,13 @@
 import {
   __publicField,
-  defaultOptions,
   serverFunctionsMap
-} from "./chunk-53BM2ESW.js";
+} from "./chunk-S62OQ7GK.js";
+
+// src/options.ts
+var defaultOptions = {
+  ttl: 1e4,
+  urlPrefix: "__rpc"
+};
 
 // src/cache.ts
 var ServerCache = class {
