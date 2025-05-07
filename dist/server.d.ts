@@ -9,7 +9,7 @@ interface ServerFunctionOptions {
 type ServerFnEntry<
   TArgs extends unknown[] = unknown[],
   TResult = unknown,
-> = (...args: TArgs) => Promise<TResult>;
+> = (...args: TArgs) => Promise<TResult> | TResult;
 
 declare function registerServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): void;
 declare function createServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): (...args: unknown[]) => Promise<unknown>;

@@ -60,7 +60,7 @@ function createServerFunction(name, fn, options = {}) {
     const result = await serverCache.get(
       cacheKey,
       options.cache.ttl,
-      () => fn(...args)
+      async () => await fn(...args)
     );
     if (options.cache.invalidateKeys) {
       serverCache.invalidate(options.cache.invalidateKeys);

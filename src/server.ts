@@ -24,7 +24,7 @@ export function createServerFunction(
     const result = await serverCache.get(
       cacheKey,
       options.cache.ttl,
-      () => fn(...args),
+      async () => await fn(...args),
     );
 
     if (options.cache.invalidateKeys) {

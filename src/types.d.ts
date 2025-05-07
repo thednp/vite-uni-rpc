@@ -9,7 +9,7 @@ export interface ServerFunctionOptions {
 export type ServerFnEntry<
   TArgs extends unknown[] = unknown[],
   TResult = unknown,
-> = (...args: TArgs) => Promise<TResult>;
+> = (...args: TArgs) => Promise<TResult> | TResult;
 
 export interface ServerFunction<
   TArgs extends unknown[] = unknown[],
