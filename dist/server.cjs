@@ -1,20 +1,15 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
 
-var _chunkXBNGK7Y3cjs = require('./chunk-XBNGK7Y3.cjs');
 
-// src/options.ts
-var defaultOptions = {
-  ttl: 1e4,
-  urlPrefix: "__rpc"
-};
+var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkXBNGK7Y3cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkMVVEXO4Ucjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = defaultOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkMVVEXO4Ucjs.defaultOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -56,7 +51,7 @@ var serverCache = new ServerCache();
 
 // src/server.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: defaultOptions.ttl, ...initialOptions };
+  const options = { ttl: _chunkMVVEXO4Ucjs.defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -69,7 +64,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkXBNGK7Y3cjs.serverFunctionsMap.set(name, { name, fn, options });
+  _chunkMVVEXO4Ucjs.serverFunctionsMap.set(name, { name, fn, options });
   return wrappedFunction;
 }
 
