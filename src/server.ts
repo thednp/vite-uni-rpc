@@ -18,7 +18,6 @@ export function createServerFunction(
   fn: ServerFnEntry,
   initialOptions: ServerFunctionOptions = {},
 ) {
-  if (serverFunctionsMap.has(name)) return;
   const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args: unknown[]) => {
     // if (!options?.ttl) return fn(...args);
@@ -38,7 +37,7 @@ export function createServerFunction(
   };
 
   // registerServerFunction(name, wrappedFunction, options);
-  serverFunctionsMap.set(name, { name, fn, options });
+  serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
 
   return wrappedFunction;
 }

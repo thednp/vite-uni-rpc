@@ -53,9 +53,9 @@ function rpcPlugin(initialOptions = {}) {
       try {
         const fileUrl = `file://${file}`;
         const moduleExports = await import(fileUrl);
-        for (const [exportName] of Object.entries(moduleExports)) {
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
           for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-            if (serverFn.name === registeredName && !functionMappings.has(registeredName)) {
+            if (serverFn.name === registeredName && serverFn.fn === exportValue) {
               functionMappings.set(registeredName, exportName);
             }
           }

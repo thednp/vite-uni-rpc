@@ -73,10 +73,9 @@ export const sayHi = createServerFunction(
     return `Hello ${name}!`;
   },
   { // set a series of cache options
-    cache: {
-      ttl: 5000, // Time to live: how many miliseconds to keep the cache
-      invalidateKeys: []; // when this function is executed, it will automatically invalidate these keys
-    };
+    
+    ttl: 10000, // Time to live: how many miliseconds to keep the cache
+    invalidateKeys: []; // when this function is executed, it will automatically invalidate these keys
   }
 );
 ```

@@ -8,7 +8,7 @@ import { serverFunctionsMap } from "./serverFunctionsMap";
 import { readBody } from "./utils";
 import { getCookies, setSecureCookie } from "./cookie";
 import { defaultOptions } from "./options";
-import { RpcPluginOptions } from "./types";
+import { RpcPluginOptions, ServerFnEntry } from "./types";
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
@@ -33,16 +33,19 @@ export default function rpcPlugin(
       try {
         const fileUrl = `file://${file}`;
         // Import the module to get the exported functions
-        const moduleExports = await import(fileUrl);
+        const moduleExports = await import(fileUrl) as Record<
+          string,
+          ServerFnEntry
+        >;
 
         // Examine each export
-        for (const [exportName] of Object.entries(moduleExports)) {
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
           for (
             const [registeredName, serverFn] of serverFunctionsMap.entries()
           ) {
             if (
               serverFn.name === registeredName &&
-              !functionMappings.has(registeredName)
+              serverFn.fn === exportValue
             ) {
               functionMappings.set(registeredName, exportName);
             }

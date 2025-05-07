@@ -51,7 +51,6 @@ var serverCache = new ServerCache();
 
 // src/server.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  if (_chunkMVVEXO4Ucjs.serverFunctionsMap.has(name)) return;
   const options = { ttl: _chunkMVVEXO4Ucjs.defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}-${JSON.stringify(args)}`;
@@ -65,7 +64,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkMVVEXO4Ucjs.serverFunctionsMap.set(name, { name, fn, options });
+  _chunkMVVEXO4Ucjs.serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
   return wrappedFunction;
 }
 

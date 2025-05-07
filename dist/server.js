@@ -51,7 +51,6 @@ var serverCache = new ServerCache();
 
 // src/server.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  if (serverFunctionsMap.has(name)) return;
   const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}-${JSON.stringify(args)}`;
@@ -65,7 +64,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  serverFunctionsMap.set(name, { name, fn, options });
+  serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
   return wrappedFunction;
 }
 export {
