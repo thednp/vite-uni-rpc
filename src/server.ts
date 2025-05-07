@@ -3,8 +3,8 @@
 
 import { serverCache } from './cache'
 import type { ServerFunction, ServerFunctionOptions } from './types'
-
-export const serverFunctionsMap = new Map<string, { name: string, fn: ServerFunction<unknown[], unknown>, options?: ServerFunctionOptions }>()
+// import { serverFunctionsMap } from "./serverFunctionsMap";
+import { serverFunctionsMap } from "virtual:@rpc-registry";
 
 export function registerServerFunction(
   name: string,
