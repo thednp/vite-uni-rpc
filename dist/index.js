@@ -5,6 +5,7 @@ import {
 // src/index.ts
 import { createHash } from "node:crypto";
 import { join } from "node:path";
+import process from "node:process";
 import { readdir } from "fs/promises";
 
 // src/utils.ts
@@ -71,7 +72,7 @@ function trpcPlugin() {
       serverFunctionsMap.clear();
     },
     transform(code, _id, ops) {
-      if (!code.includes("createServerFunction") || ops?.ssr) {
+      if (!code.includes("createServerFunction") || process.env.MODE !== "production" || ops?.ssr) {
         return null;
       }
       const getModule = (fnName, fnEntry) => `

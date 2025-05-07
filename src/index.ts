@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 // import { transformWithEsbuild } from 'vite'
 import { serverFunctionsMap } from "./serverFunctionsMap";
 import { join } from "node:path";
+import process from "node:process";
 import { readdir } from "fs/promises";
 import { readBody } from "./utils";
 import { getCookies, setSecureCookie } from "./cookie";
@@ -60,7 +61,10 @@ export default function trpcPlugin(): Plugin {
 
     transform(code: string, _id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
-      if (!code.includes("createServerFunction") || ops?.ssr) {
+      if (
+        !code.includes("createServerFunction") ||
+        process.env.MODE !== "production" || ops?.ssr
+      ) {
         return null;
       }
 
