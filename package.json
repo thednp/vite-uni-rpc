@@ -13,8 +13,8 @@
   "license": "MIT",
   "author": "thednp",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "main": "./src/index.ts",
+  "module": "./dist/index.ts",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -23,18 +23,15 @@
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
-      "require": "./src/index.cjs",
-      "import": "./src/index.js"
+      "import": "./src/index.ts"
     },
     "./client": {
       "types": "./src/client.d.ts",
-      "require": "./src/client.cjs",
-      "import": "./src/client.js"
+      "import": "./src/client.ts"
     },
     "./server": {
       "types": "./src/server.d.ts",
-      "require": "./src/server.cjs",
-      "import": "./src/server.js"
+      "import": "./src/server.ts"
     },
     "./_": {
       "types": "./dist/index.d.ts",
