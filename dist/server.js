@@ -1,6 +1,9 @@
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+import {
+  serverFunctionsMap
+} from "./chunk-XUPDFX23.js";
+import {
+  __publicField
+} from "./chunk-PKBMQBKP.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -46,9 +49,6 @@ var ServerCache = class {
   }
 };
 var serverCache = new ServerCache();
-
-// src/serverFunctionsMap.ts
-var serverFunctionsMap = /* @__PURE__ */ new Map();
 
 // src/server.ts
 function registerServerFunction(name, fn, options) {

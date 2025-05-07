@@ -1,46 +1,10 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/client.ts
-var client_exports = {};
-__export(client_exports, {
-  createAction: () => createAction,
-  createAsync: () => createAsync,
-  createResource: () => createResource
-});
-module.exports = __toCommonJS(client_exports);
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }require('./chunk-ETV4XYOV.cjs');
 
 // src/action.ts
-var import_vanjs_core = __toESM(require("vanjs-core"), 1);
-var import_vanjs_ext = require("vanjs-ext");
+var _vanjscore = require('vanjs-core'); var _vanjscore2 = _interopRequireDefault(_vanjscore);
+var _vanjsext = require('vanjs-ext');
 function createAction(fn, options = {}) {
-  const state = (0, import_vanjs_ext.reactive)({
+  const state = _vanjsext.reactive.call(void 0, {
     submissions: []
   });
   async function actionFn(input) {
@@ -79,14 +43,14 @@ function createAction(fn, options = {}) {
       const result = await fn(input);
       submission.result = result;
       submission.pending = false;
-      options.onComplete?.(submission);
-      promiseHandlers.resolve?.(result);
+      _optionalChain([options, 'access', _ => _.onComplete, 'optionalCall', _2 => _2(submission)]);
+      _optionalChain([promiseHandlers, 'access', _3 => _3.resolve, 'optionalCall', _4 => _4(result)]);
       return result;
     } catch (error) {
       submission.error = error;
       submission.pending = false;
-      options.onComplete?.(submission);
-      promiseHandlers.reject?.(error);
+      _optionalChain([options, 'access', _5 => _5.onComplete, 'optionalCall', _6 => _6(submission)]);
+      _optionalChain([promiseHandlers, 'access', _7 => _7.reject, 'optionalCall', _8 => _8(error)]);
       throw error;
     }
   }
@@ -133,7 +97,7 @@ var loginAction = createAction(
 );
 
 // src/resource.ts
-var import_vanjs_ext2 = require("vanjs-ext");
+
 var handleResponseErrors = (response) => {
   if (!response.ok) {
     const errorMessage = response.statusText.length ? response.statusText : `Fetch error: ${response.status}`;
@@ -148,14 +112,14 @@ var parseResult = async (initialResult) => {
   try {
     if (result instanceof Response) {
       const contentType = result.headers.get("content-type");
-      if (contentType?.includes("application/json")) {
+      if (_optionalChain([contentType, 'optionalAccess', _9 => _9.includes, 'call', _10 => _10("application/json")])) {
         return result.json();
-      } else if (contentType?.includes("text/")) {
+      } else if (_optionalChain([contentType, 'optionalAccess', _11 => _11.includes, 'call', _12 => _12("text/")])) {
         return result.text();
-      } else if (contentType?.includes("application/x-www-form-urlencoded")) {
+      } else if (_optionalChain([contentType, 'optionalAccess', _13 => _13.includes, 'call', _14 => _14("application/x-www-form-urlencoded")])) {
         const formData = await result.formData();
         return Object.fromEntries(formData);
-      } else if (contentType?.includes("multipart/form-data")) {
+      } else if (_optionalChain([contentType, 'optionalAccess', _15 => _15.includes, 'call', _16 => _16("multipart/form-data")])) {
         const formData = await result.formData();
         const formObject = {};
         formData.forEach((value, key) => {
@@ -170,9 +134,9 @@ var parseResult = async (initialResult) => {
           }
         });
         return formObject;
-      } else if (contentType?.includes("application/octet-stream")) {
+      } else if (_optionalChain([contentType, 'optionalAccess', _17 => _17.includes, 'call', _18 => _18("application/octet-stream")])) {
         return result.arrayBuffer();
-      } else if (contentType?.includes("image/") || contentType?.includes("video/") || contentType?.includes("audio/")) {
+      } else if (_optionalChain([contentType, 'optionalAccess', _19 => _19.includes, 'call', _20 => _20("image/")]) || _optionalChain([contentType, 'optionalAccess', _21 => _21.includes, 'call', _22 => _22("video/")]) || _optionalChain([contentType, 'optionalAccess', _23 => _23.includes, 'call', _24 => _24("audio/")])) {
         return result.blob();
       }
     } else if (result instanceof ReadableStream) {
@@ -187,14 +151,14 @@ var parseResult = async (initialResult) => {
       const text = await blob.text();
       try {
         return JSON.parse(text);
-      } catch {
+      } catch (e) {
         return text;
       }
     } else if (result instanceof Blob) {
       return result.text().then((text) => {
         try {
           return JSON.parse(text);
-        } catch {
+        } catch (e2) {
           return text;
         }
       });
@@ -202,7 +166,7 @@ var parseResult = async (initialResult) => {
       const text = new TextDecoder().decode(result);
       try {
         return JSON.parse(text);
-      } catch {
+      } catch (e3) {
         return text;
       }
     } else if (result instanceof FormData) {
@@ -220,7 +184,7 @@ var parseResult = async (initialResult) => {
   }
 };
 function createResource(fetcher, options = {}) {
-  const state = (0, import_vanjs_ext2.reactive)({
+  const state = _vanjsext.reactive.call(void 0, {
     value: options.initialValue,
     latest: options.initialValue,
     loading: false,
@@ -354,9 +318,8 @@ function createAsync(fn, options) {
   });
   return resultAccessor;
 }
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  createAction,
-  createAsync,
-  createResource
-});
+
+
+
+
+exports.createAction = createAction; exports.createAsync = createAsync; exports.createResource = createResource;

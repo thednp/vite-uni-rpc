@@ -1,3 +1,5 @@
+import "./chunk-PKBMQBKP.js";
+
 // src/action.ts
 import van from "vanjs-core";
 import { reactive } from "vanjs-ext";

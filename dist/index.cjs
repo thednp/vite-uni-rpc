@@ -1,36 +1,12 @@
-"use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+var _chunkYNTNTPHUcjs = require('./chunk-YNTNTPHU.cjs');
+require('./chunk-ETV4XYOV.cjs');
 
 // src/index.ts
-var src_exports = {};
-__export(src_exports, {
-  default: () => trpcPlugin
-});
-module.exports = __toCommonJS(src_exports);
-var import_node_crypto = require("crypto");
-
-// src/serverFunctionsMap.ts
-var serverFunctionsMap = /* @__PURE__ */ new Map();
-
-// src/index.ts
-var import_node_path = require("path");
-var import_promises = require("fs/promises");
+var _crypto = require('crypto');
+var _path = require('path');
+var _promises = require('fs/promises');
 
 // src/utils.ts
 function readBody(req) {
@@ -42,10 +18,10 @@ function readBody(req) {
 }
 
 // src/cookie.ts
-var import_node_querystring = require("querystring");
+var _querystring = require('querystring');
 function getCookies(cookieHeader) {
   if (!cookieHeader) return {};
-  return (0, import_node_querystring.parse)(cookieHeader.replace(/; /g, "&"));
+  return _querystring.parse.call(void 0, cookieHeader.replace(/; /g, "&"));
 }
 function setSecureCookie(res, name, value, options = {}) {
   const defaults = {
@@ -65,17 +41,17 @@ function trpcPlugin() {
   let serverFiles = /* @__PURE__ */ new Set();
   const functionMappings = /* @__PURE__ */ new Map();
   async function scanForServerFiles(root) {
-    const apiDir = (0, import_node_path.join)(root, "src", "api");
-    const files = (await (0, import_promises.readdir)(apiDir, { withFileTypes: true })).filter((f) => {
+    const apiDir = _path.join.call(void 0, root, "src", "api");
+    const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => {
       return f.name.includes("server.ts") || f.name.includes("server.js");
-    }).map((f) => (0, import_node_path.join)(apiDir, f.name));
+    }).map((f) => _path.join.call(void 0, apiDir, f.name));
     for (const file of files) {
       try {
         serverFiles.add(file);
         const fileUrl = `file://${file}`;
-        const moduleExports = await import(fileUrl);
+        const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
         for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+          for (const [registeredName, serverFn] of _chunkYNTNTPHUcjs.serverFunctionsMap.entries()) {
             if (serverFn.fn === exportValue) {
               functionMappings.set(registeredName, exportName);
             }
@@ -93,10 +69,10 @@ function trpcPlugin() {
       config = resolvedConfig;
     },
     buildStart() {
-      serverFunctionsMap.clear();
+      _chunkYNTNTPHUcjs.serverFunctionsMap.clear();
     },
     async transform(code, _id, ops) {
-      if (!code.includes("createServerFunction") || ops?.ssr) {
+      if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
       const getModule = (fnName, fnEntry) => `
@@ -136,7 +112,7 @@ ${Array.from(functionMappings.entries()).map(
         res.setHeader("Access-Control-Allow-Credentials", "true");
         const cookies = getCookies(req.headers.cookie);
         if (!cookies["X-CSRF-Token"]) {
-          const csrfToken = (0, import_node_crypto.createHash)("sha256").update(Date.now().toString()).digest("hex");
+          const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
           setSecureCookie(res, "X-CSRF-Token", csrfToken, {
             // Can add additional options here
             expires: new Date(Date.now() + 24 * 60 * 60 * 1e3).toUTCString(),
@@ -153,7 +129,7 @@ ${Array.from(functionMappings.entries()).map(
         next();
       });
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith("/__rpc/")) return next();
+        if (!_optionalChain([req, 'access', _2 => _2.url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4("/__rpc/")])) return next();
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
         if (!csrfToken) {
@@ -162,7 +138,7 @@ ${Array.from(functionMappings.entries()).map(
           return;
         }
         const functionName = req.url.replace("/__rpc/", "");
-        const serverFunction = serverFunctionsMap.get(functionName);
+        const serverFunction = _chunkYNTNTPHUcjs.serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
           res.end(JSON.stringify({ error: `Function "${functionName}" not found` }));
@@ -182,3 +158,6 @@ ${Array.from(functionMappings.entries()).map(
     }
   };
 }
+
+
+exports.default = trpcPlugin;

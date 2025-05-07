@@ -1,41 +1,19 @@
-"use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-// src/server.ts
-var server_exports = {};
-__export(server_exports, {
-  createServerFunction: () => createServerFunction,
-  registerServerFunction: () => registerServerFunction
-});
-module.exports = __toCommonJS(server_exports);
+var _chunkYNTNTPHUcjs = require('./chunk-YNTNTPHU.cjs');
+
+
+var _chunkETV4XYOVcjs = require('./chunk-ETV4XYOV.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    __publicField(this, "cache", /* @__PURE__ */ new Map());
+    _chunkETV4XYOVcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
   async get(key, ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
-    if (entry?.promise) return entry.promise;
+    if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
     if (entry && now - entry.timestamp < ttl) return entry.data;
     const promise = fetcher().then((data) => {
       this.cache.set(key, { data, timestamp: now });
@@ -72,16 +50,13 @@ var ServerCache = class {
 };
 var serverCache = new ServerCache();
 
-// src/serverFunctionsMap.ts
-var serverFunctionsMap = /* @__PURE__ */ new Map();
-
 // src/server.ts
 function registerServerFunction(name, fn, options) {
-  serverFunctionsMap.set(name, { name, fn, options });
+  _chunkYNTNTPHUcjs.serverFunctionsMap.set(name, { name, fn, options });
 }
 function createServerFunction(name, fn, options = {}) {
   const wrappedFunction = async (...args) => {
-    if (!options.cache?.ttl) return fn(...args);
+    if (!_optionalChain([options, 'access', _2 => _2.cache, 'optionalAccess', _3 => _3.ttl])) return fn(...args);
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
@@ -96,8 +71,7 @@ function createServerFunction(name, fn, options = {}) {
   registerServerFunction(name, wrappedFunction, options);
   return wrappedFunction;
 }
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  createServerFunction,
-  registerServerFunction
-});
+
+
+
+exports.createServerFunction = createServerFunction; exports.registerServerFunction = registerServerFunction;
