@@ -6,40 +6,16 @@ var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 // src/index.ts
 var _crypto = require('crypto');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
+var _promises = require('fs/promises');
+var _path = require('path');
 
 // src/utils.ts
-var _path = require('path');
-var _promises = require('fs/promises');
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
     req.on("end", () => resolve(body));
   });
-};
-var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (root) => {
-  const apiDir = _path.join.call(void 0, root, "src", "api");
-  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
-    (f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }
-  ).map((f) => _path.join.call(void 0, apiDir, f.name));
-  for (const file of files) {
-    try {
-      const fileUrl = `file://${file}`;
-      const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
-          if (serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error loading server file:", file, error);
-    }
-  }
 };
 
 // src/cookie.ts
@@ -64,6 +40,30 @@ function setSecureCookie(res, name, value, options = {}) {
 function rpcPlugin(initialOptions = {}) {
   const options = { ..._chunkMVVEXO4Ucjs.defaultOptions, ...initialOptions };
   let config;
+  const functionMappings = /* @__PURE__ */ new Map();
+  const scanForServerFiles = async (root) => {
+    const apiDir = _path.join.call(void 0, root, "src", "api");
+    const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
+      (f) => {
+        return f.name.includes("server.ts") || f.name.includes("server.js");
+      }
+    ).map((f) => _path.join.call(void 0, apiDir, f.name));
+    for (const file of files) {
+      try {
+        const fileUrl = `file://${file}`;
+        const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+          for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
+            if (serverFn.fn === exportValue) {
+              functionMappings.set(registeredName, exportName);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading server file:", file, error);
+      }
+    }
+  };
   return {
     name: "vite-mini-rpc",
     enforce: "pre",

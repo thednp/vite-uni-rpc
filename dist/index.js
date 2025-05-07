@@ -6,40 +6,16 @@ import {
 // src/index.ts
 import { createHash } from "node:crypto";
 import process from "node:process";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 
 // src/utils.ts
-import { join } from "node:path";
-import { readdir } from "node:fs/promises";
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
     req.on("end", () => resolve(body));
   });
-};
-var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (root) => {
-  const apiDir = join(root, "src", "api");
-  const files = (await readdir(apiDir, { withFileTypes: true })).filter(
-    (f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }
-  ).map((f) => join(apiDir, f.name));
-  for (const file of files) {
-    try {
-      const fileUrl = `file://${file}`;
-      const moduleExports = await import(fileUrl);
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error loading server file:", file, error);
-    }
-  }
 };
 
 // src/cookie.ts
@@ -64,6 +40,30 @@ function setSecureCookie(res, name, value, options = {}) {
 function rpcPlugin(initialOptions = {}) {
   const options = { ...defaultOptions, ...initialOptions };
   let config;
+  const functionMappings = /* @__PURE__ */ new Map();
+  const scanForServerFiles = async (root) => {
+    const apiDir = join(root, "src", "api");
+    const files = (await readdir(apiDir, { withFileTypes: true })).filter(
+      (f) => {
+        return f.name.includes("server.ts") || f.name.includes("server.js");
+      }
+    ).map((f) => join(apiDir, f.name));
+    for (const file of files) {
+      try {
+        const fileUrl = `file://${file}`;
+        const moduleExports = await import(fileUrl);
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+            if (serverFn.fn === exportValue) {
+              functionMappings.set(registeredName, exportName);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading server file:", file, error);
+      }
+    }
+  };
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
