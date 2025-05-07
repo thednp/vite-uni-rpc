@@ -6,13 +6,15 @@ export interface ServerFunctionOptions {
   };
 }
 
+type Primitive = boolean | string | number;
+
 export type ServerFnEntry<
-  TArgs extends unknown[] = unknown[],
+  TArgs extends Primitive[] = unknown[],
   TResult = unknown,
 > = (...args: TArgs) => Promise<TResult> | TResult;
 
 export interface ServerFunction<
-  TArgs extends unknown[] = unknown[],
+  TArgs extends Primitive[] = unknown[],
   TResult = unknown,
 > {
   name: string;

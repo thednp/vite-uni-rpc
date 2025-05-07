@@ -35,5 +35,4 @@ export function createServerFunction(
   };
 
   registerServerFunction(name, wrappedFunction, options);
-  return wrappedFunction;
 }
