@@ -1,13 +1,14 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
 
-var _chunkXBNGK7Y3cjs = require('./chunk-XBNGK7Y3.cjs');
+
+var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 
 // src/cache.ts
 var DEFAULT_TTL = 5e3;
 var ServerCache = class {
   constructor() {
-    _chunkXBNGK7Y3cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkMVVEXO4Ucjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
   async get(key, ttl = DEFAULT_TTL, fetcher) {
     const entry = this.cache.get(key);
@@ -50,27 +51,23 @@ var ServerCache = class {
 var serverCache = new ServerCache();
 
 // src/server.ts
-function registerServerFunction(name, fn, options = {}) {
-  _chunkXBNGK7Y3cjs.serverFunctionsMap.set(name, { name, fn, options });
-}
-function createServerFunction(name, fn, options = {}) {
+function createServerFunction(name, fn, initialOptions = {}) {
+  const options = { ttl: _chunkMVVEXO4Ucjs.defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
-    if (!_optionalChain([options, 'access', _3 => _3.cache, 'optionalAccess', _4 => _4.ttl])) return fn(...args);
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
-      options.cache.ttl,
+      options.ttl,
       async () => await fn(...args)
     );
-    if (options.cache.invalidateKeys) {
-      serverCache.invalidate(options.cache.invalidateKeys);
+    if (options.invalidateKeys) {
+      serverCache.invalidate(options.invalidateKeys);
     }
     return result;
   };
-  registerServerFunction(name, wrappedFunction, options);
+  _chunkMVVEXO4Ucjs.serverFunctionsMap.set(name, { name, fn, options });
   return wrappedFunction;
 }
 
 
-
-exports.createServerFunction = createServerFunction; exports.registerServerFunction = registerServerFunction;
+exports.createServerFunction = createServerFunction;

@@ -1,7 +1,8 @@
 import {
   __publicField,
+  defaultOptions,
   serverFunctionsMap
-} from "./chunk-S62OQ7GK.js";
+} from "./chunk-53BM2ESW.js";
 
 // src/cache.ts
 var DEFAULT_TTL = 5e3;
@@ -50,27 +51,23 @@ var ServerCache = class {
 var serverCache = new ServerCache();
 
 // src/server.ts
-function registerServerFunction(name, fn, options = {}) {
-  serverFunctionsMap.set(name, { name, fn, options });
-}
-function createServerFunction(name, fn, options = {}) {
+function createServerFunction(name, fn, initialOptions = {}) {
+  const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
-    if (!options.cache?.ttl) return fn(...args);
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
-      options.cache.ttl,
+      options.ttl,
       async () => await fn(...args)
     );
-    if (options.cache.invalidateKeys) {
-      serverCache.invalidate(options.cache.invalidateKeys);
+    if (options.invalidateKeys) {
+      serverCache.invalidate(options.invalidateKeys);
     }
     return result;
   };
-  registerServerFunction(name, wrappedFunction, options);
+  serverFunctionsMap.set(name, { name, fn, options });
   return wrappedFunction;
 }
 export {
-  createServerFunction,
-  registerServerFunction
+  createServerFunction
 };

@@ -3,37 +3,41 @@
 import { serverCache } from "./cache";
 import type { ServerFnEntry, ServerFunctionOptions } from "./types";
 import { serverFunctionsMap } from "./serverFunctionsMap";
+import { defaultOptions } from "./options";
 
-export function registerServerFunction(
-  name: string,
-  fn: ServerFnEntry,
-  options: ServerFunctionOptions = {},
-) {
-  serverFunctionsMap.set(name, { name, fn, options });
-}
+// export function registerServerFunction(
+//   name: string,
+//   fn: ServerFnEntry,
+//   options: ServerFunctionOptions = {},
+// ) {
+//   serverFunctionsMap.set(name, { name, fn, options });
+// }
 
 export function createServerFunction(
   name: string,
   fn: ServerFnEntry,
-  options: ServerFunctionOptions = {},
+  initialOptions: ServerFunctionOptions = {},
 ) {
+  const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args: unknown[]) => {
-    if (!options.cache?.ttl) return fn(...args);
+    // if (!options?.ttl) return fn(...args);
 
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
-      options.cache.ttl,
+      options.ttl,
       async () => await fn(...args),
     );
 
-    if (options.cache.invalidateKeys) {
-      serverCache.invalidate(options.cache.invalidateKeys);
+    if (options.invalidateKeys) {
+      serverCache.invalidate(options.invalidateKeys);
     }
 
     return result;
   };
 
-  registerServerFunction(name, wrappedFunction, options);
+  // registerServerFunction(name, wrappedFunction, options);
+  serverFunctionsMap.set(name, { name, fn, options });
+
   return wrappedFunction;
 }

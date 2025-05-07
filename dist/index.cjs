@@ -1,21 +1,46 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-var _chunkXBNGK7Y3cjs = require('./chunk-XBNGK7Y3.cjs');
+
+var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 
 // src/index.ts
 var _crypto = require('crypto');
-var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
-var _promises = require('fs/promises');
 
 // src/utils.ts
-function readBody(req) {
+var _path = require('path');
+var _promises = require('fs/promises');
+var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
     req.on("end", () => resolve(body));
   });
-}
+};
+var functionMappings = /* @__PURE__ */ new Map();
+var scanForServerFiles = async (root) => {
+  const apiDir = _path.join.call(void 0, root, "src", "api");
+  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
+    (f) => {
+      return f.name.includes("server.ts") || f.name.includes("server.js");
+    }
+  ).map((f) => _path.join.call(void 0, apiDir, f.name));
+  for (const file of files) {
+    try {
+      const fileUrl = `file://${file}`;
+      const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
+      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
+          if (serverFn.fn === exportValue) {
+            functionMappings.set(registeredName, exportName);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading server file:", file, error);
+    }
+  }
+};
 
 // src/cookie.ts
 var _querystring = require('querystring');
@@ -36,32 +61,9 @@ function setSecureCookie(res, name, value, options = {}) {
 }
 
 // src/index.ts
-function trpcPlugin() {
+function rpcPlugin(initialOptions = {}) {
+  const options = { ..._chunkMVVEXO4Ucjs.defaultOptions, ...initialOptions };
   let config;
-  const functionMappings = /* @__PURE__ */ new Map();
-  async function scanForServerFiles(root) {
-    const apiDir = _path.join.call(void 0, root, "src", "api");
-    const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
-      (f) => {
-        return f.name.includes("server.ts") || f.name.includes("server.js");
-      }
-    ).map((f) => _path.join.call(void 0, apiDir, f.name));
-    for (const file of files) {
-      try {
-        const fileUrl = `file://${file}`;
-        const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of _chunkXBNGK7Y3cjs.serverFunctionsMap.entries()) {
-            if (serverFn.fn === exportValue) {
-              functionMappings.set(registeredName, exportName);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading server file:", file, error);
-      }
-    }
-  }
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
@@ -69,7 +71,7 @@ function trpcPlugin() {
       config = resolvedConfig;
     },
     buildStart() {
-      _chunkXBNGK7Y3cjs.serverFunctionsMap.clear();
+      _chunkMVVEXO4Ucjs.serverFunctionsMap.clear();
     },
     transform(code, _id, ops) {
       if (!code.includes("createServerFunction") || _process2.default.env.MODE !== "production" || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
@@ -78,7 +80,7 @@ function trpcPlugin() {
       const getModule = (fnName, fnEntry) => `
 export const ${fnEntry} = async (...args) => {
   // const requestToken = await getToken();
-  const response = await fetch('/__rpc/${fnName}', {
+  const response = await fetch('/${options.urlPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -98,7 +100,6 @@ ${Array.from(functionMappings.entries()).map(
       ).join("\n")}
 `.trim();
       return {
-        // code: result.code,
         code: transformedCode,
         map: null
       };
@@ -132,7 +133,7 @@ ${Array.from(functionMappings.entries()).map(
         next();
       });
       server.middlewares.use(async (req, res, next) => {
-        if (!_optionalChain([req, 'access', _2 => _2.url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4("/__rpc/")])) return next();
+        if (!_optionalChain([req, 'access', _2 => _2.url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${options.urlPrefix}/`)])) return next();
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
         if (!csrfToken) {
@@ -140,8 +141,8 @@ ${Array.from(functionMappings.entries()).map(
           res.end(JSON.stringify({ error: "Invalid CSRF token" }));
           return;
         }
-        const functionName = req.url.replace("/__rpc/", "");
-        const serverFunction = _chunkXBNGK7Y3cjs.serverFunctionsMap.get(functionName);
+        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
+        const serverFunction = _chunkMVVEXO4Ucjs.serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
           res.end(
@@ -165,4 +166,4 @@ ${Array.from(functionMappings.entries()).map(
 }
 
 
-exports.default = trpcPlugin;
+exports.default = rpcPlugin;

@@ -2,50 +2,17 @@ import type { Plugin, ResolvedConfig } from "vite";
 import { createHash } from "node:crypto";
 // import { transformWithEsbuild } from 'vite'
 import { serverFunctionsMap } from "./serverFunctionsMap";
-import { join } from "node:path";
 import process from "node:process";
-import { readdir } from "fs/promises";
-import { readBody } from "./utils";
+import { functionMappings, readBody, scanForServerFiles } from "./utils";
 import { getCookies, setSecureCookie } from "./cookie";
+import { defaultOptions } from "./options";
+import { RpcPluginOptions } from "./types";
 
-export default function trpcPlugin(): Plugin {
+export default function rpcPlugin(
+  initialOptions: Partial<RpcPluginOptions> = {},
+): Plugin {
+  const options = { ...defaultOptions, ...initialOptions };
   let config: ResolvedConfig;
-  const functionMappings = new Map<string, string>();
-
-  async function scanForServerFiles(root: string) {
-    const apiDir = join(root, "src", "api");
-
-    // Find all server.ts/js files in the api directory
-    const files = (await readdir(apiDir, { withFileTypes: true })).filter(
-      (f) => {
-        return f.name.includes("server.ts") || f.name.includes("server.js");
-      },
-    ).map((f) => join(apiDir, f.name));
-
-    // Load and execute each server file
-    for (const file of files) {
-      try {
-        const fileUrl = `file://${file}`;
-        // Import the module to get the exported functions
-        const moduleExports = await import(fileUrl);
-
-        // Examine each export
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          // Check if this export is in the serverFunctionsMap
-          for (
-            const [registeredName, serverFn] of serverFunctionsMap.entries()
-          ) {
-            if (serverFn.fn === exportValue) {
-              // Found a match - store the mapping
-              functionMappings.set(registeredName, exportName);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading server file:", file, error);
-      }
-    }
-  }
 
   return {
     name: "vite-mini-rpc",
@@ -54,11 +21,9 @@ export default function trpcPlugin(): Plugin {
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-
     buildStart() {
       serverFunctionsMap.clear();
     },
-
     transform(code: string, _id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
       if (
@@ -72,7 +37,7 @@ export default function trpcPlugin(): Plugin {
         `
 export const ${fnEntry} = async (...args) => {
   // const requestToken = await getToken();
-  const response = await fetch('/__rpc/${fnName}', {
+  const response = await fetch('/${options.urlPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -98,7 +63,6 @@ ${
 `.trim();
 
       return {
-        // code: result.code,
         code: transformedCode,
         map: null,
       };
@@ -137,8 +101,7 @@ ${
 
       // Handle RPC calls
       server.middlewares.use(async (req, res, next) => {
-        // if (!req.url?.startsWith('/__rpc/')) return next()
-        if (!req.url?.startsWith("/__rpc/")) return next();
+        if (!req.url?.startsWith(`/${options.urlPrefix}/`)) return next();
 
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
@@ -149,7 +112,7 @@ ${
           return;
         }
 
-        const functionName = req.url.replace("/__rpc/", "");
+        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
         const serverFunction = serverFunctionsMap.get(functionName);
 
         if (!serverFunction) {

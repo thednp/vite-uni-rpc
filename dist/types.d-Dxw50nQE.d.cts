@@ -1,5 +1,5 @@
 // vite-mini-rpc/src/types.d.ts
-export interface ServerFunctionOptions {
+interface ServerFunctionOptions {
   ttl?: number;
   invalidateKeys?: string | RegExp | RegExp[] | string[];
 }
@@ -11,27 +11,12 @@ type Arguments =
   | Array<PrimitiveType | PrimitiveType[] | ObjectType | ObjectType[]>
   | unknown;
 
-export type ServerFnEntry<
+type ServerFnEntry<
   TArgs extends Arguments[] = unknown[],
   TResult = unknown,
 > = (...args: TArgs) => Promise<TResult> | TResult;
 
-export interface ServerFunction<
-  TArgs extends Arguments[] = unknown[],
-  TResult = unknown,
-> {
-  name: string;
-  fn: ServerFnEntry<TArgs, TResult>;
-  options?: ServerFunctionOptions;
-}
-
-export interface CacheEntry<T> {
-  data?: T;
-  timestamp: number;
-  promise?: Promise<T>;
-}
-
-export interface RpcPluginOptions {
+interface RpcPluginOptions {
   /**
    * RPC calls are called to this base URL
    * @default {"__rpc"}
@@ -42,3 +27,5 @@ export interface RpcPluginOptions {
    * @default {10000} */
   ttl: number;
 }
+
+export type { RpcPluginOptions as R, ServerFnEntry as S, ServerFunctionOptions as a };

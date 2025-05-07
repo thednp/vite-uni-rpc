@@ -1,21 +1,46 @@
 import {
+  defaultOptions,
   serverFunctionsMap
-} from "./chunk-S62OQ7GK.js";
+} from "./chunk-53BM2ESW.js";
 
 // src/index.ts
 import { createHash } from "node:crypto";
-import { join } from "node:path";
 import process from "node:process";
-import { readdir } from "fs/promises";
 
 // src/utils.ts
-function readBody(req) {
+import { join } from "node:path";
+import { readdir } from "node:fs/promises";
+var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
     req.on("end", () => resolve(body));
   });
-}
+};
+var functionMappings = /* @__PURE__ */ new Map();
+var scanForServerFiles = async (root) => {
+  const apiDir = join(root, "src", "api");
+  const files = (await readdir(apiDir, { withFileTypes: true })).filter(
+    (f) => {
+      return f.name.includes("server.ts") || f.name.includes("server.js");
+    }
+  ).map((f) => join(apiDir, f.name));
+  for (const file of files) {
+    try {
+      const fileUrl = `file://${file}`;
+      const moduleExports = await import(fileUrl);
+      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+          if (serverFn.fn === exportValue) {
+            functionMappings.set(registeredName, exportName);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading server file:", file, error);
+    }
+  }
+};
 
 // src/cookie.ts
 import { parse as parseCookies } from "node:querystring";
@@ -36,32 +61,9 @@ function setSecureCookie(res, name, value, options = {}) {
 }
 
 // src/index.ts
-function trpcPlugin() {
+function rpcPlugin(initialOptions = {}) {
+  const options = { ...defaultOptions, ...initialOptions };
   let config;
-  const functionMappings = /* @__PURE__ */ new Map();
-  async function scanForServerFiles(root) {
-    const apiDir = join(root, "src", "api");
-    const files = (await readdir(apiDir, { withFileTypes: true })).filter(
-      (f) => {
-        return f.name.includes("server.ts") || f.name.includes("server.js");
-      }
-    ).map((f) => join(apiDir, f.name));
-    for (const file of files) {
-      try {
-        const fileUrl = `file://${file}`;
-        const moduleExports = await import(fileUrl);
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-            if (serverFn.fn === exportValue) {
-              functionMappings.set(registeredName, exportName);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error loading server file:", file, error);
-      }
-    }
-  }
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
@@ -78,7 +80,7 @@ function trpcPlugin() {
       const getModule = (fnName, fnEntry) => `
 export const ${fnEntry} = async (...args) => {
   // const requestToken = await getToken();
-  const response = await fetch('/__rpc/${fnName}', {
+  const response = await fetch('/${options.urlPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -98,7 +100,6 @@ ${Array.from(functionMappings.entries()).map(
       ).join("\n")}
 `.trim();
       return {
-        // code: result.code,
         code: transformedCode,
         map: null
       };
@@ -132,7 +133,7 @@ ${Array.from(functionMappings.entries()).map(
         next();
       });
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith("/__rpc/")) return next();
+        if (!req.url?.startsWith(`/${options.urlPrefix}/`)) return next();
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
         if (!csrfToken) {
@@ -140,7 +141,7 @@ ${Array.from(functionMappings.entries()).map(
           res.end(JSON.stringify({ error: "Invalid CSRF token" }));
           return;
         }
-        const functionName = req.url.replace("/__rpc/", "");
+        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
         const serverFunction = serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
@@ -164,5 +165,5 @@ ${Array.from(functionMappings.entries()).map(
   };
 }
 export {
-  trpcPlugin as default
+  rpcPlugin as default
 };

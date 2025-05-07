@@ -5,7 +5,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 // src/serverFunctionsMap.ts
 var serverFunctionsMap = /* @__PURE__ */ new Map();
 
+// src/options.ts
+var defaultOptions = {
+  ttl: 1e4,
+  urlPrefix: "__rpc"
+};
 
 
 
-exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap;
+
+
+exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap; exports.defaultOptions = defaultOptions;

@@ -1,5 +1,6 @@
 import { Plugin } from 'vite';
+import { R as RpcPluginOptions } from './types.d-Dxw50nQE.cjs';
 
-declare function trpcPlugin(): Plugin;
+declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): Plugin;
 
-export { trpcPlugin as default };
+export { rpcPlugin as default };
