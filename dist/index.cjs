@@ -42,6 +42,7 @@ function rpcPlugin(initialOptions = {}) {
   let config;
   const functionMappings = /* @__PURE__ */ new Map();
   const scanForServerFiles = async (root) => {
+    functionMappings.clear();
     const apiDir = _path.join.call(void 0, root, "src", "api");
     const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
       (f) => {
@@ -52,9 +53,9 @@ function rpcPlugin(initialOptions = {}) {
       try {
         const fileUrl = `file://${file}`;
         const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [exportName] of Object.entries(moduleExports)) {
           for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
-            if (serverFn.fn === exportValue) {
+            if (serverFn.name === registeredName && !functionMappings.has(registeredName)) {
               functionMappings.set(registeredName, exportName);
             }
           }
@@ -88,6 +89,7 @@ export const ${fnEntry} = async (...args) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(args)
   });
   if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);

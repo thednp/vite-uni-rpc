@@ -18,6 +18,7 @@ export default function rpcPlugin(
   const functionMappings = new Map<string, string>();
 
   const scanForServerFiles = async (root: string) => {
+    functionMappings.clear();
     const apiDir = join(root, "src", "api");
 
     // Find all server.ts/js files in the api directory
@@ -35,13 +36,14 @@ export default function rpcPlugin(
         const moduleExports = await import(fileUrl);
 
         // Examine each export
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          // Check if this export is in the serverFunctionsMap
+        for (const [exportName] of Object.entries(moduleExports)) {
           for (
             const [registeredName, serverFn] of serverFunctionsMap.entries()
           ) {
-            if (serverFn.fn === exportValue) {
-              // Found a match - store the mapping
+            if (
+              serverFn.name === registeredName &&
+              !functionMappings.has(registeredName)
+            ) {
               functionMappings.set(registeredName, exportName);
             }
           }
@@ -84,6 +86,7 @@ export const ${fnEntry} = async (...args) => {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(args)
   });
   if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
