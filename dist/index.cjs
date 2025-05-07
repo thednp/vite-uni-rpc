@@ -1,11 +1,11 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
 
 var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
 
 // src/index.ts
 var _crypto = require('crypto');
-var _process = require('process'); var _process2 = _interopRequireDefault(_process);
+var _vite = require('vite');
 
 // src/utils.ts
 var _promises = require('fs/promises');
@@ -18,22 +18,23 @@ var readBody = (req) => {
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (root) => {
+var scanForServerFiles = async (config) => {
   functionMappings.clear();
-  const apiDir = _path.join.call(void 0, root, "src", "api");
-  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
-    (f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }
-  ).map((f) => _path.join.call(void 0, apiDir, f.name));
+  const apiDir = _path.join.call(void 0, config.root, "src", "api");
+  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => _path.join.call(void 0, apiDir, f.name));
   for (const file of files) {
     try {
-      const fileUrl = `file://${file}`;
-      const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
-          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
+      const mod = await config.createResolver({
+        preferRelative: true,
+        tryIndex: true
+      })(file);
+      if (mod) {
+        const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(mod)));
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+          for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
+            if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+              functionMappings.set(registeredName, exportName);
+            }
           }
         }
       }
@@ -44,21 +45,20 @@ var scanForServerFiles = async (root) => {
 };
 var getModule = (fnName, fnEntry, options) => `
 export const ${fnEntry} = async (...args) => {
-// const requestToken = await getToken();
-const response = await fetch('/${options.urlPrefix}/${fnName}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-},
-credentials: 'include',
-body: JSON.stringify(args)
-});
-if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
-const result = await response.json();
-if (result.error) throw new Error(result.error);
-return result.data;
+  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(args)
+  });
+  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+  const result = await response.json();
+  if (result.error) throw new Error(result.error);
+  return result.data;
 }
-`.trim();
+  `.trim();
 
 // src/cookie.ts
 var _querystring = require('querystring');
@@ -91,9 +91,13 @@ function rpcPlugin(initialOptions = {}) {
     buildStart() {
       _chunkMVVEXO4Ucjs.serverFunctionsMap.clear();
     },
-    transform(code, _id, ops) {
-      if (!code.includes("createServerFunction") || _process2.default.env.MODE !== "production" || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
+    async transform(code, id, ops) {
+      if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
+      _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
+      }
+      if (functionMappings.size === 0) {
+        await scanForServerFiles(config);
       }
       const transformedCode = `
 // Client-side RPC modules
@@ -101,13 +105,18 @@ ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName, options)
       ).join("\n")}
 `.trim();
+      const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
+        loader: "js",
+        target: "es2020"
+      });
       return {
-        code: transformedCode,
+        // code: transformedCode,
+        code: result.code,
         map: null
       };
     },
     configureServer(server) {
-      scanForServerFiles(config.root);
+      scanForServerFiles(config);
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");

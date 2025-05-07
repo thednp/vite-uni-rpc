@@ -6,6 +6,7 @@ export default defineConfig({
     server: 'src/server.ts'
   },
   format: ['esm', 'cjs'],
+  external: ['vite'],
   dts: true,
   splitting: true,
   clean: true,

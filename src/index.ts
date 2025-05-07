@@ -1,6 +1,7 @@
 import type { Plugin, ResolvedConfig } from "vite";
 import { createHash } from "node:crypto";
-import process from "node:process";
+// import process from "node:process";
+import { transformWithEsbuild } from "vite";
 import { serverFunctionsMap } from "./serverFunctionsMap";
 import {
   functionMappings,
@@ -28,13 +29,17 @@ export default function rpcPlugin(
     buildStart() {
       serverFunctionsMap.clear();
     },
-    transform(code: string, _id: string, ops?: { ssr?: boolean }) {
+    async transform(code: string, id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
       if (
         !code.includes("createServerFunction") ||
-        process.env.MODE !== "production" || ops?.ssr
+        // config.command === "build" && process.env.MODE !== "production" ||
+        ops?.ssr
       ) {
         return null;
+      }
+      if (functionMappings.size === 0) {
+        await scanForServerFiles(config);
       }
 
       const transformedCode = `
@@ -47,15 +52,20 @@ ${
           .join("\n")
       }
 `.trim();
+      const result = await transformWithEsbuild(transformedCode, id, {
+        loader: "js",
+        target: "es2020",
+      });
 
       return {
-        code: transformedCode,
+        // code: transformedCode,
+        code: result.code,
         map: null,
       };
     },
 
     configureServer(server) {
-      scanForServerFiles(config.root);
+      scanForServerFiles(config);
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");

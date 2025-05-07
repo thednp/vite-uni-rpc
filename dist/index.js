@@ -5,7 +5,7 @@ import {
 
 // src/index.ts
 import { createHash } from "node:crypto";
-import process from "node:process";
+import { transformWithEsbuild } from "vite";
 
 // src/utils.ts
 import { readdir } from "node:fs/promises";
@@ -18,22 +18,23 @@ var readBody = (req) => {
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (root) => {
+var scanForServerFiles = async (config) => {
   functionMappings.clear();
-  const apiDir = join(root, "src", "api");
-  const files = (await readdir(apiDir, { withFileTypes: true })).filter(
-    (f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }
-  ).map((f) => join(apiDir, f.name));
+  const apiDir = join(config.root, "src", "api");
+  const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
   for (const file of files) {
     try {
-      const fileUrl = `file://${file}`;
-      const moduleExports = await import(fileUrl);
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
+      const mod = await config.createResolver({
+        preferRelative: true,
+        tryIndex: true
+      })(file);
+      if (mod) {
+        const moduleExports = await import(mod);
+        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+            if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+              functionMappings.set(registeredName, exportName);
+            }
           }
         }
       }
@@ -44,21 +45,20 @@ var scanForServerFiles = async (root) => {
 };
 var getModule = (fnName, fnEntry, options) => `
 export const ${fnEntry} = async (...args) => {
-// const requestToken = await getToken();
-const response = await fetch('/${options.urlPrefix}/${fnName}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-},
-credentials: 'include',
-body: JSON.stringify(args)
-});
-if (!response.ok) throw new Error('RPC call failed: ' + response.statusText);
-const result = await response.json();
-if (result.error) throw new Error(result.error);
-return result.data;
+  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(args)
+  });
+  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+  const result = await response.json();
+  if (result.error) throw new Error(result.error);
+  return result.data;
 }
-`.trim();
+  `.trim();
 
 // src/cookie.ts
 import { parse as parseCookies } from "node:querystring";
@@ -91,9 +91,13 @@ function rpcPlugin(initialOptions = {}) {
     buildStart() {
       serverFunctionsMap.clear();
     },
-    transform(code, _id, ops) {
-      if (!code.includes("createServerFunction") || process.env.MODE !== "production" || ops?.ssr) {
+    async transform(code, id, ops) {
+      if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
+      ops?.ssr) {
         return null;
+      }
+      if (functionMappings.size === 0) {
+        await scanForServerFiles(config);
       }
       const transformedCode = `
 // Client-side RPC modules
@@ -101,13 +105,18 @@ ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName, options)
       ).join("\n")}
 `.trim();
+      const result = await transformWithEsbuild(transformedCode, id, {
+        loader: "js",
+        target: "es2020"
+      });
       return {
-        code: transformedCode,
+        // code: transformedCode,
+        code: result.code,
         map: null
       };
     },
     configureServer(server) {
-      scanForServerFiles(config.root);
+      scanForServerFiles(config);
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");
