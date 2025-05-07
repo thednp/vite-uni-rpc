@@ -1,20 +1,19 @@
 import {
+  __publicField,
   serverFunctionsMap
-} from "./chunk-XUPDFX23.js";
-import {
-  __publicField
-} from "./chunk-PKBMQBKP.js";
+} from "./chunk-S62OQ7GK.js";
 
 // src/cache.ts
+var DEFAULT_TTL = 5e3;
 var ServerCache = class {
   constructor() {
     __publicField(this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl, fetcher) {
+  async get(key, ttl = DEFAULT_TTL, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (entry?.promise) return entry.promise;
-    if (entry && now - entry.timestamp < ttl) return entry.data;
+    if (entry?.data && now - entry.timestamp < ttl) return await entry.data;
     const promise = fetcher().then((data) => {
       this.cache.set(key, { data, timestamp: now });
       return data;
@@ -51,7 +50,7 @@ var ServerCache = class {
 var serverCache = new ServerCache();
 
 // src/server.ts
-function registerServerFunction(name, fn, options) {
+function registerServerFunction(name, fn, options = {}) {
   serverFunctionsMap.set(name, { name, fn, options });
 }
 function createServerFunction(name, fn, options = {}) {

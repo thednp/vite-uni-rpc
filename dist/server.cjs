@@ -1,20 +1,19 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-var _chunkYNTNTPHUcjs = require('./chunk-YNTNTPHU.cjs');
 
-
-var _chunkETV4XYOVcjs = require('./chunk-ETV4XYOV.cjs');
+var _chunkXBNGK7Y3cjs = require('./chunk-XBNGK7Y3.cjs');
 
 // src/cache.ts
+var DEFAULT_TTL = 5e3;
 var ServerCache = class {
   constructor() {
-    _chunkETV4XYOVcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkXBNGK7Y3cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl, fetcher) {
+  async get(key, ttl = DEFAULT_TTL, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
-    if (entry && now - entry.timestamp < ttl) return entry.data;
+    if (_optionalChain([entry, 'optionalAccess', _2 => _2.data]) && now - entry.timestamp < ttl) return await entry.data;
     const promise = fetcher().then((data) => {
       this.cache.set(key, { data, timestamp: now });
       return data;
@@ -51,12 +50,12 @@ var ServerCache = class {
 var serverCache = new ServerCache();
 
 // src/server.ts
-function registerServerFunction(name, fn, options) {
-  _chunkYNTNTPHUcjs.serverFunctionsMap.set(name, { name, fn, options });
+function registerServerFunction(name, fn, options = {}) {
+  _chunkXBNGK7Y3cjs.serverFunctionsMap.set(name, { name, fn, options });
 }
 function createServerFunction(name, fn, options = {}) {
   const wrappedFunction = async (...args) => {
-    if (!_optionalChain([options, 'access', _2 => _2.cache, 'optionalAccess', _3 => _3.ttl])) return fn(...args);
+    if (!_optionalChain([options, 'access', _3 => _3.cache, 'optionalAccess', _4 => _4.ttl])) return fn(...args);
     const cacheKey = `${name}-${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,

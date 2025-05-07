@@ -1,11 +1,11 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes } from "node:crypto";
 
 interface Session {
   id: string;
   userId?: string | number;
   createdAt: Date;
   expiresAt: Date;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 class SessionManager {
@@ -13,11 +13,11 @@ class SessionManager {
 
   createSession(userId?: string, duration = 24 * 60 * 60 * 1000 /* 24h */) {
     const session: Session = {
-      id: randomBytes(32).toString('hex'),
+      id: randomBytes(32).toString("hex"),
       userId,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + duration),
-      data: {}
+      data: {},
     };
     this.sessions.set(session.id, session);
     return session;
@@ -42,4 +42,4 @@ export const useSession = () => {
     currentSession = new SessionManager();
   }
   return currentSession;
-}
+};

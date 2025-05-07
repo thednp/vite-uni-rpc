@@ -1,38 +1,43 @@
-// vite-plugin-rpc/src/cache.ts
+// /vite-mini-rpc/src/cache.ts
+import { type CacheEntry } from "./types";
 
-import { type CacheEntry } from './types'
+const DEFAULT_TTL = 5000; // 5 seconds default TTL
 
 export class ServerCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map<string, {
-    data: unknown
-    timestamp: number
-    promise?: Promise<unknown>
-  }>()
+    data: unknown;
+    timestamp: number;
+    promise?: Promise<unknown>;
+  }>();
 
-  async get<T>(key: string, ttl: number, fetcher: () => Promise<T>): Promise<T> {
-    const entry = this.cache.get(key) as CacheEntry<T>
-    const now = Date.now()
+  async get<T>(
+    key: string,
+    ttl: number = DEFAULT_TTL,
+    fetcher: () => Promise<T>,
+  ): Promise<T> {
+    const entry = this.cache.get(key) as CacheEntry<T>;
+    const now = Date.now();
 
-    if (entry?.promise) return entry.promise
-    if (entry && (now - entry.timestamp) < ttl) return entry.data
+    if (entry?.promise) return entry.promise;
+    if (entry?.data && (now - entry.timestamp) < ttl) return await entry.data;
 
-    const promise = fetcher().then(data => {
-      this.cache.set(key, { data, timestamp: now })
-      return data
-    })
+    const promise = fetcher().then((data) => {
+      this.cache.set(key, { data, timestamp: now });
+      return data;
+    });
 
-    this.cache.set(key, { ...entry, promise })
-    return promise
+    this.cache.set(key, { ...entry, promise });
+    return promise;
   }
 
   invalidate(pattern?: string | string[] | RegExp | RegExp[]) {
     if (!pattern) {
-      this.cache.clear()
-      return
+      this.cache.clear();
+      return;
     }
 
     for (const key of this.cache.keys()) {
-      if (typeof pattern === 'string' && key.includes(pattern)) {
+      if (typeof pattern === "string" && key.includes(pattern)) {
         this.cache.delete(key);
         break;
       } else if (pattern instanceof RegExp && pattern.test(key)) {
@@ -40,7 +45,7 @@ export class ServerCache {
         break;
       } else if (pattern instanceof Array) {
         for (const p of pattern) {
-          if (typeof p === 'string' && key.includes(p)) {
+          if (typeof p === "string" && key.includes(p)) {
             this.cache.delete(key);
             break;
           } else if (p instanceof RegExp && p.test(key)) {
@@ -53,4 +58,4 @@ export class ServerCache {
   }
 }
 
-export const serverCache = new ServerCache()
+export const serverCache = new ServerCache();

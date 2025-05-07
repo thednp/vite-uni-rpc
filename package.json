@@ -1,5 +1,5 @@
 {
-  "name": "vite-plugin-trpc",
+  "name": "vite-mini-rpc",
   "version": "0.0.1",
   "description": "Basic RPC",
   "homepage": "https://github.com/thednp/rpc#readme",
@@ -26,11 +26,6 @@
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
     },
-    "./client": {
-      "types": "./dist/client.d.ts",
-      "require": "./dist/client.cjs",
-      "import": "./dist/client.js"
-    },
     "./server": {
       "types": "./dist/server.d.ts",
       "require": "./dist/server.cjs",
@@ -40,6 +35,13 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "badges": "npx -p dependency-version-badge update-badge vanjs-core mini-van-plate typescript vitest vite",
+    "format": "deno fmt src",
+    "lint": "pnpm lint:ts && pnpm check:ts",
+    "lint:ts": "deno lint src",
+    "fix:ts": "deno lint src --fix",
+    "check:ts": "tsc -noEmit",
+    "prepublishOnly": "pnpm up && pnpm lint && pnpm check:ts && pnpm format && pnpm build",
     "build": "tsup"
   },
   "dependencies": {
@@ -47,9 +49,9 @@
     "vanjs-ext": "^0.6.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.14",
-    "typescript": "^5.8.3",
+    "@types/node": "^22.15.15",
     "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }
 }

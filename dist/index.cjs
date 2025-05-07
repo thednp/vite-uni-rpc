@@ -1,7 +1,6 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-var _chunkYNTNTPHUcjs = require('./chunk-YNTNTPHU.cjs');
-require('./chunk-ETV4XYOV.cjs');
+var _chunkXBNGK7Y3cjs = require('./chunk-XBNGK7Y3.cjs');
 
 // src/index.ts
 var _crypto = require('crypto');
@@ -38,20 +37,20 @@ function setSecureCookie(res, name, value, options = {}) {
 // src/index.ts
 function trpcPlugin() {
   let config;
-  let serverFiles = /* @__PURE__ */ new Set();
   const functionMappings = /* @__PURE__ */ new Map();
   async function scanForServerFiles(root) {
     const apiDir = _path.join.call(void 0, root, "src", "api");
-    const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }).map((f) => _path.join.call(void 0, apiDir, f.name));
+    const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter(
+      (f) => {
+        return f.name.includes("server.ts") || f.name.includes("server.js");
+      }
+    ).map((f) => _path.join.call(void 0, apiDir, f.name));
     for (const file of files) {
       try {
-        serverFiles.add(file);
         const fileUrl = `file://${file}`;
         const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(fileUrl)));
         for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of _chunkYNTNTPHUcjs.serverFunctionsMap.entries()) {
+          for (const [registeredName, serverFn] of _chunkXBNGK7Y3cjs.serverFunctionsMap.entries()) {
             if (serverFn.fn === exportValue) {
               functionMappings.set(registeredName, exportName);
             }
@@ -63,15 +62,15 @@ function trpcPlugin() {
     }
   }
   return {
-    name: "vite-plugin-rpc",
+    name: "vite-mini-rpc",
     enforce: "pre",
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
     buildStart() {
-      _chunkYNTNTPHUcjs.serverFunctionsMap.clear();
+      _chunkXBNGK7Y3cjs.serverFunctionsMap.clear();
     },
-    async transform(code, _id, ops) {
+    transform(code, _id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
@@ -108,7 +107,10 @@ ${Array.from(functionMappings.entries()).map(
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-CSRF-Token");
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type,X-CSRF-Token"
+        );
         res.setHeader("Access-Control-Allow-Credentials", "true");
         const cookies = getCookies(req.headers.cookie);
         if (!cookies["X-CSRF-Token"]) {
@@ -138,10 +140,12 @@ ${Array.from(functionMappings.entries()).map(
           return;
         }
         const functionName = req.url.replace("/__rpc/", "");
-        const serverFunction = _chunkYNTNTPHUcjs.serverFunctionsMap.get(functionName);
+        const serverFunction = _chunkXBNGK7Y3cjs.serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
-          res.end(JSON.stringify({ error: `Function "${functionName}" not found` }));
+          res.end(
+            JSON.stringify({ error: `Function "${functionName}" not found` })
+          );
           return;
         }
         try {

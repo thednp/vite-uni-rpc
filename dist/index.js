@@ -1,7 +1,6 @@
 import {
   serverFunctionsMap
-} from "./chunk-XUPDFX23.js";
-import "./chunk-PKBMQBKP.js";
+} from "./chunk-S62OQ7GK.js";
 
 // src/index.ts
 import { createHash } from "node:crypto";
@@ -38,16 +37,16 @@ function setSecureCookie(res, name, value, options = {}) {
 // src/index.ts
 function trpcPlugin() {
   let config;
-  let serverFiles = /* @__PURE__ */ new Set();
   const functionMappings = /* @__PURE__ */ new Map();
   async function scanForServerFiles(root) {
     const apiDir = join(root, "src", "api");
-    const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => {
-      return f.name.includes("server.ts") || f.name.includes("server.js");
-    }).map((f) => join(apiDir, f.name));
+    const files = (await readdir(apiDir, { withFileTypes: true })).filter(
+      (f) => {
+        return f.name.includes("server.ts") || f.name.includes("server.js");
+      }
+    ).map((f) => join(apiDir, f.name));
     for (const file of files) {
       try {
-        serverFiles.add(file);
         const fileUrl = `file://${file}`;
         const moduleExports = await import(fileUrl);
         for (const [exportName, exportValue] of Object.entries(moduleExports)) {
@@ -63,7 +62,7 @@ function trpcPlugin() {
     }
   }
   return {
-    name: "vite-plugin-rpc",
+    name: "vite-mini-rpc",
     enforce: "pre",
     configResolved(resolvedConfig) {
       config = resolvedConfig;
@@ -71,7 +70,7 @@ function trpcPlugin() {
     buildStart() {
       serverFunctionsMap.clear();
     },
-    async transform(code, _id, ops) {
+    transform(code, _id, ops) {
       if (!code.includes("createServerFunction") || ops?.ssr) {
         return null;
       }
@@ -108,7 +107,10 @@ ${Array.from(functionMappings.entries()).map(
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-CSRF-Token");
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type,X-CSRF-Token"
+        );
         res.setHeader("Access-Control-Allow-Credentials", "true");
         const cookies = getCookies(req.headers.cookie);
         if (!cookies["X-CSRF-Token"]) {
@@ -141,7 +143,9 @@ ${Array.from(functionMappings.entries()).map(
         const serverFunction = serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
-          res.end(JSON.stringify({ error: `Function "${functionName}" not found` }));
+          res.end(
+            JSON.stringify({ error: `Function "${functionName}" not found` })
+          );
           return;
         }
         try {
