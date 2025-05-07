@@ -18,10 +18,19 @@ export const functionMappings = new Map<string, string>();
 
 export const scanForServerFiles = async (
   config: ResolvedConfig,
-  server: ViteDevServer,
+  devServer?: ViteDevServer,
 ) => {
   functionMappings.clear();
   const apiDir = join(config.root, "src", "api");
+  let server = devServer;
+  if (!server) {
+    const { createServer } = await import("vite");
+    server = await createServer({
+      server: { ...config.server, middlewareMode: true },
+      appType: "custom",
+      base: config.base,
+    });
+  }
 
   // Find all server.ts/js files in the api directory
   const files = (await readdir(apiDir, { withFileTypes: true }))
@@ -31,9 +40,6 @@ export const scanForServerFiles = async (
   // Load and execute each server file
   for (const file of files) {
     try {
-      // Read the file content
-      // const code = await readFile(file, 'utf-8');
-
       // Transform TypeScript to JavaScript using the loaded transform function
       const moduleExports = await server.ssrLoadModule(file) as Record<
         string,
@@ -51,6 +57,7 @@ export const scanForServerFiles = async (
           }
         }
       }
+      server.close();
     } catch (error) {
       console.error("Error loading server file:", file, error);
     }

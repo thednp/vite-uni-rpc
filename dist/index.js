@@ -18,9 +18,18 @@ var readBody = (req) => {
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
-var scanForServerFiles = async (config, server) => {
+var scanForServerFiles = async (config, devServer) => {
   functionMappings.clear();
   const apiDir = join(config.root, "src", "api");
+  let server = devServer;
+  if (!server) {
+    const { createServer } = await import("vite");
+    server = await createServer({
+      server: { ...config.server, middlewareMode: true },
+      appType: "custom",
+      base: config.base
+    });
+  }
   const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
   for (const file of files) {
     try {
@@ -32,6 +41,7 @@ var scanForServerFiles = async (config, server) => {
           }
         }
       }
+      server.close();
     } catch (error) {
       console.error("Error loading server file:", file, error);
     }
