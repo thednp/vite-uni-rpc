@@ -6,12 +6,14 @@ interface ServerFunctionOptions {
   };
 }
 
+type Primitive = boolean | string | number;
+
 type ServerFnEntry<
-  TArgs extends unknown[] = unknown[],
+  TArgs extends Primitive[] = unknown[],
   TResult = unknown,
 > = (...args: TArgs) => Promise<TResult> | TResult;
 
 declare function registerServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): void;
-declare function createServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): (...args: unknown[]) => Promise<unknown>;
+declare function createServerFunction(name: string, fn: ServerFnEntry, options?: ServerFunctionOptions): void;
 
 export { createServerFunction, registerServerFunction };
