@@ -6,15 +6,20 @@ export interface ServerFunctionOptions {
   };
 }
 
-type Primitive = boolean | string | number;
+type PrimitiveType = boolean | string | number;
+type ObjectType = Record<string | number, PrimitiveType | PrimitiveType[]>;
+type Arguments =
+  | PrimitiveType[]
+  | Array<PrimitiveType | PrimitiveType[] | ObjectType | ObjectType[]>
+  | unknown;
 
 export type ServerFnEntry<
-  TArgs extends Primitive[] = unknown[],
+  TArgs extends Arguments[] = unknown[],
   TResult = unknown,
 > = (...args: TArgs) => Promise<TResult> | TResult;
 
 export interface ServerFunction<
-  TArgs extends Primitive[] = unknown[],
+  TArgs extends Arguments[] = unknown[],
   TResult = unknown,
 > {
   name: string;
