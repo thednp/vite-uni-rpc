@@ -38,7 +38,8 @@ export function createAction<T, U = void>(
       };
       
       // Create promise with properly typed handlers
-      const resultPromise = new Promise<U>((resolve, reject) => {
+      // const resultPromise =
+      await new Promise<U>((resolve, reject) => {
         promiseHandlers = { resolve, reject };
       });
   

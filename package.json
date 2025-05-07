@@ -13,37 +13,25 @@
   "license": "MIT",
   "author": "thednp",
   "type": "module",
-  "main": "./src/index.ts",
-  "module": "./dist/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "README.md"
   ],
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.ts"
-    },
-    "./client": {
-      "types": "./src/client.d.ts",
-      "import": "./src/client.ts"
-    },
-    "./server": {
-      "types": "./src/server.d.ts",
-      "import": "./src/server.ts"
-    },
-    "./_": {
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
     },
-    "./_client": {
+    "./client": {
       "types": "./dist/client.d.ts",
       "require": "./dist/client.cjs",
       "import": "./dist/client.js"
     },
-    "./_server": {
+    "./server": {
       "types": "./dist/server.d.ts",
       "require": "./dist/server.cjs",
       "import": "./dist/server.js"
@@ -55,7 +43,6 @@
     "build": "tsup"
   },
   "dependencies": {
-    "magic-string": "0.30.17",
     "vanjs-core": "^1.5.5",
     "vanjs-ext": "^0.6.2"
   },

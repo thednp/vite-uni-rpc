@@ -1,25 +1,23 @@
-// packages/vite-plugin-trpc/src/server/index.ts
-// 'use server'
+// /vite-plugin-trpc/src/server.ts
 
 import { serverCache } from './cache'
-import type { ServerFunction, ServerFunctionOptions } from './types'
-// import { serverFunctionsMap } from "./serverFunctionsMap";
-import { serverFunctionsMap } from "virtual:@rpc-registry";
+import type { ServerFnEntry, ServerFunctionOptions } from './types'
+import { serverFunctionsMap } from "./serverFunctionsMap";
 
 export function registerServerFunction(
   name: string,
-  fn: ServerFunction<unknown[], unknown>,
+  fn: ServerFnEntry,
   options?: ServerFunctionOptions
 ) {
-  serverFunctionsMap.set(name, { name, fn, options })
+  serverFunctionsMap.set(name, { name, fn, options });
 }
 
-export function createServerFunction<TArgs extends unknown[], TResult>(
+export function createServerFunction(
   name: string,
-  fn: (...args: TArgs) => Promise<TResult>,
+  fn: ServerFnEntry,
   options: ServerFunctionOptions = {}
 ) {
-  const wrappedFunction: ServerFunction<TArgs, TResult>["fn"] = async (...args: TArgs) => {
+  const wrappedFunction = async (...args: unknown[]) => {
     if (!options.cache?.ttl) return fn(...args)
 
     const cacheKey = `${name}-${JSON.stringify(args)}`

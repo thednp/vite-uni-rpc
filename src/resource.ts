@@ -20,7 +20,7 @@ const handleResponseErrors = (response: Response) => {
     const errorMessage = response.statusText.length
       ? response.statusText
       : `Fetch error: ${response.status}`;
-    throw new Error(errorMessage, { cause: response.status });
+    throw new Error(errorMessage);
   }
   return response.clone();
 };
@@ -110,13 +110,13 @@ const parseResult = async <T>(initialResult: unknown): Promise<T> => {
         return JSON.parse(result);
       } catch (er) {
         // return result as T;
-        throw new Error("Unrecognized JSON string value", er);
+        throw new Error(`Unrecognized JSON string value", ${er}`);
       }
     }
 
     return result as T;
   } catch (error) {
-    throw new Error(`Failed to parse result: ${error?.message || error}`);
+    throw new Error(`Failed to parse result: ${error}`);
     // throw error;
   }
 };

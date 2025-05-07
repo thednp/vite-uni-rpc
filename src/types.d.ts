@@ -1,3 +1,4 @@
+// vite-plugin-rpc/src/types.d.ts
 export interface ServerFunctionOptions {
   cache?: {
     ttl?: number
@@ -5,9 +6,11 @@ export interface ServerFunctionOptions {
   }
 }
 
-export interface ServerFunction <TArgs extends unknown[], TResult>{
+export type ServerFnEntry<TArgs extends unknown[] = unknown[], TResult = unknown> = (...args: TArgs) => Promise<TResult>
+
+export interface ServerFunction<TArgs extends unknown[] = unknown[], TResult = unknown>{
   name: string
-  fn: (...args: TArgs) => Promise<TResult>
+  fn: ServerFnEntry<TArgs, TResult>
   options?: ServerFunctionOptions
 }
 
@@ -15,11 +18,4 @@ export type CacheEntry<T> = {
   data: T
   timestamp: number
   promise?: Promise<T>
-}
-
-// serverFunctionsMap.set(name, { name, fn, options })
-
-export type ServerFunctionEntry = {
-  name: string;
-  // fn: ServerFunction<u>
 }

@@ -1,5 +1,4 @@
-// packages/vite-plugin-rpc/src/server/cache.ts
-// 'use server'
+// vite-plugin-rpc/src/cache.ts
 
 import { type CacheEntry } from './types'
 

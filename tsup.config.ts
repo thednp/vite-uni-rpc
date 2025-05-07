@@ -7,7 +7,7 @@ export default defineConfig({
     server: 'src/server.ts'
   },
   format: ['esm', 'cjs'],
-//   dts: true,
+  dts: true,
   splitting: false,
   clean: true,
 });
