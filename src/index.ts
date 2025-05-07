@@ -49,13 +49,15 @@ export default function trpcPlugin(): Plugin {
     },
 
     load(id: string) {
-      // if (id === RESOLVED_REGISTRY_MODULE_ID) {
-      //   console.log('Loading registry with functions:', Array.from(registeredFunctions))
-      //   return `
-      //   // export const serverFunctionsMap = ${serverFunctionsMap};
-      //   export const registeredFunctions = ${JSON.stringify(Array.from(registeredFunctions))};
-      //   `
-      // }
+      if (id === RESOLVED_REGISTRY_MODULE_ID) {
+        console.log('Loading registry with functions:', Array.from(serverFunctionsMap))
+        return `
+        import { serverFunctionsMap } from "${toAbsolute("./serverFunctionsMap.ts")}";
+        export { serverFunctionsMap };
+        // export const serverFunctionsMap = ${serverFunctionsMap};
+        // export const registeredFunctions = ${JSON.stringify(Array.from(serverFunctionsMap))};
+        `
+      }
       if (id.startsWith(RESOLVED_VIRTUAL_MODULE_PREFIX)) {
         const fnName = id.slice(RESOLVED_VIRTUAL_MODULE_PREFIX.length)
         return `
