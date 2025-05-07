@@ -29,23 +29,18 @@ export const scanForServerFiles = async (config: ResolvedConfig) => {
   for (const file of files) {
     try {
       // Read the file content
-      // const code = await readFile(file, 'utf-8');
+      const code = await readFile(file, 'utf-8');
       
       // Transform TypeScript to JavaScript using the loaded transform function
-      // const result = await transformWithEsbuild(code, file, {
-      //   loader: 'ts',
-      //   format: 'esm',
-      //   target: 'es2020',
-      // });
+      const result = await transformWithEsbuild(code, file, {
+        loader: 'ts',
+        format: 'esm',
+        target: 'es2020',
+      });
 
-      // Use dynamic import with the transformed code
-      const mod = await config.createResolver({
-        preferRelative: true,
-        tryIndex: true,
-      })(file);
-
-      if (mod) {
-        const moduleExports = await import(mod);
+      const moduleExports = await import(
+        `data:text/javascript;base64,${Buffer.from(result.code).toString('base64')}`
+      );
 
         // Examine each export
         for (const [exportName, exportValue] of Object.entries(moduleExports)) {
@@ -58,7 +53,6 @@ export const scanForServerFiles = async (config: ResolvedConfig) => {
             }
           }
         }
-      }
     } catch (error) {
       console.error("Error loading server file:", file, error);
     }

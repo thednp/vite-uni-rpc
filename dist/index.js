@@ -5,11 +5,12 @@ import {
 
 // src/index.ts
 import { createHash } from "node:crypto";
-import { transformWithEsbuild } from "vite";
+import { transformWithEsbuild as transformWithEsbuild2 } from "vite";
 
 // src/utils.ts
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { transformWithEsbuild } from "vite";
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
@@ -24,17 +25,17 @@ var scanForServerFiles = async (config) => {
   const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
   for (const file of files) {
     try {
-      const mod = await config.createResolver({
-        preferRelative: true,
-        tryIndex: true
-      })(file);
-      if (mod) {
-        const moduleExports = await import(mod);
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-            if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-              functionMappings.set(registeredName, exportName);
-            }
+      const code = await readFile(file, "utf-8");
+      const result = await transformWithEsbuild(code, file, {
+        loader: "ts",
+        format: "esm",
+        target: "es2020"
+      });
+      const moduleExports = await import(`data:text/javascript;base64,${Buffer.from(result.code).toString("base64")}`);
+      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+            functionMappings.set(registeredName, exportName);
           }
         }
       }
@@ -105,7 +106,7 @@ ${Array.from(functionMappings.entries()).map(
         ([registeredName, exportName]) => getModule(registeredName, exportName, options)
       ).join("\n")}
 `.trim();
-      const result = await transformWithEsbuild(transformedCode, id, {
+      const result = await transformWithEsbuild2(transformedCode, id, {
         loader: "js",
         target: "es2020"
       });

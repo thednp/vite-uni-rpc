@@ -10,6 +10,7 @@ var _vite = require('vite');
 // src/utils.ts
 var _promises = require('fs/promises');
 var _path = require('path');
+
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
@@ -24,17 +25,17 @@ var scanForServerFiles = async (config) => {
   const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => _path.join.call(void 0, apiDir, f.name));
   for (const file of files) {
     try {
-      const mod = await config.createResolver({
-        preferRelative: true,
-        tryIndex: true
-      })(file);
-      if (mod) {
-        const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(mod)));
-        for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-          for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
-            if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-              functionMappings.set(registeredName, exportName);
-            }
+      const code = await _promises.readFile.call(void 0, file, "utf-8");
+      const result = await _vite.transformWithEsbuild.call(void 0, code, file, {
+        loader: "ts",
+        format: "esm",
+        target: "es2020"
+      });
+      const moduleExports = await Promise.resolve().then(() => _interopRequireWildcard(require(`data:text/javascript;base64,${Buffer.from(result.code).toString("base64")}`)));
+      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+        for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
+          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+            functionMappings.set(registeredName, exportName);
           }
         }
       }
