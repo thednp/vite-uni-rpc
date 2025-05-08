@@ -102,7 +102,8 @@ var defaultsTokenOptions = {
 function setSecureCookie(res, name, value, options = {}) {
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  res.setHeader("Set-Cookie", cookieString);
+  _optionalChain([res, 'optionalAccess', _ => _.setHeader, 'call', _2 => _2("Set-Cookie", cookieString)]);
+  _optionalChain([res, 'optionalAccess', _3 => _3.header, 'call', _4 => _4("Set-Cookie", cookieString)]);
 }
 
 // src/createCSRF.ts
@@ -117,7 +118,7 @@ var defaultCSRFOptions = {
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
-    const cookies = getCookies(req.headers.cookie);
+    const cookies = getCookies(_optionalChain([req, 'optionalAccess', _5 => _5.headers, 'optionalAccess', _6 => _6.cookie]) || _optionalChain([req, 'optionalAccess', _7 => _7.header, 'optionalCall', _8 => _8("cookie")]));
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
@@ -125,7 +126,7 @@ var createCSRF = (initialOptions = {}) => {
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    next();
+    _optionalChain([next, 'optionalCall', _9 => _9()]);
   };
 };
 
@@ -156,12 +157,15 @@ var createMiddleware = (initialOptions = {}) => {
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next();
+        if (!matcher.test(req.url || "")) return _optionalChain([next, 'optionalCall', _10 => _10()]);
       }
-      if (rpcPrefix && !_optionalChain([req, 'access', _ => _.url, 'optionalAccess', _2 => _2.startsWith, 'call', _3 => _3(rpcPrefix)])) return next();
+      if (rpcPrefix && !_optionalChain([req, 'access', _11 => _11.url, 'optionalAccess', _12 => _12.startsWith, 'call', _13 => _13(rpcPrefix)])) {
+        return _optionalChain([next, 'optionalCall', _14 => _14()]);
+      }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          _optionalChain([res, 'optionalAccess', _15 => _15.setHeader, 'call', _16 => _16(key, value)]);
+          _optionalChain([res, 'optionalAccess', _17 => _17.header, 'call', _18 => _18(key, value)]);
         });
       }
       if (rateLimitStore) {
@@ -184,10 +188,9 @@ var createMiddleware = (initialOptions = {}) => {
         rateLimitStore.set(clientIp, clientState);
       }
       if (handler) {
-        await handler(req, res, next);
-        return;
+        return await handler(req, res, next);
       }
-      next();
+      return _optionalChain([next, 'optionalCall', _19 => _19()]);
     } catch (error) {
       if (onError) {
         onError(error, req, res);
@@ -204,8 +207,10 @@ var createRPCMiddleware = (initialOptions = {}) => {
   return createMiddleware({
     ...options,
     handler: async (req, res, next) => {
-      if (!_optionalChain([req, 'access', _4 => _4.url, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(`/${options.rpcPrefix}/`)])) return next();
-      const cookies = getCookies(req.headers.cookie);
+      if (!_optionalChain([req, 'access', _20 => _20.url, 'optionalAccess', _21 => _21.startsWith, 'call', _22 => _22(`/${options.rpcPrefix}/`)])) {
+        return _optionalChain([next, 'optionalCall', _23 => _23()]);
+      }
+      const cookies = getCookies(_optionalChain([req, 'optionalAccess', _24 => _24.headers, 'optionalAccess', _25 => _25.cookie]) || _optionalChain([req, 'optionalAccess', _26 => _26.header, 'optionalCall', _27 => _27("cookie")]));
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
         if (_process2.default.env.NODE_ENV === "development") {
@@ -227,6 +232,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
+      res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
     },
     onError: (error, _req, res) => {

@@ -42,15 +42,19 @@ export const createMiddleware = (
       // Path matching
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next();
+        if (!matcher.test(req.url || "")) return next?.();
+        
       }
       // rpcPrefix matching
-      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) return next();
+      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) {
+        return next?.();
+      }
 
       // Set custom headers
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          res?.setHeader(key, value);
+          res?.header(key, value);
         });
       }
 
@@ -80,11 +84,10 @@ export const createMiddleware = (
 
       // Execute handler if provided
       if (handler) {
-        await handler(req, res, next);
-        return;
+        return await handler(req, res, next);
       }
 
-      next();
+      return next?.();
     } catch (error) {
       if (onError) {
         onError(error as Error, req, res);
@@ -110,9 +113,11 @@ export const createRPCMiddleware = (
       res: ServerResponse<IncomingMessage>,
       next: Connect.NextFunction
     ) => {
-      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
+      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) {
+        return next?.();
+      }
 
-      const cookies = getCookies(req.headers.cookie);
+      const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
       const csrfToken = cookies["X-CSRF-Token"];
 
       if (!csrfToken) {
@@ -138,6 +143,7 @@ export const createRPCMiddleware = (
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
+      res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
     },
     onError: (error, _req, res) => {

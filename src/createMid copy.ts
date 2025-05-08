@@ -110,7 +110,7 @@ export const createMiddleware = (
         return originalEnd(chunk, encoding as BufferEncoding, callback);
       };
 
-      next();
+      return next?.();
     } catch (error) {
       if (onError) {
         onError(error as Error, req, res);
@@ -136,7 +136,7 @@ export const createRPCMiddleware = (
     try {
       if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
 
-      const cookies = getCookies(req.headers.cookie);
+      const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
       const csrfToken = cookies["X-CSRF-Token"];
 
       if (!csrfToken) {
@@ -162,6 +162,7 @@ export const createRPCMiddleware = (
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
+      res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
     } catch (error) {
       console.error("RPC error:", error);

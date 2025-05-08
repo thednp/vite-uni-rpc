@@ -102,7 +102,8 @@ var defaultsTokenOptions = {
 function setSecureCookie(res, name, value, options = {}) {
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  res.setHeader("Set-Cookie", cookieString);
+  res?.setHeader("Set-Cookie", cookieString);
+  res?.header("Set-Cookie", cookieString);
 }
 
 // src/createCSRF.ts
@@ -117,7 +118,7 @@ var defaultCSRFOptions = {
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
-    const cookies = getCookies(req.headers.cookie);
+    const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
@@ -125,7 +126,7 @@ var createCSRF = (initialOptions = {}) => {
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    next();
+    next?.();
   };
 };
 
@@ -156,12 +157,15 @@ var createMiddleware = (initialOptions = {}) => {
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next();
+        if (!matcher.test(req.url || "")) return next?.();
       }
-      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) return next();
+      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) {
+        return next?.();
+      }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          res?.setHeader(key, value);
+          res?.header(key, value);
         });
       }
       if (rateLimitStore) {
@@ -184,10 +188,9 @@ var createMiddleware = (initialOptions = {}) => {
         rateLimitStore.set(clientIp, clientState);
       }
       if (handler) {
-        await handler(req, res, next);
-        return;
+        return await handler(req, res, next);
       }
-      next();
+      return next?.();
     } catch (error) {
       if (onError) {
         onError(error, req, res);
@@ -204,8 +207,10 @@ var createRPCMiddleware = (initialOptions = {}) => {
   return createMiddleware({
     ...options,
     handler: async (req, res, next) => {
-      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
-      const cookies = getCookies(req.headers.cookie);
+      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) {
+        return next?.();
+      }
+      const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
         if (process.env.NODE_ENV === "development") {
@@ -227,6 +232,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
+      res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
     },
     onError: (error, _req, res) => {

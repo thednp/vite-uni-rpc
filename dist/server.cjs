@@ -11,14 +11,14 @@
 
 
 
-var _chunkFDJTV6COcjs = require('./chunk-FDJTV6CO.cjs');
+var _chunkKO5UH5O6cjs = require('./chunk-KO5UH5O6.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkFDJTV6COcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkKO5UH5O6cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkFDJTV6COcjs.defaultRPCOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkKO5UH5O6cjs.defaultRPCOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -60,7 +60,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: _chunkFDJTV6COcjs.defaultRPCOptions.ttl, ...initialOptions };
+  const options = { ttl: _chunkKO5UH5O6cjs.defaultRPCOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -73,7 +73,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkFDJTV6COcjs.serverFunctionsMap.set(name, {
+  _chunkKO5UH5O6cjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -85,7 +85,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
 var _crypto = require('crypto');
 var SessionManager = class {
   constructor() {
-    _chunkFDJTV6COcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+    _chunkKO5UH5O6cjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
   }
   createSession(userId, duration = 24 * 60 * 60 * 1e3) {
     const session = {
@@ -128,4 +128,4 @@ var useSession = () => {
 
 
 
-exports.corsMiddleware = _chunkFDJTV6COcjs.corsMiddleware; exports.createCSRF = _chunkFDJTV6COcjs.createCSRF; exports.createCors = _chunkFDJTV6COcjs.createCors; exports.createMiddleware = _chunkFDJTV6COcjs.createMiddleware; exports.createRPCMiddleware = _chunkFDJTV6COcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = _chunkFDJTV6COcjs.csrfMiddleware; exports.getCookies = _chunkFDJTV6COcjs.getCookies; exports.rpcMiddleware = _chunkFDJTV6COcjs.rpcMiddleware; exports.setSecureCookie = _chunkFDJTV6COcjs.setSecureCookie; exports.useSession = useSession;
+exports.corsMiddleware = _chunkKO5UH5O6cjs.corsMiddleware; exports.createCSRF = _chunkKO5UH5O6cjs.createCSRF; exports.createCors = _chunkKO5UH5O6cjs.createCors; exports.createMiddleware = _chunkKO5UH5O6cjs.createMiddleware; exports.createRPCMiddleware = _chunkKO5UH5O6cjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = _chunkKO5UH5O6cjs.csrfMiddleware; exports.getCookies = _chunkKO5UH5O6cjs.getCookies; exports.rpcMiddleware = _chunkKO5UH5O6cjs.rpcMiddleware; exports.setSecureCookie = _chunkKO5UH5O6cjs.setSecureCookie; exports.useSession = useSession;

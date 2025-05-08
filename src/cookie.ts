@@ -29,5 +29,6 @@ export function setSecureCookie(
   const cookieString = Object.entries(cookieOptions)
     .reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
 
-  res.setHeader("Set-Cookie", cookieString);
+  res?.setHeader("Set-Cookie", cookieString);
+  res?.header("Set-Cookie", cookieString);
 }

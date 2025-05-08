@@ -22,7 +22,7 @@ export const createCSRF = (initialOptions: Partial<CSRFMiddlewareOptions> = {}) 
   const options = { ...defaultCSRFOptions, ...initialOptions };
 
   return (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
-    const cookies = getCookies(req.headers.cookie);
+    const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = createHash("sha256").update(Date.now().toString())
         .digest("hex");
@@ -31,6 +31,6 @@ export const createCSRF = (initialOptions: Partial<CSRFMiddlewareOptions> = {}) 
         expires: new Date(Date.now() + (options.expires) * 60 * 60 * 1000).toUTCString(),
       });
     }
-    next();
+    next?.();
   }
 }
