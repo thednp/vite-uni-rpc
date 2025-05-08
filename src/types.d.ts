@@ -1,3 +1,5 @@
+import { IncomingMessage, ServerResponse } from "node:http";
+
 // vite-mini-rpc/src/types.d.ts
 export interface ServerFunctionOptions {
   ttl?: number;
@@ -61,4 +63,38 @@ export interface RpcPluginOptions {
    * Time to live
    * @default {10000} */
   ttl: number;
+}
+
+export type CSRFTokenOptions = {
+  expires: string,
+  HttpOnly: boolean | "true",
+  Secure: boolean | "true",
+  SameSite: string | "Strict",
+  Path: string,
+}
+
+export type CSRFMiddlewareOptions = Omit<CSRFTokenOptions, "expires"> & {
+  /**
+   * number of days till expiry
+   * @default 24
+   */
+  expires: number;
+}
+
+export interface MiddlewareOptions {
+  /** RPC endpoint prefix */
+  rpcPrefix?: string;
+  /** Path pattern to match for middleware execution */
+  path?: string | RegExp;
+  /** Custom headers to set */
+  headers?: Record<string, string>;
+  /** Rate limiting */
+  rateLimit?: {
+    windowMs: number;
+    max: number;
+  };
+  /** Response transformation */
+  transform?: (data: unknown, req: IncomingMessage, res: ServerResponse) => unknown;
+  /** Error handling */
+  onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
 }

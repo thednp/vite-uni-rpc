@@ -44,6 +44,10 @@
     "prepublishOnly": "pnpm up && pnpm lint && pnpm check:ts && pnpm format && pnpm build",
     "build": "tsup"
   },
+  "peerDependencies": {
+    "cors": "^2.8.5",
+    "vite": "^6.3.5"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "vanjs-core": "^1.5.5",

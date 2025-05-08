@@ -1,17 +1,20 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
-import { createHash } from "node:crypto";
+// import { createHash } from "node:crypto";
+// import cors from "cors";
 import { transformWithEsbuild } from "vite";
-import cors from "cors";
-import { serverFunctionsMap } from "./serverFunctionsMap";
+import { serverFunctionsMap } from "./registry";
 import {
   functionMappings,
   getModule,
-  readBody,
+  // readBody,
   scanForServerFiles,
 } from "./utils";
-import { getCookies, setSecureCookie } from "./cookie";
+// import { getCookies, setSecureCookie } from "./cookie";
 import { defaultOptions } from "./options";
 import { RpcPluginOptions } from "./types";
+import { corsMiddleware } from "./midCors";
+import { csrfMiddleware } from "./midCSRF";
+import { rpcMiddleware } from "./midRPC";
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
@@ -68,90 +71,68 @@ ${
     configureServer(server) {
       viteServer = server;
       scanForServerFiles(config, server);
-      // server.middlewares.use((req, res, next) => {
-      //   res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
-      //   res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-      //   res.setHeader(
-      //     "Access-Control-Allow-Headers",
-      //     "Content-Type,X-CSRF-Token",
-      //   );
-      //   res.setHeader("Access-Control-Allow-Credentials", "true");
-      //   const cookies = getCookies(req.headers.cookie);
 
+      // First register CORS middleware
+      server.middlewares.use(corsMiddleware)
+      // server.middlewares.use(cors({
+      //   origin: true,
+      //   credentials: true,
+      //   methods: ["GET", "POST"],
+      //   allowedHeaders: ["Content-Type", "X-CSRF-Token"],
+      // }));
+
+      // Then register CSRF token middleware
+      server.middlewares.use(csrfMiddleware);
+      // server.middlewares.use((req, res, next) => {
+      //   const cookies = getCookies(req.headers.cookie);
       //   if (!cookies["X-CSRF-Token"]) {
       //     const csrfToken = createHash("sha256").update(Date.now().toString())
       //       .digest("hex");
       //     setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-      //       // Can add additional options here
-      //       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString(), // 24h
-      //       SameSite: "Strict", // Prevents CSRF attacks
+      //       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString(),
+      //       SameSite: "Strict",
       //     });
-      //   }
-      //   if (req.method === "OPTIONS") {
-      //     res.statusCode = 204;
-      //     res.end();
-      //     return;
       //   }
       //   next();
       // });
 
-      // First register CORS middleware
-      server.middlewares.use(cors({
-        origin: true,
-        credentials: true,
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type", "X-CSRF-Token"],
-      }));
-
-      // Then register CSRF token middleware
-      server.middlewares.use((req, res, next) => {
-        const cookies = getCookies(req.headers.cookie);
-        if (!cookies["X-CSRF-Token"]) {
-          const csrfToken = createHash("sha256").update(Date.now().toString())
-            .digest("hex");
-          setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString(),
-            SameSite: "Strict",
-          });
-        }
-        next();
-      });
-
       // Handle RPC calls
-      server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
+      server.middlewares.use(rpcMiddleware);
 
-        const cookies = getCookies(req.headers.cookie);
-        const csrfToken = cookies["X-CSRF-Token"];
+      // server.middlewares.use(async (req, res, next) => {
+      //   if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
 
-        if (!csrfToken) {
-          res.statusCode = 403;
-          res.end(JSON.stringify({ error: "Unauthorized access" }));
-          return;
-        }
+      //   const cookies = getCookies(req.headers.cookie);
+      //   const csrfToken = cookies["X-CSRF-Token"];
 
-        const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
-        const serverFunction = serverFunctionsMap.get(functionName);
+      //   if (!csrfToken) {
+      //     res.statusCode = 403;
+      //     res.end(JSON.stringify({ error: "Unauthorized access" }));
+      //     return;
+      //   }
 
-        if (!serverFunction) {
-          res.statusCode = 404;
-          res.end(
-            JSON.stringify({ error: `Function "${functionName}" not found` }),
-          );
-          return;
-        }
+      //   const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
+      //   const serverFunction = serverFunctionsMap.get(functionName);
 
-        try {
-          const body = await readBody(req);
-          const args = JSON.parse(body || "[]");
-          const result = await serverFunction.fn(...args);
-          res.end(JSON.stringify({ data: result }));
-        } catch (error) {
-          console.error("RPC error:", error);
-          res.statusCode = 500;
-          res.end(JSON.stringify({ error: String(error) }));
-        }
-      });
+      //   if (!serverFunction) {
+      //     res.statusCode = 404;
+      //     res.end(
+      //       JSON.stringify({ error: `Function "${functionName}" not found` }),
+      //     );
+      //     return;
+      //   }
+
+      //   try {
+      //     const body = await readBody(req);
+      //     const args = JSON.parse(body || "[]");
+      //     const result = await serverFunction.fn(...args);
+      //     res.end(JSON.stringify({ data: result }));
+      //   } catch (error) {
+      //     console.error("RPC error:", error);
+      //     res.statusCode = 500;
+      //     res.end(JSON.stringify({ error: String(error) }));
+      //   }
+      // });
     },
   };
 }

@@ -2,7 +2,7 @@
 import type { IncomingMessage } from "node:http";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { serverFunctionsMap } from "./serverFunctionsMap";
+import { serverFunctionsMap } from "./registry";
 import { type ServerFnEntry } from "./types";
 import { ResolvedConfig, ViteDevServer } from "vite";
 

@@ -2,14 +2,20 @@
 
 
 
-var _chunkRLEYOGKHcjs = require('./chunk-RLEYOGKH.cjs');
+
+
+
+
+
+
+var _chunk4LKJ3NGEcjs = require('./chunk-4LKJ3NGE.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkRLEYOGKHcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunk4LKJ3NGEcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkRLEYOGKHcjs.defaultOptions.ttl, fetcher) {
+  async get(key, ttl = _chunk4LKJ3NGEcjs.defaultOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -49,9 +55,9 @@ var ServerCache = class {
 };
 var serverCache = new ServerCache();
 
-// src/server.ts
+// src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: _chunkRLEYOGKHcjs.defaultOptions.ttl, ...initialOptions };
+  const options = { ttl: _chunk4LKJ3NGEcjs.defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -64,7 +70,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkRLEYOGKHcjs.serverFunctionsMap.set(name, {
+  _chunk4LKJ3NGEcjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -72,5 +78,48 @@ function createServerFunction(name, fn, initialOptions = {}) {
   return wrappedFunction;
 }
 
+// src/session.ts
+var _crypto = require('crypto');
+var SessionManager = class {
+  constructor() {
+    _chunk4LKJ3NGEcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+  }
+  createSession(userId, duration = 24 * 60 * 60 * 1e3) {
+    const session = {
+      id: _crypto.randomBytes.call(void 0, 32).toString("hex"),
+      userId,
+      createdAt: /* @__PURE__ */ new Date(),
+      expiresAt: new Date(Date.now() + duration),
+      data: {}
+    };
+    this.sessions.set(session.id, session);
+    return session;
+  }
+  getSession(id) {
+    const session = this.sessions.get(id);
+    if (!session) return null;
+    if (session.expiresAt < /* @__PURE__ */ new Date()) {
+      this.sessions.delete(id);
+      return null;
+    }
+    return session;
+  }
+  // Add more session management methods as needed
+};
+var currentSession;
+var useSession = () => {
+  if (!currentSession) {
+    currentSession = new SessionManager();
+  }
+  return currentSession;
+};
 
-exports.createServerFunction = createServerFunction;
+
+
+
+
+
+
+
+
+exports.createCSRF = _chunk4LKJ3NGEcjs.createCSRF; exports.createCors = _chunk4LKJ3NGEcjs.createCors; exports.createMiddleware = _chunk4LKJ3NGEcjs.createMiddleware; exports.createRPCMiddleware = _chunk4LKJ3NGEcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.getCookies = _chunk4LKJ3NGEcjs.getCookies; exports.setSecureCookie = _chunk4LKJ3NGEcjs.setSecureCookie; exports.useSession = useSession;

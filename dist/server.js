@@ -1,8 +1,14 @@
 import {
   __publicField,
+  createCSRF,
+  createCors,
+  createMiddleware,
+  createRPCMiddleware,
   defaultOptions,
-  serverFunctionsMap
-} from "./chunk-VF6V5FSQ.js";
+  getCookies,
+  serverFunctionsMap,
+  setSecureCookie
+} from "./chunk-LYIE444W.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -49,7 +55,7 @@ var ServerCache = class {
 };
 var serverCache = new ServerCache();
 
-// src/server.ts
+// src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
   const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
@@ -71,6 +77,49 @@ function createServerFunction(name, fn, initialOptions = {}) {
   });
   return wrappedFunction;
 }
+
+// src/session.ts
+import { randomBytes } from "node:crypto";
+var SessionManager = class {
+  constructor() {
+    __publicField(this, "sessions", /* @__PURE__ */ new Map());
+  }
+  createSession(userId, duration = 24 * 60 * 60 * 1e3) {
+    const session = {
+      id: randomBytes(32).toString("hex"),
+      userId,
+      createdAt: /* @__PURE__ */ new Date(),
+      expiresAt: new Date(Date.now() + duration),
+      data: {}
+    };
+    this.sessions.set(session.id, session);
+    return session;
+  }
+  getSession(id) {
+    const session = this.sessions.get(id);
+    if (!session) return null;
+    if (session.expiresAt < /* @__PURE__ */ new Date()) {
+      this.sessions.delete(id);
+      return null;
+    }
+    return session;
+  }
+  // Add more session management methods as needed
+};
+var currentSession;
+var useSession = () => {
+  if (!currentSession) {
+    currentSession = new SessionManager();
+  }
+  return currentSession;
+};
 export {
-  createServerFunction
+  createCSRF,
+  createCors,
+  createMiddleware,
+  createRPCMiddleware,
+  createServerFunction,
+  getCookies,
+  setSecureCookie,
+  useSession
 };
