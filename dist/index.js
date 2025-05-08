@@ -41,9 +41,11 @@ var scanForServerFiles = async (config, devServer) => {
           }
         }
       }
-      server.close();
     } catch (error) {
       console.error("Error loading server file:", file, error);
+    }
+    if (!devServer) {
+      server.close();
     }
   }
 };

@@ -1,10 +1,10 @@
 # vite-mini-rpc
 
-A Vite plugin for creating server functions with automatic RPC generation, single-flight requests, and server-side caching.
+A Vite plugin for creating server functions with automatic remote procedure calls (RPC) generation, server-side caching.
 
 ## Features
 
-- File-level server code isolation without using `'use server'` directive
+- File-level server code isolation without using directives like `'use server'`
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
 - Built-in CSRF protection
@@ -37,11 +37,13 @@ bun add vite-mini-rpc@latest
 ### Vite Configuration
 
 ```ts
-import { defineConfig } from 'vite'
-import rpc from 'vite-mini-rpc'
+import { defineConfig } from 'vite';
+import rpc from 'vite-mini-rpc';
 
 export default defineConfig({
-  plugins: [rpc()]
+  plugins: [
+    rpc(),
+  ],
 })
 ```
 
@@ -83,17 +85,15 @@ export const sayHi = createServerFunction(
 Very easy options:
 ```ts
 export interface ServerFunctionOptions {
-  cache?: {
-    // Time to live: how many miliseconds to keep the cache
-    ttl?: number;
-    // Time to live: how many miliseconds to keep the cache
-    invalidateKeys?: string | RegExp | RegExp[] | string[];
-  };
+  // Time to live: how many miliseconds to keep the cache
+  ttl?: number;
+  // invalidate keys when executing the function
+  invalidateKeys?: string | RegExp | RegExp[] | string[];
 }
 ```
 
 
-The entire `server.ts` file will have the following output in the client:
+The `server.ts` file will have the following output in the client:
 
 ```js
 // src/api/server.ts
@@ -114,7 +114,7 @@ export const sayHi = async (...args) => {
 }
 ```
 
-The update the `index.ts`:
+Create a `root/src/api/index.ts` file to export all necessary functions:
 
 ```ts
 import { sayHi } from "./server";

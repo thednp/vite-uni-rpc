@@ -57,9 +57,11 @@ export const scanForServerFiles = async (
           }
         }
       }
-      server.close();
     } catch (error) {
       console.error("Error loading server file:", file, error);
+    }
+    if (!devServer) {
+      server.close();
     }
   }
 };
