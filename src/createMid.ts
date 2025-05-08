@@ -1,6 +1,7 @@
 // src/createMid.ts
 import process from "node:process";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Buffer } from "node:buffer"
 import type { Connect } from "vite";
 import { readBody } from "./utils";
 import { getCookies } from "./cookie";
@@ -16,14 +17,14 @@ const middlewareDefaults: MiddlewareOptions = {
     max: 100,
     windowMs: 5 * 60 * 1000, // 5m
   },
-  handler: undefined,
+  transform: undefined,
   onError: undefined,
 };
 
 export const createMiddleware = (
   initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
-  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
     ...middlewareDefaults,
     ...initialOptions,
   };
@@ -42,19 +43,15 @@ export const createMiddleware = (
       // Path matching
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next?.();
-        
+        if (!matcher.test(req.url || "")) return next();
       }
       // rpcPrefix matching
-      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) {
-        return next?.();
-      }
+      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) return next();
 
       // Set custom headers
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res?.setHeader(key, value);
-          res?.header(key, value);
+          res.setHeader(key, value);
         });
       }
 
@@ -82,10 +79,36 @@ export const createMiddleware = (
         rateLimitStore.set(clientIp, clientState);
       }
 
-      // Execute handler if provided
-      if (handler) {
-        return await handler(req, res, next);
-      }
+      // Store original end to intercept response
+      const originalEnd = res.end.bind(res);
+      res.end = function(
+        chunk?: string | Buffer | Uint8Array | (() => void),
+        encoding?: BufferEncoding | (() => void),
+        callback?: () => void,
+      ) {
+        try {
+          // Transform response if configured
+          if (transform && chunk && typeof chunk !== "function") {
+            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
+            chunk = JSON.stringify(transform(data, req, res));
+          }
+        } catch (error) {
+          console.error("Response handling error:", String(error));
+        }
+
+        // Handle overloads
+        if (
+          chunk &&
+          (typeof chunk === "function" ||
+            encoding === undefined && callback === undefined)
+        ) {
+          return originalEnd(chunk);
+        }
+        if (chunk && typeof encoding === "function") {
+          return originalEnd(chunk, encoding);
+        }
+        return originalEnd(chunk, encoding as BufferEncoding, callback);
+      };
 
       return next?.();
     } catch (error) {
@@ -102,20 +125,16 @@ export const createMiddleware = (
 
 // Create RPC middleware
 export const createRPCMiddleware = (
-  initialOptions: Partial<MiddlewareOptions> = {},
+  initialOptions: Partial<MiddlewareOptions> = {}, 
 ) => {
-  const options = { ...defaultRPCOptions, ...initialOptions };
-
-  return createMiddleware({
-    ...options,
-    handler: async (
-      req: IncomingMessage,
-      res: ServerResponse<IncomingMessage>,
-      next: Connect.NextFunction
-    ) => {
-      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) {
-        return next?.();
-      }
+  return async (
+    req: IncomingMessage,
+    res: ServerResponse<IncomingMessage>,
+    next: Connect.NextFunction
+  ) => {
+    const options = { ...defaultRPCOptions, ...initialOptions };
+    try {
+      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
 
       const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
       const csrfToken = cookies["X-CSRF-Token"];
@@ -145,11 +164,10 @@ export const createRPCMiddleware = (
       const result = await serverFunction.fn(...args);
       res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
-    },
-    onError: (error, _req, res) => {
+    } catch (error) {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  })
+  };
 };

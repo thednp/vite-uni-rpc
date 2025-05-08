@@ -144,11 +144,11 @@ var middlewareDefaults = {
     windowMs: 5 * 60 * 1e3
     // 5m
   },
-  handler: void 0,
+  transform: void 0,
   onError: void 0
 };
 var createMiddleware = (initialOptions = {}) => {
-  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
     ...middlewareDefaults,
     ...initialOptions
   };
@@ -157,15 +157,12 @@ var createMiddleware = (initialOptions = {}) => {
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return _optionalChain([next, 'optionalCall', _10 => _10()]);
+        if (!matcher.test(req.url || "")) return next();
       }
-      if (rpcPrefix && !_optionalChain([req, 'access', _11 => _11.url, 'optionalAccess', _12 => _12.startsWith, 'call', _13 => _13(rpcPrefix)])) {
-        return _optionalChain([next, 'optionalCall', _14 => _14()]);
-      }
+      if (rpcPrefix && !_optionalChain([req, 'access', _10 => _10.url, 'optionalAccess', _11 => _11.startsWith, 'call', _12 => _12(rpcPrefix)])) return next();
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          _optionalChain([res, 'optionalAccess', _15 => _15.setHeader, 'call', _16 => _16(key, value)]);
-          _optionalChain([res, 'optionalAccess', _17 => _17.header, 'call', _18 => _18(key, value)]);
+          res.setHeader(key, value);
         });
       }
       if (rateLimitStore) {
@@ -187,10 +184,25 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      if (handler) {
-        return await handler(req, res, next);
-      }
-      return _optionalChain([next, 'optionalCall', _19 => _19()]);
+      const originalEnd = res.end.bind(res);
+      res.end = function(chunk, encoding, callback) {
+        try {
+          if (transform && chunk && typeof chunk !== "function") {
+            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
+            chunk = JSON.stringify(transform(data, req, res));
+          }
+        } catch (error) {
+          console.error("Response handling error:", String(error));
+        }
+        if (chunk && (typeof chunk === "function" || encoding === void 0 && callback === void 0)) {
+          return originalEnd(chunk);
+        }
+        if (chunk && typeof encoding === "function") {
+          return originalEnd(chunk, encoding);
+        }
+        return originalEnd(chunk, encoding, callback);
+      };
+      return _optionalChain([next, 'optionalCall', _13 => _13()]);
     } catch (error) {
       if (onError) {
         onError(error, req, res);
@@ -203,14 +215,11 @@ var createMiddleware = (initialOptions = {}) => {
   };
 };
 var createRPCMiddleware = (initialOptions = {}) => {
-  const options = { ...defaultRPCOptions, ...initialOptions };
-  return createMiddleware({
-    ...options,
-    handler: async (req, res, next) => {
-      if (!_optionalChain([req, 'access', _20 => _20.url, 'optionalAccess', _21 => _21.startsWith, 'call', _22 => _22(`/${options.rpcPrefix}/`)])) {
-        return _optionalChain([next, 'optionalCall', _23 => _23()]);
-      }
-      const cookies = getCookies(_optionalChain([req, 'optionalAccess', _24 => _24.headers, 'optionalAccess', _25 => _25.cookie]) || _optionalChain([req, 'optionalAccess', _26 => _26.header, 'optionalCall', _27 => _27("cookie")]));
+  return async (req, res, next) => {
+    const options = { ...defaultRPCOptions, ...initialOptions };
+    try {
+      if (!_optionalChain([req, 'access', _14 => _14.url, 'optionalAccess', _15 => _15.startsWith, 'call', _16 => _16(`/${options.rpcPrefix}/`)])) return next();
+      const cookies = getCookies(_optionalChain([req, 'optionalAccess', _17 => _17.headers, 'optionalAccess', _18 => _18.cookie]) || _optionalChain([req, 'optionalAccess', _19 => _19.header, 'optionalCall', _20 => _20("cookie")]));
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
         if (_process2.default.env.NODE_ENV === "development") {
@@ -234,13 +243,12 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const result = await serverFunction.fn(...args);
       res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
-    },
-    onError: (error, _req, res) => {
+    } catch (error) {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  });
+  };
 };
 
 // src/midRPC.ts

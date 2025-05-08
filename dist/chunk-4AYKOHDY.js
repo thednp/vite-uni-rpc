@@ -144,11 +144,11 @@ var middlewareDefaults = {
     windowMs: 5 * 60 * 1e3
     // 5m
   },
-  handler: void 0,
+  transform: void 0,
   onError: void 0
 };
 var createMiddleware = (initialOptions = {}) => {
-  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
     ...middlewareDefaults,
     ...initialOptions
   };
@@ -157,15 +157,12 @@ var createMiddleware = (initialOptions = {}) => {
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next?.();
+        if (!matcher.test(req.url || "")) return next();
       }
-      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) {
-        return next?.();
-      }
+      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) return next();
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res?.setHeader(key, value);
-          res?.header(key, value);
+          res.setHeader(key, value);
         });
       }
       if (rateLimitStore) {
@@ -187,9 +184,24 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      if (handler) {
-        return await handler(req, res, next);
-      }
+      const originalEnd = res.end.bind(res);
+      res.end = function(chunk, encoding, callback) {
+        try {
+          if (transform && chunk && typeof chunk !== "function") {
+            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
+            chunk = JSON.stringify(transform(data, req, res));
+          }
+        } catch (error) {
+          console.error("Response handling error:", String(error));
+        }
+        if (chunk && (typeof chunk === "function" || encoding === void 0 && callback === void 0)) {
+          return originalEnd(chunk);
+        }
+        if (chunk && typeof encoding === "function") {
+          return originalEnd(chunk, encoding);
+        }
+        return originalEnd(chunk, encoding, callback);
+      };
       return next?.();
     } catch (error) {
       if (onError) {
@@ -203,13 +215,10 @@ var createMiddleware = (initialOptions = {}) => {
   };
 };
 var createRPCMiddleware = (initialOptions = {}) => {
-  const options = { ...defaultRPCOptions, ...initialOptions };
-  return createMiddleware({
-    ...options,
-    handler: async (req, res, next) => {
-      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) {
-        return next?.();
-      }
+  return async (req, res, next) => {
+    const options = { ...defaultRPCOptions, ...initialOptions };
+    try {
+      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
       const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
@@ -234,13 +243,12 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const result = await serverFunction.fn(...args);
       res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
-    },
-    onError: (error, _req, res) => {
+    } catch (error) {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  });
+  };
 };
 
 // src/midRPC.ts
