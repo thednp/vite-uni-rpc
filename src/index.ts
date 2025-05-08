@@ -100,7 +100,7 @@ ${
       server.middlewares.use(rpcMiddleware);
 
       // server.middlewares.use(async (req, res, next) => {
-      //   if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
+      //   if (!req.originalUrl?.startsWith(`/${options.rpcPrefix}/`)) return next();
 
       //   const cookies = getCookies(req.headers.cookie);
       //   const csrfToken = cookies["X-CSRF-Token"];
@@ -111,7 +111,7 @@ ${
       //     return;
       //   }
 
-      //   const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
+      //   const functionName = req.originalUrl.replace(`/${options.rpcPrefix}/`, "");
       //   const serverFunction = serverFunctionsMap.get(functionName);
 
       //   if (!serverFunction) {

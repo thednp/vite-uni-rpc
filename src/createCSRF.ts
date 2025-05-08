@@ -1,5 +1,6 @@
 // src/createCSRF.ts
-import { type IncomingMessage, type ServerResponse } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Request, Response } from "express";
 import { type Connect } from "vite";
 import { createHash } from "node:crypto";
 import { getCookies, setSecureCookie } from "./cookie";
@@ -21,8 +22,8 @@ const defaultCSRFOptions: CSRFMiddlewareOptions = {
 export const createCSRF = (initialOptions: Partial<CSRFMiddlewareOptions> = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
 
-  return (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
-    const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
+  return (req: IncomingMessage | Request, res: ServerResponse | Response, next: Connect.NextFunction) => {
+    const cookies = getCookies(req);
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = createHash("sha256").update(Date.now().toString())
         .digest("hex");

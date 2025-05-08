@@ -7,7 +7,7 @@ export default defineConfig({
   },
   format: ['esm', 'cjs'],
   external: ['vite', 'cors'],
-  // dts: true,
+  dts: true,
   splitting: true,
   clean: true,
 });

@@ -7,7 +7,7 @@ import {
   rpcMiddleware,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-4AYKOHDY.js";
+} from "./chunk-AQ73IPAT.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";

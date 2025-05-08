@@ -1,12 +1,22 @@
 // vite-mini-rpc/src/utils.ts
-import type { IncomingMessage } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { Request, Response } from "express";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { serverFunctionsMap } from "./registry";
 import { type ServerFnEntry } from "./types";
 import { ResolvedConfig, ViteDevServer } from "vite";
 
-export const readBody = (req: IncomingMessage): Promise<string> => {
+
+export const isExpressRequest = (r: Request | IncomingMessage): r is Request => {
+  return 'header' in r;
+};
+
+export const isExpressResponse = (r: Response | ServerResponse): r is Response => {
+  return 'header' in r;
+};
+
+export const readBody = (req: Request | IncomingMessage): Promise<string> => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk: string) => body += chunk);
@@ -63,6 +73,21 @@ export const scanForServerFiles = async (
     if (!devServer) {
       server.close();
     }
+  }
+};
+
+export const sendResponse = (res: ServerResponse | Response, data: Record<string, string>, statusCode = 200) => {
+  if (isExpressResponse(res)) {
+    // Express-style response
+    return res
+      .status(statusCode)
+      .set({ "Content-Type": "application/json" })
+      .send(data);
+  } else {
+    // Vite/Connect-style response
+    res.statusCode = statusCode;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(data));
   }
 };
 

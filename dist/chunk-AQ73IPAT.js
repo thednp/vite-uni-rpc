@@ -8,6 +8,12 @@ var serverFunctionsMap = /* @__PURE__ */ new Map();
 // src/utils.ts
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
+var isExpressRequest = (r) => {
+  return "header" in r;
+};
+var isExpressResponse = (r) => {
+  return "header" in r;
+};
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
@@ -88,7 +94,8 @@ var corsMiddleware = createCors();
 
 // src/cookie.ts
 import { parse as parseCookies } from "node:querystring";
-function getCookies(cookieHeader) {
+function getCookies(req) {
+  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : req.get?.("cookie");
   if (!cookieHeader) return {};
   return parseCookies(cookieHeader.replace(/; /g, "&"));
 }
@@ -102,8 +109,11 @@ var defaultsTokenOptions = {
 function setSecureCookie(res, name, value, options = {}) {
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  res?.setHeader("Set-Cookie", cookieString);
-  res?.header("Set-Cookie", cookieString);
+  if (isExpressResponse(res)) {
+    res.set("Set-Cookie", cookieString);
+  } else {
+    res.setHeader("Set-Cookie", cookieString);
+  }
 }
 
 // src/createCSRF.ts
@@ -118,7 +128,7 @@ var defaultCSRFOptions = {
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
-    const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
+    const cookies = getCookies(req);
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
@@ -144,25 +154,32 @@ var middlewareDefaults = {
     windowMs: 5 * 60 * 1e3
     // 5m
   },
-  transform: void 0,
+  handler: void 0,
   onError: void 0
 };
 var createMiddleware = (initialOptions = {}) => {
-  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
     ...middlewareDefaults,
     ...initialOptions
   };
   const rateLimitStore = rateLimit ? /* @__PURE__ */ new Map() : null;
   return async (req, res, next) => {
+    const url = isExpressRequest(req) ? req.originalUrl : req.url;
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next();
+        if (!matcher.test(url || "")) return next?.();
       }
-      if (rpcPrefix && !req.url?.startsWith(rpcPrefix)) return next();
+      if (rpcPrefix && !url?.startsWith(rpcPrefix)) {
+        return next?.();
+      }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          if (isExpressResponse(res)) {
+            res.header(key, value);
+          } else {
+            res.setHeader(key, value);
+          }
         });
       }
       if (rateLimitStore) {
@@ -184,24 +201,9 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      const originalEnd = res.end.bind(res);
-      res.end = function(chunk, encoding, callback) {
-        try {
-          if (transform && chunk && typeof chunk !== "function") {
-            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
-            chunk = JSON.stringify(transform(data, req, res));
-          }
-        } catch (error) {
-          console.error("Response handling error:", String(error));
-        }
-        if (chunk && (typeof chunk === "function" || encoding === void 0 && callback === void 0)) {
-          return originalEnd(chunk);
-        }
-        if (chunk && typeof encoding === "function") {
-          return originalEnd(chunk, encoding);
-        }
-        return originalEnd(chunk, encoding, callback);
-      };
+      if (handler) {
+        return await handler(req, res, next);
+      }
       return next?.();
     } catch (error) {
       if (onError) {
@@ -215,11 +217,15 @@ var createMiddleware = (initialOptions = {}) => {
   };
 };
 var createRPCMiddleware = (initialOptions = {}) => {
-  return async (req, res, next) => {
-    const options = { ...defaultRPCOptions, ...initialOptions };
-    try {
-      if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
-      const cookies = getCookies(req?.headers?.cookie || req?.header?.("cookie"));
+  const options = { ...defaultRPCOptions, ...initialOptions };
+  return createMiddleware({
+    ...options,
+    handler: async (req, res, next) => {
+      const url = isExpressRequest(req) ? req.originalUrl : req.url;
+      if (!url?.startsWith(`/${options.rpcPrefix}/`)) {
+        return next?.();
+      }
+      const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
         if (process.env.NODE_ENV === "development") {
@@ -229,7 +235,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         res.end(JSON.stringify({ error: "Unauthorized access" }));
         return;
       }
-      const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
+      const functionName = url.replace(`/${options.rpcPrefix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         res.statusCode = 404;
@@ -243,12 +249,13 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const result = await serverFunction.fn(...args);
       res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
-    } catch (error) {
+    },
+    onError: (error, _req, res) => {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  };
+  });
 };
 
 // src/midRPC.ts

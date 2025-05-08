@@ -8,6 +8,12 @@ var serverFunctionsMap = /* @__PURE__ */ new Map();
 // src/utils.ts
 var _promises = require('fs/promises');
 var _path = require('path');
+var isExpressRequest = (r) => {
+  return "header" in r;
+};
+var isExpressResponse = (r) => {
+  return "header" in r;
+};
 var readBody = (req) => {
   return new Promise((resolve) => {
     let body = "";
@@ -88,7 +94,8 @@ var corsMiddleware = createCors();
 
 // src/cookie.ts
 var _querystring = require('querystring');
-function getCookies(cookieHeader) {
+function getCookies(req) {
+  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : _optionalChain([req, 'access', _ => _.get, 'optionalCall', _2 => _2("cookie")]);
   if (!cookieHeader) return {};
   return _querystring.parse.call(void 0, cookieHeader.replace(/; /g, "&"));
 }
@@ -102,8 +109,11 @@ var defaultsTokenOptions = {
 function setSecureCookie(res, name, value, options = {}) {
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  _optionalChain([res, 'optionalAccess', _ => _.setHeader, 'call', _2 => _2("Set-Cookie", cookieString)]);
-  _optionalChain([res, 'optionalAccess', _3 => _3.header, 'call', _4 => _4("Set-Cookie", cookieString)]);
+  if (isExpressResponse(res)) {
+    res.set("Set-Cookie", cookieString);
+  } else {
+    res.setHeader("Set-Cookie", cookieString);
+  }
 }
 
 // src/createCSRF.ts
@@ -118,7 +128,7 @@ var defaultCSRFOptions = {
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
-    const cookies = getCookies(_optionalChain([req, 'optionalAccess', _5 => _5.headers, 'optionalAccess', _6 => _6.cookie]) || _optionalChain([req, 'optionalAccess', _7 => _7.header, 'optionalCall', _8 => _8("cookie")]));
+    const cookies = getCookies(req);
     if (!cookies["X-CSRF-Token"]) {
       const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
@@ -126,7 +136,7 @@ var createCSRF = (initialOptions = {}) => {
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    _optionalChain([next, 'optionalCall', _9 => _9()]);
+    _optionalChain([next, 'optionalCall', _3 => _3()]);
   };
 };
 
@@ -144,25 +154,32 @@ var middlewareDefaults = {
     windowMs: 5 * 60 * 1e3
     // 5m
   },
-  transform: void 0,
+  handler: void 0,
   onError: void 0
 };
 var createMiddleware = (initialOptions = {}) => {
-  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
     ...middlewareDefaults,
     ...initialOptions
   };
   const rateLimitStore = rateLimit ? /* @__PURE__ */ new Map() : null;
   return async (req, res, next) => {
+    const url = isExpressRequest(req) ? req.originalUrl : req.url;
     try {
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(req.url || "")) return next();
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _4 => _4()]);
       }
-      if (rpcPrefix && !_optionalChain([req, 'access', _10 => _10.url, 'optionalAccess', _11 => _11.startsWith, 'call', _12 => _12(rpcPrefix)])) return next();
+      if (rpcPrefix && !_optionalChain([url, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(rpcPrefix)])) {
+        return _optionalChain([next, 'optionalCall', _7 => _7()]);
+      }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          if (isExpressResponse(res)) {
+            res.header(key, value);
+          } else {
+            res.setHeader(key, value);
+          }
         });
       }
       if (rateLimitStore) {
@@ -184,25 +201,10 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      const originalEnd = res.end.bind(res);
-      res.end = function(chunk, encoding, callback) {
-        try {
-          if (transform && chunk && typeof chunk !== "function") {
-            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
-            chunk = JSON.stringify(transform(data, req, res));
-          }
-        } catch (error) {
-          console.error("Response handling error:", String(error));
-        }
-        if (chunk && (typeof chunk === "function" || encoding === void 0 && callback === void 0)) {
-          return originalEnd(chunk);
-        }
-        if (chunk && typeof encoding === "function") {
-          return originalEnd(chunk, encoding);
-        }
-        return originalEnd(chunk, encoding, callback);
-      };
-      return _optionalChain([next, 'optionalCall', _13 => _13()]);
+      if (handler) {
+        return await handler(req, res, next);
+      }
+      return _optionalChain([next, 'optionalCall', _8 => _8()]);
     } catch (error) {
       if (onError) {
         onError(error, req, res);
@@ -215,11 +217,15 @@ var createMiddleware = (initialOptions = {}) => {
   };
 };
 var createRPCMiddleware = (initialOptions = {}) => {
-  return async (req, res, next) => {
-    const options = { ...defaultRPCOptions, ...initialOptions };
-    try {
-      if (!_optionalChain([req, 'access', _14 => _14.url, 'optionalAccess', _15 => _15.startsWith, 'call', _16 => _16(`/${options.rpcPrefix}/`)])) return next();
-      const cookies = getCookies(_optionalChain([req, 'optionalAccess', _17 => _17.headers, 'optionalAccess', _18 => _18.cookie]) || _optionalChain([req, 'optionalAccess', _19 => _19.header, 'optionalCall', _20 => _20("cookie")]));
+  const options = { ...defaultRPCOptions, ...initialOptions };
+  return createMiddleware({
+    ...options,
+    handler: async (req, res, next) => {
+      const url = isExpressRequest(req) ? req.originalUrl : req.url;
+      if (!_optionalChain([url, 'optionalAccess', _9 => _9.startsWith, 'call', _10 => _10(`/${options.rpcPrefix}/`)])) {
+        return _optionalChain([next, 'optionalCall', _11 => _11()]);
+      }
+      const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
         if (_process2.default.env.NODE_ENV === "development") {
@@ -229,7 +235,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         res.end(JSON.stringify({ error: "Unauthorized access" }));
         return;
       }
-      const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
+      const functionName = url.replace(`/${options.rpcPrefix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         res.statusCode = 404;
@@ -243,12 +249,13 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const result = await serverFunction.fn(...args);
       res.statusCode = 200;
       res.end(JSON.stringify({ data: result }));
-    } catch (error) {
+    },
+    onError: (error, _req, res) => {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  };
+  });
 };
 
 // src/midRPC.ts
