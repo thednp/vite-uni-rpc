@@ -1,7 +1,7 @@
 // src/createMid.ts
 import process from "node:process";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Buffer } from "node:buffer"
+import type { Buffer } from "node:buffer";
 import type { Connect } from "vite";
 import { isExpressRequest, readBody } from "./utils";
 import { getCookies } from "./cookie";
@@ -10,7 +10,11 @@ import type { MiddlewareOptions } from "./types";
 import { defaultRPCOptions } from "./options";
 import { Request, Response } from "express";
 
-type TransformFn = (chunk: unknown, req: IncomingMessage, res: ServerResponse<IncomingMessage>) => unknown;
+type TransformFn = (
+  chunk: unknown,
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage>,
+) => unknown;
 
 const middlewareDefaults: MiddlewareOptions & { transform?: TransformFn } = {
   rpcPrefix: undefined,
@@ -37,7 +41,7 @@ export const createMiddleware = (
     ? new Map<string, { count: number; resetTime: number }>()
     : null;
 
-  return async (
+  return (
     req: IncomingMessage | Request,
     res: ServerResponse | Response,
     next: Connect.NextFunction,
@@ -86,7 +90,7 @@ export const createMiddleware = (
 
       // Store original end to intercept response
       const originalEnd = res.end.bind(res);
-      res.end = function(
+      res.end = function (
         chunk?: string | Buffer | Uint8Array | (() => void),
         encoding?: BufferEncoding | (() => void),
         callback?: () => void,
@@ -130,16 +134,16 @@ export const createMiddleware = (
 
 // Create RPC middleware
 export const createRPCMiddleware = (
-  initialOptions: Partial<MiddlewareOptions> = {}, 
+  initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
   return async (
     req: IncomingMessage,
     res: ServerResponse<IncomingMessage>,
-    next: Connect.NextFunction
+    next: Connect.NextFunction,
   ) => {
     const options = { ...defaultRPCOptions, ...initialOptions };
     const url = isExpressRequest(req) ? req.originalUrl : req.url;
-    
+
     try {
       if (!url?.startsWith(`/${options.rpcPrefix}/`)) return next();
 
@@ -148,7 +152,7 @@ export const createRPCMiddleware = (
 
       if (!csrfToken) {
         if (process.env.NODE_ENV === "development") {
-          console.error("RPC middleware requires CSRF middleware")
+          console.error("RPC middleware requires CSRF middleware");
         }
         res.statusCode = 403;
         res.end(JSON.stringify({ error: "Unauthorized access" }));
@@ -161,7 +165,7 @@ export const createRPCMiddleware = (
       if (!serverFunction) {
         res.statusCode = 404;
         res.end(
-          JSON.stringify({ error: `Function "${functionName}" not found` })
+          JSON.stringify({ error: `Function "${functionName}" not found` }),
         );
         return;
       }

@@ -73,7 +73,7 @@ ${
       scanForServerFiles(config, server);
 
       // First register CORS middleware
-      server.middlewares.use(corsMiddleware)
+      server.middlewares.use(corsMiddleware);
       // server.middlewares.use(cors({
       //   origin: true,
       //   credentials: true,

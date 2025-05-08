@@ -1,12 +1,14 @@
 import { parse as parseCookies } from "node:querystring";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import type { CSRFTokenOptions } from "./types"
+import type { CSRFTokenOptions } from "./types";
 import { isExpressRequest, isExpressResponse } from "./utils";
 
 // Helper to parse cookies from request header
 export function getCookies(req: Request | IncomingMessage) {
-  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : req.get?.("cookie")
+  const cookieHeader = !isExpressRequest(req)
+    ? req.headers.cookie
+    : req.get?.("cookie");
   if (!cookieHeader) return {};
   return parseCookies(cookieHeader.replace(/; /g, "&"));
 }
@@ -26,8 +28,6 @@ export function setSecureCookie(
   value: string,
   options: Partial<CSRFTokenOptions> = {},
 ) {
-
-
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions)
     .reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);

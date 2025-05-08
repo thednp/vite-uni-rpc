@@ -45,7 +45,6 @@ export const createMiddleware = (
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
         if (!matcher.test(url || "")) return next?.();
-        
       }
       // rpcPrefix matching
       if (rpcPrefix && !url?.startsWith(rpcPrefix)) {
@@ -116,7 +115,7 @@ export const createRPCMiddleware = (
     handler: async (
       req: IncomingMessage | Request,
       res: ServerResponse | Response,
-      next: Connect.NextFunction
+      next: Connect.NextFunction,
     ) => {
       const url = isExpressRequest(req) ? req.originalUrl : req.url;
       if (!url?.startsWith(`/${options.rpcPrefix}/`)) {
@@ -128,7 +127,7 @@ export const createRPCMiddleware = (
 
       if (!csrfToken) {
         if (process.env.NODE_ENV === "development") {
-          console.error("RPC middleware requires CSRF middleware")
+          console.error("RPC middleware requires CSRF middleware");
         }
         res.statusCode = 403;
         res.end(JSON.stringify({ error: "Unauthorized access" }));
@@ -141,7 +140,7 @@ export const createRPCMiddleware = (
       if (!serverFunction) {
         res.statusCode = 404;
         res.end(
-          JSON.stringify({ error: `Function "${functionName}" not found` })
+          JSON.stringify({ error: `Function "${functionName}" not found` }),
         );
         return;
       }
@@ -156,6 +155,6 @@ export const createRPCMiddleware = (
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
-    }
-  })
+    },
+  });
 };

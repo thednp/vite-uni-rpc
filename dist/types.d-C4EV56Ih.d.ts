@@ -44,12 +44,12 @@ interface RpcPluginOptions {
 }
 
 type CSRFTokenOptions = {
-  expires: string,
-  HttpOnly: boolean | "true",
-  Secure: boolean | "true",
-  SameSite: string | "Strict",
-  Path: string,
-}
+  expires: string;
+  HttpOnly: boolean | "true";
+  Secure: boolean | "true";
+  SameSite: string | "Strict";
+  Path: string;
+};
 
 type CSRFMiddlewareOptions = Omit<CSRFTokenOptions, "expires"> & {
   /**
@@ -57,7 +57,7 @@ type CSRFMiddlewareOptions = Omit<CSRFTokenOptions, "expires"> & {
    * @default 24
    */
   expires: number;
-}
+};
 
 interface MiddlewareOptions {
   /** RPC endpoint prefix */
@@ -72,7 +72,11 @@ interface MiddlewareOptions {
     max: number;
   };
   /** Async handler for request processing */
-  handler?: (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => unknown;
+  handler?: (
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: Connect.NextFunction,
+  ) => unknown;
   // transform?: (data: unknown, req: IncomingMessage, res: ServerResponse) => unknown;
   /** Error handling */
   onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;

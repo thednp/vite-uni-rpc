@@ -1,4 +1,4 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, b as CSRFTokenOptions } from './types.d-CUBrZuN1.js';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, b as CSRFTokenOptions } from './types.d-C4EV56Ih.js';
 import * as cors from 'cors';
 import cors__default from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';

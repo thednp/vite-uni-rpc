@@ -7,13 +7,16 @@ import { serverFunctionsMap } from "./registry";
 import { type ServerFnEntry } from "./types";
 import { ResolvedConfig, ViteDevServer } from "vite";
 
-
-export const isExpressRequest = (r: Request | IncomingMessage): r is Request => {
-  return 'header' in r;
+export const isExpressRequest = (
+  r: Request | IncomingMessage,
+): r is Request => {
+  return "header" in r;
 };
 
-export const isExpressResponse = (r: Response | ServerResponse): r is Response => {
-  return 'header' in r;
+export const isExpressResponse = (
+  r: Response | ServerResponse,
+): r is Response => {
+  return "header" in r;
 };
 
 export const readBody = (req: Request | IncomingMessage): Promise<string> => {
@@ -76,7 +79,11 @@ export const scanForServerFiles = async (
   }
 };
 
-export const sendResponse = (res: ServerResponse | Response, data: Record<string, string>, statusCode = 200) => {
+export const sendResponse = (
+  res: ServerResponse | Response,
+  data: Record<string, string>,
+  statusCode = 200,
+) => {
   if (isExpressResponse(res)) {
     // Express-style response
     return res
