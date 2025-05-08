@@ -69,11 +69,11 @@ export const scanForServerFiles = async (
 export const getModule = (
   fnName: string,
   fnEntry: string,
-  options: { urlPrefix: string },
+  options: { rpcPrefix: string },
 ) =>
   `
 export const ${fnEntry} = async (...args) => {
-  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+  const response = await fetch('/${options.rpcPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

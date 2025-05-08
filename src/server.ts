@@ -1,28 +1,21 @@
 // /vite-mini-rpc/src/server.ts
 
 import { serverCache } from "./cache";
-import type { ServerFnEntry, ServerFunctionOptions } from "./types";
+import type { Arguments, ServerFnEntry, ServerFunctionOptions } from "./types";
 import { serverFunctionsMap } from "./serverFunctionsMap";
 import { defaultOptions } from "./options";
 
-// export function registerServerFunction(
-//   name: string,
-//   fn: ServerFnEntry,
-//   options: ServerFunctionOptions = {},
-// ) {
-//   serverFunctionsMap.set(name, { name, fn, options });
-// }
-
-export function createServerFunction(
+export function createServerFunction<
+  TArgs extends Arguments[] = Arguments[],
+  TResult = unknown,
+>(
   name: string,
-  fn: ServerFnEntry,
+  fn: ServerFnEntry<TArgs, TResult>,
   initialOptions: ServerFunctionOptions = {},
-) {
+): ServerFnEntry<TArgs, TResult> {
   const options = { ttl: defaultOptions.ttl, ...initialOptions };
-  const wrappedFunction = async (...args: unknown[]) => {
-    // if (!options?.ttl) return fn(...args);
-
-    const cacheKey = `${name}-${JSON.stringify(args)}`;
+  const wrappedFunction = async (...args: TArgs) => {
+    const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
       options.ttl,
@@ -37,7 +30,11 @@ export function createServerFunction(
   };
 
   // registerServerFunction(name, wrappedFunction, options);
-  serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
+  serverFunctionsMap.set(name, {
+    name,
+    fn: wrappedFunction as ServerFnEntry<Arguments[], unknown>,
+    options,
+  });
 
   return wrappedFunction;
 }

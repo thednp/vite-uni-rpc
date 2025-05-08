@@ -1,4 +1,7 @@
 // /vite-mini-rpc/src/serverFunctionsMap.ts
-import { ServerFunction } from "./types";
+import { Arguments, ServerFunction } from "./types";
 
-export const serverFunctionsMap = new Map<string, ServerFunction>();
+export const serverFunctionsMap = new Map<
+  string,
+  ServerFunction<Arguments[], unknown>
+>();

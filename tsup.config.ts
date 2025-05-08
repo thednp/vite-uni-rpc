@@ -6,7 +6,7 @@ export default defineConfig({
     server: 'src/server.ts'
   },
   format: ['esm', 'cjs'],
-  external: ['vite'],
+  external: ['vite', 'cors'],
   dts: true,
   splitting: true,
   clean: true,

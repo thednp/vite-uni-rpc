@@ -1,5 +1,5 @@
 import { Plugin } from 'vite';
-import { R as RpcPluginOptions } from './types.d-Dxw50nQE.cjs';
+import { R as RpcPluginOptions } from './types.d-BKHNpU35.cjs';
 
 declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): Plugin;
 

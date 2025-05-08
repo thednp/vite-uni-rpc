@@ -1,4 +1,4 @@
 export const defaultOptions = {
   ttl: 10000,
-  urlPrefix: "__rpc",
+  rpcPrefix: "__rpc",
 };

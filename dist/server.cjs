@@ -2,14 +2,14 @@
 
 
 
-var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
+var _chunkRLEYOGKHcjs = require('./chunk-RLEYOGKH.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkMVVEXO4Ucjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkRLEYOGKHcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkMVVEXO4Ucjs.defaultOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkRLEYOGKHcjs.defaultOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -51,9 +51,9 @@ var serverCache = new ServerCache();
 
 // src/server.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: _chunkMVVEXO4Ucjs.defaultOptions.ttl, ...initialOptions };
+  const options = { ttl: _chunkRLEYOGKHcjs.defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
-    const cacheKey = `${name}-${JSON.stringify(args)}`;
+    const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
       options.ttl,
@@ -64,7 +64,11 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkMVVEXO4Ucjs.serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
+  _chunkRLEYOGKHcjs.serverFunctionsMap.set(name, {
+    name,
+    fn: wrappedFunction,
+    options
+  });
   return wrappedFunction;
 }
 

@@ -2,7 +2,7 @@ import {
   __publicField,
   defaultOptions,
   serverFunctionsMap
-} from "./chunk-53BM2ESW.js";
+} from "./chunk-VF6V5FSQ.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -53,7 +53,7 @@ var serverCache = new ServerCache();
 function createServerFunction(name, fn, initialOptions = {}) {
   const options = { ttl: defaultOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
-    const cacheKey = `${name}-${JSON.stringify(args)}`;
+    const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
       options.ttl,
@@ -64,7 +64,11 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  serverFunctionsMap.set(name, { name, fn: wrappedFunction, options });
+  serverFunctionsMap.set(name, {
+    name,
+    fn: wrappedFunction,
+    options
+  });
   return wrappedFunction;
 }
 export {

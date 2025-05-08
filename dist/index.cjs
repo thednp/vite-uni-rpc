@@ -1,11 +1,12 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
 
-var _chunkMVVEXO4Ucjs = require('./chunk-MVVEXO4U.cjs');
+var _chunkRLEYOGKHcjs = require('./chunk-RLEYOGKH.cjs');
 
 // src/index.ts
 var _crypto = require('crypto');
 var _vite = require('vite');
+var _cors = require('cors'); var _cors2 = _interopRequireDefault(_cors);
 
 // src/utils.ts
 var _promises = require('fs/promises');
@@ -35,7 +36,7 @@ var scanForServerFiles = async (config, devServer) => {
     try {
       const moduleExports = await server.ssrLoadModule(file);
       for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of _chunkMVVEXO4Ucjs.serverFunctionsMap.entries()) {
+        for (const [registeredName, serverFn] of _chunkRLEYOGKHcjs.serverFunctionsMap.entries()) {
           if (serverFn.name === registeredName && serverFn.fn === exportValue) {
             functionMappings.set(registeredName, exportName);
           }
@@ -51,7 +52,7 @@ var scanForServerFiles = async (config, devServer) => {
 };
 var getModule = (fnName, fnEntry, options) => `
 export const ${fnEntry} = async (...args) => {
-  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+  const response = await fetch('/${options.rpcPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -86,7 +87,7 @@ function setSecureCookie(res, name, value, options = {}) {
 
 // src/index.ts
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkMVVEXO4Ucjs.defaultOptions, ...initialOptions };
+  const options = { ..._chunkRLEYOGKHcjs.defaultOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -96,7 +97,7 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     buildStart() {
-      _chunkMVVEXO4Ucjs.serverFunctionsMap.clear();
+      _chunkRLEYOGKHcjs.serverFunctionsMap.clear();
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
@@ -125,43 +126,34 @@ ${Array.from(functionMappings.entries()).map(
     configureServer(server) {
       viteServer = server;
       scanForServerFiles(config, server);
+      server.middlewares.use(_cors2.default.call(void 0, {
+        origin: true,
+        credentials: true,
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type", "X-CSRF-Token"]
+      }));
       server.middlewares.use((req, res, next) => {
-        res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
-        res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-        res.setHeader(
-          "Access-Control-Allow-Headers",
-          "Content-Type,X-CSRF-Token"
-        );
-        res.setHeader("Access-Control-Allow-Credentials", "true");
         const cookies = getCookies(req.headers.cookie);
         if (!cookies["X-CSRF-Token"]) {
           const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
           setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-            // Can add additional options here
             expires: new Date(Date.now() + 24 * 60 * 60 * 1e3).toUTCString(),
-            // 24h
             SameSite: "Strict"
-            // Prevents CSRF attacks
           });
-        }
-        if (req.method === "OPTIONS") {
-          res.statusCode = 204;
-          res.end();
-          return;
         }
         next();
       });
       server.middlewares.use(async (req, res, next) => {
-        if (!_optionalChain([req, 'access', _2 => _2.url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${options.urlPrefix}/`)])) return next();
+        if (!_optionalChain([req, 'access', _2 => _2.url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${options.rpcPrefix}/`)])) return next();
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
         if (!csrfToken) {
           res.statusCode = 403;
-          res.end(JSON.stringify({ error: "Invalid CSRF token" }));
+          res.end(JSON.stringify({ error: "Unauthorized access" }));
           return;
         }
-        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
-        const serverFunction = _chunkMVVEXO4Ucjs.serverFunctionsMap.get(functionName);
+        const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
+        const serverFunction = _chunkRLEYOGKHcjs.serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;
           res.end(

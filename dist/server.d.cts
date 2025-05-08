@@ -1,5 +1,5 @@
-import { S as ServerFnEntry, a as ServerFunctionOptions } from './types.d-Dxw50nQE.cjs';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions } from './types.d-BKHNpU35.cjs';
 
-declare function createServerFunction(name: string, fn: ServerFnEntry, initialOptions?: ServerFunctionOptions): (...args: unknown[]) => Promise<unknown>;
+declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: ServerFunctionOptions): ServerFnEntry<TArgs, TResult>;
 
 export { createServerFunction };

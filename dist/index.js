@@ -1,11 +1,12 @@
 import {
   defaultOptions,
   serverFunctionsMap
-} from "./chunk-53BM2ESW.js";
+} from "./chunk-VF6V5FSQ.js";
 
 // src/index.ts
 import { createHash } from "node:crypto";
 import { transformWithEsbuild } from "vite";
+import cors from "cors";
 
 // src/utils.ts
 import { readdir } from "node:fs/promises";
@@ -51,7 +52,7 @@ var scanForServerFiles = async (config, devServer) => {
 };
 var getModule = (fnName, fnEntry, options) => `
 export const ${fnEntry} = async (...args) => {
-  const response = await fetch('/${options.urlPrefix}/${fnName}', {
+  const response = await fetch('/${options.rpcPrefix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -125,42 +126,33 @@ ${Array.from(functionMappings.entries()).map(
     configureServer(server) {
       viteServer = server;
       scanForServerFiles(config, server);
+      server.middlewares.use(cors({
+        origin: true,
+        credentials: true,
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type", "X-CSRF-Token"]
+      }));
       server.middlewares.use((req, res, next) => {
-        res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "");
-        res.setHeader("Access-Control-Allow-Methods", "GET,POST");
-        res.setHeader(
-          "Access-Control-Allow-Headers",
-          "Content-Type,X-CSRF-Token"
-        );
-        res.setHeader("Access-Control-Allow-Credentials", "true");
         const cookies = getCookies(req.headers.cookie);
         if (!cookies["X-CSRF-Token"]) {
           const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
           setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-            // Can add additional options here
             expires: new Date(Date.now() + 24 * 60 * 60 * 1e3).toUTCString(),
-            // 24h
             SameSite: "Strict"
-            // Prevents CSRF attacks
           });
-        }
-        if (req.method === "OPTIONS") {
-          res.statusCode = 204;
-          res.end();
-          return;
         }
         next();
       });
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith(`/${options.urlPrefix}/`)) return next();
+        if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
         const cookies = getCookies(req.headers.cookie);
         const csrfToken = cookies["X-CSRF-Token"];
         if (!csrfToken) {
           res.statusCode = 403;
-          res.end(JSON.stringify({ error: "Invalid CSRF token" }));
+          res.end(JSON.stringify({ error: "Unauthorized access" }));
           return;
         }
-        const functionName = req.url.replace(`/${options.urlPrefix}/`, "");
+        const functionName = req.url.replace(`/${options.rpcPrefix}/`, "");
         const serverFunction = serverFunctionsMap.get(functionName);
         if (!serverFunction) {
           res.statusCode = 404;

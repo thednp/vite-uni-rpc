@@ -8,7 +8,7 @@ var serverFunctionsMap = /* @__PURE__ */ new Map();
 // src/options.ts
 var defaultOptions = {
   ttl: 1e4,
-  urlPrefix: "__rpc"
+  rpcPrefix: "__rpc"
 };
 
 

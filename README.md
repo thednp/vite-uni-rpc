@@ -42,7 +42,12 @@ import rpc from 'vite-mini-rpc';
 
 export default defineConfig({
   plugins: [
-    rpc(),
+    rpc({
+      // default is "__rpc"
+      urlPrefix: "_server",
+      // time to live default is 10000 (10s)
+      ttl: 15000
+    }),
   ],
 })
 ```
