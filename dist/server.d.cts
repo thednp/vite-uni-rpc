@@ -1,7 +1,10 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, b as CSRFTokenOptions } from './types.d-D5sXoXyP.cjs';
-import cors from 'cors';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, b as CSRFTokenOptions } from './types.d-CUBrZuN1.cjs';
+import * as cors from 'cors';
+import cors__default from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';
+import * as vite from 'vite';
 import { Connect } from 'vite';
+import * as http from 'http';
 import * as querystring from 'querystring';
 
 declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: ServerFunctionOptions): ServerFnEntry<TArgs, TResult>;
@@ -11,7 +14,7 @@ declare function createServerFunction<TArgs extends Arguments[] = Arguments[], T
  * @param initialOptions
  * @returns a new cors middleware
  */
-declare const createCors: (initialOptions?: Partial<cors.CorsOptions>) => (req: cors.CorsRequest, res: {
+declare const createCors: (initialOptions?: Partial<cors__default.CorsOptions>) => (req: cors__default.CorsRequest, res: {
     statusCode?: number | undefined;
     setHeader(key: string, value: string): any;
     end(): any;
@@ -26,6 +29,16 @@ declare const createCSRF: (initialOptions?: Partial<CSRFMiddlewareOptions>) => (
 
 declare const createMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
 declare const createRPCMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
+
+declare const corsMiddleware: (req: cors.CorsRequest, res: {
+    statusCode?: number | undefined;
+    setHeader(key: string, value: string): any;
+    end(): any;
+}, next: (err?: any) => any) => void;
+
+declare const csrfMiddleware: (req: http.IncomingMessage, res: http.ServerResponse, next: vite.Connect.NextFunction) => void;
+
+declare const rpcMiddleware: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, next: vite.Connect.NextFunction) => Promise<void>;
 
 declare function getCookies(cookieHeader: string | undefined): querystring.ParsedUrlQuery;
 declare function setSecureCookie(res: ServerResponse, name: string, value: string, options?: Partial<CSRFTokenOptions>): void;
@@ -44,4 +57,4 @@ declare class SessionManager {
 }
 declare const useSession: () => SessionManager;
 
-export { createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, getCookies, setSecureCookie, useSession };
+export { corsMiddleware, createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, csrfMiddleware, getCookies, rpcMiddleware, setSecureCookie, useSession };

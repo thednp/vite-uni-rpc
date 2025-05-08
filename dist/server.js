@@ -1,21 +1,24 @@
 import {
   __publicField,
+  corsMiddleware,
   createCSRF,
   createCors,
   createMiddleware,
   createRPCMiddleware,
-  defaultOptions,
+  csrfMiddleware,
+  defaultRPCOptions,
   getCookies,
+  rpcMiddleware,
   serverFunctionsMap,
   setSecureCookie
-} from "./chunk-LYIE444W.js";
+} from "./chunk-XNZ56Y7P.js";
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
     __publicField(this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = defaultOptions.ttl, fetcher) {
+  async get(key, ttl = defaultRPCOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (entry?.promise) return entry.promise;
@@ -57,7 +60,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: defaultOptions.ttl, ...initialOptions };
+  const options = { ttl: defaultRPCOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -114,12 +117,15 @@ var useSession = () => {
   return currentSession;
 };
 export {
+  corsMiddleware,
   createCSRF,
   createCors,
   createMiddleware,
   createRPCMiddleware,
   createServerFunction,
+  csrfMiddleware,
   getCookies,
+  rpcMiddleware,
   setSecureCookie,
   useSession
 };

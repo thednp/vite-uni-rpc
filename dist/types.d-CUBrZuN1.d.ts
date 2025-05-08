@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
+import { Connect } from 'vite';
 
 // vite-mini-rpc/src/types.d.ts
 interface ServerFunctionOptions {
@@ -70,8 +71,9 @@ interface MiddlewareOptions {
     windowMs: number;
     max: number;
   };
-  /** Response transformation */
-  transform?: (data: unknown, req: IncomingMessage, res: ServerResponse) => unknown;
+  /** Async handler for request processing */
+  handler?: (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => unknown;
+  // transform?: (data: unknown, req: IncomingMessage, res: ServerResponse) => unknown;
   /** Error handling */
   onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
 }

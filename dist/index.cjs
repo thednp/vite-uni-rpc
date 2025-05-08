@@ -7,23 +7,12 @@
 
 
 
-var _chunk4LKJ3NGEcjs = require('./chunk-4LKJ3NGE.cjs');
+var _chunkFDJTV6COcjs = require('./chunk-FDJTV6CO.cjs');
 
 // src/index.ts
 var _vite = require('vite');
-
-// src/midCors.ts
-var corsMiddleware = _chunk4LKJ3NGEcjs.createCors.call(void 0, );
-
-// src/midCSRF.ts
-var csrfMiddleware = _chunk4LKJ3NGEcjs.createCSRF.call(void 0, );
-
-// src/midRPC.ts
-var rpcMiddleware = _chunk4LKJ3NGEcjs.createRPCMiddleware.call(void 0, );
-
-// src/index.ts
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunk4LKJ3NGEcjs.defaultOptions, ...initialOptions };
+  const options = { ..._chunkFDJTV6COcjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -33,20 +22,20 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     buildStart() {
-      _chunk4LKJ3NGEcjs.serverFunctionsMap.clear();
+      _chunkFDJTV6COcjs.serverFunctionsMap.clear();
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
       _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      if (_chunk4LKJ3NGEcjs.functionMappings.size === 0) {
-        await _chunk4LKJ3NGEcjs.scanForServerFiles.call(void 0, config, viteServer);
+      if (_chunkFDJTV6COcjs.functionMappings.size === 0) {
+        await _chunkFDJTV6COcjs.scanForServerFiles.call(void 0, config, viteServer);
       }
       const transformedCode = `
 // Client-side RPC modules
-${Array.from(_chunk4LKJ3NGEcjs.functionMappings.entries()).map(
-        ([registeredName, exportName]) => _chunk4LKJ3NGEcjs.getModule.call(void 0, registeredName, exportName, options)
+${Array.from(_chunkFDJTV6COcjs.functionMappings.entries()).map(
+        ([registeredName, exportName]) => _chunkFDJTV6COcjs.getModule.call(void 0, registeredName, exportName, options)
       ).join("\n")}
 `.trim();
       const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
@@ -61,10 +50,10 @@ ${Array.from(_chunk4LKJ3NGEcjs.functionMappings.entries()).map(
     },
     configureServer(server) {
       viteServer = server;
-      _chunk4LKJ3NGEcjs.scanForServerFiles.call(void 0, config, server);
-      server.middlewares.use(corsMiddleware);
-      server.middlewares.use(csrfMiddleware);
-      server.middlewares.use(rpcMiddleware);
+      _chunkFDJTV6COcjs.scanForServerFiles.call(void 0, config, server);
+      server.middlewares.use(_chunkFDJTV6COcjs.corsMiddleware);
+      server.middlewares.use(_chunkFDJTV6COcjs.csrfMiddleware);
+      server.middlewares.use(_chunkFDJTV6COcjs.rpcMiddleware);
     }
   };
 }

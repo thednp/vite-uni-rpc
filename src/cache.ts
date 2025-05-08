@@ -1,6 +1,6 @@
 // /vite-mini-rpc/src/cache.ts
 import { type CacheEntry } from "./types";
-import { defaultOptions } from "./options";
+import { defaultRPCOptions } from "./options";
 
 export class ServerCache {
   private cache: Map<string, CacheEntry<unknown>> = new Map<string, {
@@ -11,7 +11,7 @@ export class ServerCache {
 
   async get<T>(
     key: string,
-    ttl: number = defaultOptions.ttl,
+    ttl: number = defaultRPCOptions.ttl,
     fetcher: () => Promise<T>,
   ): Promise<T> {
     const entry = this.cache.get(key) as CacheEntry<T>;

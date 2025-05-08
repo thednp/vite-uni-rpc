@@ -65,7 +65,7 @@ export const ${fnEntry} = async (...args) => {
   `.trim();
 
 // src/options.ts
-var defaultOptions = {
+var defaultRPCOptions = {
   ttl: 1e4,
   rpcPrefix: "__rpc"
 };
@@ -82,6 +82,9 @@ var createCors = (initialOptions = {}) => {
   const options = { ...defaultCorsOptions, ...initialOptions };
   return cors(options);
 };
+
+// src/midCors.ts
+var corsMiddleware = createCors();
 
 // src/cookie.ts
 import { parse as parseCookies } from "node:querystring";
@@ -126,6 +129,9 @@ var createCSRF = (initialOptions = {}) => {
   };
 };
 
+// src/midCSRF.ts
+var csrfMiddleware = createCSRF();
+
 // src/createMid.ts
 import process from "node:process";
 var middlewareDefaults = {
@@ -137,11 +143,11 @@ var middlewareDefaults = {
     windowMs: 5 * 60 * 1e3
     // 5m
   },
-  transform: void 0,
+  handler: void 0,
   onError: void 0
 };
 var createMiddleware = (initialOptions = {}) => {
-  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
     ...middlewareDefaults,
     ...initialOptions
   };
@@ -177,24 +183,10 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      const originalEnd = res.end.bind(res);
-      res.end = function(chunk, encoding, callback) {
-        try {
-          if (transform && chunk && typeof chunk !== "function") {
-            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
-            chunk = JSON.stringify(transform(data, req, res));
-          }
-        } catch (error) {
-          console.error("Response handling error:", String(error));
-        }
-        if (chunk && (typeof chunk === "function" || encoding === void 0 && callback === void 0)) {
-          return originalEnd(chunk);
-        }
-        if (chunk && typeof encoding === "function") {
-          return originalEnd(chunk, encoding);
-        }
-        return originalEnd(chunk, encoding, callback);
-      };
+      if (handler) {
+        await handler(req, res, next);
+        return;
+      }
       next();
     } catch (error) {
       if (onError) {
@@ -208,9 +200,10 @@ var createMiddleware = (initialOptions = {}) => {
   };
 };
 var createRPCMiddleware = (initialOptions = {}) => {
-  return async (req, res, next) => {
-    const options = { ...defaultOptions, ...initialOptions };
-    try {
+  const options = { ...defaultRPCOptions, ...initialOptions };
+  return createMiddleware({
+    ...options,
+    handler: async (req, res, next) => {
       if (!req.url?.startsWith(`/${options.rpcPrefix}/`)) return next();
       const cookies = getCookies(req.headers.cookie);
       const csrfToken = cookies["X-CSRF-Token"];
@@ -235,13 +228,17 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
       res.end(JSON.stringify({ data: result }));
-    } catch (error) {
+    },
+    onError: (error, _req, res) => {
       console.error("RPC error:", error);
       res.statusCode = 500;
       res.end(JSON.stringify({ error: String(error) }));
     }
-  };
+  });
 };
+
+// src/midRPC.ts
+var rpcMiddleware = createRPCMiddleware();
 
 export {
   __publicField,
@@ -249,11 +246,14 @@ export {
   functionMappings,
   scanForServerFiles,
   getModule,
-  defaultOptions,
+  defaultRPCOptions,
   createCors,
+  corsMiddleware,
   getCookies,
   setSecureCookie,
   createCSRF,
+  csrfMiddleware,
   createMiddleware,
-  createRPCMiddleware
+  createRPCMiddleware,
+  rpcMiddleware
 };

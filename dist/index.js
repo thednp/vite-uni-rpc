@@ -1,29 +1,18 @@
 import {
-  createCSRF,
-  createCors,
-  createRPCMiddleware,
-  defaultOptions,
+  corsMiddleware,
+  csrfMiddleware,
+  defaultRPCOptions,
   functionMappings,
   getModule,
+  rpcMiddleware,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-LYIE444W.js";
+} from "./chunk-XNZ56Y7P.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";
-
-// src/midCors.ts
-var corsMiddleware = createCors();
-
-// src/midCSRF.ts
-var csrfMiddleware = createCSRF();
-
-// src/midRPC.ts
-var rpcMiddleware = createRPCMiddleware();
-
-// src/index.ts
 function rpcPlugin(initialOptions = {}) {
-  const options = { ...defaultOptions, ...initialOptions };
+  const options = { ...defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {

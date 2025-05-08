@@ -10,16 +10,16 @@ import {
   scanForServerFiles,
 } from "./utils";
 // import { getCookies, setSecureCookie } from "./cookie";
-import { defaultOptions } from "./options";
-import { RpcPluginOptions } from "./types";
+import { defaultRPCOptions } from "./options";
 import { corsMiddleware } from "./midCors";
 import { csrfMiddleware } from "./midCSRF";
 import { rpcMiddleware } from "./midRPC";
+import { RpcPluginOptions } from "./types";
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
 ): Plugin {
-  const options = { ...defaultOptions, ...initialOptions };
+  const options = { ...defaultRPCOptions, ...initialOptions };
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
 

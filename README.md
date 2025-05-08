@@ -1,13 +1,13 @@
 # vite-mini-rpc
 
-A Vite plugin for creating server functions with automatic remote procedure calls (RPC) generation, server-side caching.
+A Vite plugin for creating server functions with automatic remote procedure calls (RPC) generation, server-side caching and other server tools.
 
 ## Features
 
 - File-level server code isolation without using directives like `'use server'`
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
-- Built-in CSRF protection
+- Built-in configurable CORS and CSRF protection
 - Framework agnostic
 - TypeScript support
 
@@ -87,7 +87,7 @@ export const sayHi = createServerFunction(
 );
 ```
 
-Very easy options:
+Server Function Options:
 ```ts
 export interface ServerFunctionOptions {
   // Time to live: how many miliseconds to keep the cache
@@ -126,8 +126,110 @@ import { sayHi } from "./server";
 
 export { sayHi };
 ```
-
 Import from `index.ts` anywhere you need it.
+
+
+### Middleware
+
+The plugin provides a simple API to create Vite / ExpressJS compatible middlewares, ranging from simple operations to complex RPC middlewares, fully type-safe and very configurable.
+
+While you can do all that by hand every single time, it's nice to have them all under the same roof for full control and ease of maintenance. You can have an `app.config.ts` to hold all your middleware options to be used in both the vite dev server and your express / hono / deno / bun / etc server.
+
+
+### createMiddleware
+
+#### Example
+Create a new but simple middleware:
+```ts
+// src/server/middleware.ts
+import { createMiddleware } from "vite-mini-rpc/server";
+
+const simpleMiddleware = createMiddleware({
+  path: /^\/_theme\//,
+  handler: async (req, res, next) => {
+    // handle to your taste, for instance you may like to
+    // save the current theme in a user session and call next()
+
+    // to make your middleware compatible with express/hono
+    // you may have to distinguish from vite/express
+    if (typeof next === "function") {
+      next();
+    }
+  },
+  // ... other options
+});
+```
+
+Use your middleware with vite:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import { simpleMiddleware } from "./src/server/middleware.ts"
+
+// create a custom plugin
+function myPlugin() {
+  return {
+    name: 'my-plugin-name',
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(simpleMiddleware);
+    },
+  };
+}
+
+// use the custom plugin in your vite configuration
+export default defineConfig({
+  plugins: [myPlugin()],
+});
+
+```
+
+Use same middleware with your express server:
+
+```js
+// /server.js
+import express from "express";
+import { simpleMiddleware } from "./src/server/middleware.ts"
+
+// Create http server
+const app = express();
+
+let vite;
+if (process.env.MODE === "development") {
+  // kickstart your vite dev server here
+} else {
+  // in production make sure to enable your middlewares
+  app.use("/_theme", simpleMiddleware);
+}
+
+app.use("*", async (req, res) => {
+  //.. handle your catch all
+});
+```
+
+#### Middleware Options
+```ts
+export interface MiddlewareOptions {
+  /** RPC endpoint prefix */
+  rpcPrefix?: string;
+  /** Path pattern to match for middleware execution */
+  path?: string | RegExp;
+  /** Custom headers to set */
+  headers?: Record<string, string>;
+  /** Rate limiting */
+  rateLimit?: {
+    windowMs: number;
+    max: number;
+  };
+  /** Async handler for request processing */
+  handler?: (req: IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => unknown;
+  /** Error handling */
+  onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
+}
+```
+
+**Note** - you may need to use [tsx](https://tsx.is/) with the `tsx server.js` command or execute `node run --experimental-strip-types server.js` command when using TypeScript.
+
 
 ### License
 Released under [MIT](LICENSE).

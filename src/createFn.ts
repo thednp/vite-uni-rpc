@@ -3,7 +3,7 @@
 import { serverCache } from "./cache";
 import type { Arguments, ServerFnEntry, ServerFunctionOptions } from "./types";
 import { serverFunctionsMap } from "./registry";
-import { defaultOptions } from "./options";
+import { defaultRPCOptions } from "./options";
 
 export function createServerFunction<
   TArgs extends Arguments[] = Arguments[],
@@ -13,7 +13,7 @@ export function createServerFunction<
   fn: ServerFnEntry<TArgs, TResult>,
   initialOptions: ServerFunctionOptions = {},
 ): ServerFnEntry<TArgs, TResult> {
-  const options = { ttl: defaultOptions.ttl, ...initialOptions };
+  const options = { ttl: defaultRPCOptions.ttl, ...initialOptions };
   const wrappedFunction = async (...args: TArgs) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
