@@ -1,14 +1,19 @@
 // src/createMid.ts
 import process from "node:process";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { Request, Response } from "express";
 import type { Buffer } from "node:buffer";
 import type { Connect } from "vite";
-import { isExpressRequest, readBody } from "./utils";
+import {
+  isExpressRequest,
+  isExpressResponse,
+  readBody,
+  sendResponse,
+} from "./utils";
 import { getCookies } from "./cookie";
 import { serverFunctionsMap } from "./registry";
 import type { MiddlewareOptions } from "./types";
 import { defaultRPCOptions } from "./options";
-import { Request, Response } from "express";
 
 type TransformFn = (
   chunk: unknown,
@@ -60,7 +65,11 @@ export const createMiddleware = (
       // Set custom headers
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          res.setHeader(key, value);
+          if (isExpressResponse(res)) {
+            res.set(key, value);
+          } else {
+            res.setHeader(key, value);
+          }
         });
       }
 
@@ -79,8 +88,9 @@ export const createMiddleware = (
         }
 
         if (clientState.count >= rateLimit!.max) {
-          res.statusCode = 429;
-          res.end("Too Many Requests");
+          // res.statusCode = 429;
+          // res.end("Too Many Requests");
+          sendResponse(res, { error: "Too Many Requests" }, 429);
           return;
         }
 
@@ -125,8 +135,9 @@ export const createMiddleware = (
         onError(error as Error, req, res);
       } else {
         console.error("Middleware error:", String(error));
-        res.statusCode = 500;
-        res.end("Internal Server Error");
+        // res.statusCode = 500;
+        // res.end("Internal Server Error");
+        sendResponse(res, { error: "Internal Server Error" }, 500);
       }
     }
   };
@@ -154,8 +165,9 @@ export const createRPCMiddleware = (
         if (process.env.NODE_ENV === "development") {
           console.error("RPC middleware requires CSRF middleware");
         }
-        res.statusCode = 403;
-        res.end(JSON.stringify({ error: "Unauthorized access" }));
+        // res.statusCode = 403;
+        // res.end(JSON.stringify({ error: "Unauthorized access" }));
+        sendResponse(res, { error: "Unauthorized access" }, 403);
         return;
       }
 
@@ -163,9 +175,14 @@ export const createRPCMiddleware = (
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
-        res.statusCode = 404;
-        res.end(
-          JSON.stringify({ error: `Function "${functionName}" not found` }),
+        // res.statusCode = 404;
+        // res.end(
+        //   JSON.stringify({ error: `Function "${functionName}" not found` }),
+        // );
+        sendResponse(
+          res,
+          { error: `Function "${functionName}" not found` },
+          404,
         );
         return;
       }
@@ -173,12 +190,14 @@ export const createRPCMiddleware = (
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
-      res.statusCode = 200;
-      res.end(JSON.stringify({ data: result }));
+      // res.statusCode = 200;
+      // res.end(JSON.stringify({ data: result }));
+      sendResponse(res, { data: result }, 200);
     } catch (error) {
       console.error("RPC error:", error);
-      res.statusCode = 500;
-      res.end(JSON.stringify({ error: String(error) }));
+      // res.statusCode = 500;
+      // res.end(JSON.stringify({ error: String(error) }));
+      sendResponse(res, { error: "Internal Server Error" }, 500);
     }
   };
 };

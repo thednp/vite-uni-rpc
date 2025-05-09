@@ -81,7 +81,7 @@ export const scanForServerFiles = async (
 
 export const sendResponse = (
   res: ServerResponse | Response,
-  data: Record<string, string>,
+  data: Record<string, string | unknown>,
   statusCode = 200,
 ) => {
   if (isExpressResponse(res)) {

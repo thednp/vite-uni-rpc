@@ -7,12 +7,12 @@
 
 
 
-var _chunkI5XKGHB4cjs = require('./chunk-I5XKGHB4.cjs');
+var _chunkE2GKRBMVcjs = require('./chunk-E2GKRBMV.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkI5XKGHB4cjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkE2GKRBMVcjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -22,20 +22,20 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     buildStart() {
-      _chunkI5XKGHB4cjs.serverFunctionsMap.clear();
+      _chunkE2GKRBMVcjs.serverFunctionsMap.clear();
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
       _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      if (_chunkI5XKGHB4cjs.functionMappings.size === 0) {
-        await _chunkI5XKGHB4cjs.scanForServerFiles.call(void 0, config, viteServer);
+      if (_chunkE2GKRBMVcjs.functionMappings.size === 0) {
+        await _chunkE2GKRBMVcjs.scanForServerFiles.call(void 0, config, viteServer);
       }
       const transformedCode = `
 // Client-side RPC modules
-${Array.from(_chunkI5XKGHB4cjs.functionMappings.entries()).map(
-        ([registeredName, exportName]) => _chunkI5XKGHB4cjs.getModule.call(void 0, registeredName, exportName, options)
+${Array.from(_chunkE2GKRBMVcjs.functionMappings.entries()).map(
+        ([registeredName, exportName]) => _chunkE2GKRBMVcjs.getModule.call(void 0, registeredName, exportName, options)
       ).join("\n")}
 `.trim();
       const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
@@ -50,10 +50,10 @@ ${Array.from(_chunkI5XKGHB4cjs.functionMappings.entries()).map(
     },
     configureServer(server) {
       viteServer = server;
-      _chunkI5XKGHB4cjs.scanForServerFiles.call(void 0, config, server);
-      server.middlewares.use(_chunkI5XKGHB4cjs.corsMiddleware);
-      server.middlewares.use(_chunkI5XKGHB4cjs.csrfMiddleware);
-      server.middlewares.use(_chunkI5XKGHB4cjs.rpcMiddleware);
+      _chunkE2GKRBMVcjs.scanForServerFiles.call(void 0, config, server);
+      server.middlewares.use(_chunkE2GKRBMVcjs.corsMiddleware);
+      server.middlewares.use(_chunkE2GKRBMVcjs.csrfMiddleware);
+      server.middlewares.use(_chunkE2GKRBMVcjs.rpcMiddleware);
     }
   };
 }
