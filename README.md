@@ -142,7 +142,7 @@ The `server.ts` file will have the following output in the client:
 
 ```js
 // src/api/server.ts
-const handleResponse = (response) => {
+const handleResponse = async (response) => {
   if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
   const result = await response.json();
   if (result.error) throw new Error(result.error);
@@ -281,6 +281,8 @@ app.use("*all", async (req, res) => {
   //.. handle your catch all
 });
 ```
+**Note** - you may need to use [tsx](https://tsx.is/) with the `tsx server.js` command or execute `node run --experimental-strip-types server.js` command when using TypeScript.
+
 
 #### Middleware Options
 ```ts
@@ -425,8 +427,6 @@ export interface MiddlewareOptions {
   onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
 }
 ```
-
-**Note** - you may need to use [tsx](https://tsx.is/) with the `tsx server.js` command or execute `node run --experimental-strip-types server.js` command when using TypeScript.
 
 
 ### License

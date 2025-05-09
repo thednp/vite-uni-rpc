@@ -1,14 +1,14 @@
 {
   "name": "vite-mini-rpc",
   "version": "0.0.1",
-  "description": "A Vite plugin for creating server functions with automatic remote procedure calls (RPC)",
-  "homepage": "https://github.com/thednp/rpc#readme",
+  "description": "A Vite plugin for creating server functions with automatic Remote Procedure Calls (RPC)",
+  "homepage": "https://github.com/thednp/vite-mini-rpc#readme",
   "bugs": {
-    "url": "https://github.com/thednp/rpc/issues"
+    "url": "https://github.com/thednp/vite-mini-rpc/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thednp/rpc.git"
+    "url": "git+https://github.com/thednp/vite-mini-rpc.git"
   },
   "license": "MIT",
   "author": "thednp",
@@ -49,9 +49,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "vanjs-core": "^1.5.5",
-    "vanjs-ext": "^0.6.2"
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",
