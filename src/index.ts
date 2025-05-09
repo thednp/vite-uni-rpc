@@ -7,6 +7,11 @@ import { createCors } from "./createCors";
 import { createCSRF } from "./createCSRF";
 import { createRPCMiddleware } from "./createMid";
 
+// Create a custom interface extending Plugin
+// interface RpcPlugin extends Plugin {
+//   options: RpcPluginOptions;
+// }
+
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
 ): Plugin {
@@ -20,6 +25,9 @@ export default function rpcPlugin(
 
     configResolved(resolvedConfig) {
       config = resolvedConfig;
+    },
+    options(ops) {
+      return ops;
     },
     async buildStart() {
       // Prepare the server functions
