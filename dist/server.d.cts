@@ -29,8 +29,8 @@ declare const createCors: (initialOptions?: Partial<cors__default.CorsOptions>) 
  */
 declare const createCSRF: (initialOptions?: Partial<CSRFMiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse | Response, next: Connect.NextFunction) => void;
 
-declare const createMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse | Response, next: Connect.NextFunction) => void;
-declare const createRPCMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
+declare const createMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
+declare const createRPCMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
 
 declare const corsMiddleware: (req: cors.CorsRequest, res: {
     statusCode?: number | undefined;
@@ -40,7 +40,7 @@ declare const corsMiddleware: (req: cors.CorsRequest, res: {
 
 declare const csrfMiddleware: (req: http.IncomingMessage | express.Request, res: http.ServerResponse | express.Response, next: vite.Connect.NextFunction) => void;
 
-declare const rpcMiddleware: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>, next: vite.Connect.NextFunction) => Promise<void>;
+declare const rpcMiddleware: (req: http.IncomingMessage | express.Request, res: http.ServerResponse<http.IncomingMessage>, next: vite.Connect.NextFunction) => Promise<void>;
 
 declare function getCookies(req: Request | IncomingMessage): querystring.ParsedUrlQuery;
 declare function setSecureCookie(res: ServerResponse | Response, name: string, value: string, options?: Partial<CSRFTokenOptions>): void;

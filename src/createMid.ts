@@ -1,13 +1,13 @@
 // src/createMid.ts
 import process from "node:process";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { Request, Response } from "express";
-import type { Buffer } from "node:buffer";
+import type { Request, Response } from "express";
 import type { Connect } from "vite";
 import {
   isExpressRequest,
   isExpressResponse,
   readBody,
+  scanForServerFiles,
   sendResponse,
 } from "./utils";
 import { getCookies } from "./cookie";
@@ -15,13 +15,7 @@ import { serverFunctionsMap } from "./registry";
 import type { MiddlewareOptions } from "./types";
 import { defaultRPCOptions } from "./options";
 
-type TransformFn = (
-  chunk: unknown,
-  req: IncomingMessage,
-  res: ServerResponse<IncomingMessage>,
-) => unknown;
-
-const middlewareDefaults: MiddlewareOptions & { transform?: TransformFn } = {
+const middlewareDefaults: MiddlewareOptions = {
   rpcPrefix: undefined,
   path: undefined,
   headers: {},
@@ -29,14 +23,14 @@ const middlewareDefaults: MiddlewareOptions & { transform?: TransformFn } = {
     max: 100,
     windowMs: 5 * 60 * 1000, // 5m
   },
-  transform: undefined,
+  handler: undefined,
   onError: undefined,
 };
 
 export const createMiddleware = (
   initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
-  const { rpcPrefix, path, headers, rateLimit, transform, onError } = {
+  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
     ...middlewareDefaults,
     ...initialOptions,
   };
@@ -46,27 +40,35 @@ export const createMiddleware = (
     ? new Map<string, { count: number; resetTime: number }>()
     : null;
 
-  return (
+  return async (
     req: IncomingMessage | Request,
-    res: ServerResponse | Response,
+    res: ServerResponse<IncomingMessage>,
     next: Connect.NextFunction,
   ) => {
     const url = isExpressRequest(req) ? req.originalUrl : req.url;
-
+    if (serverFunctionsMap.size === 0) {
+      await scanForServerFiles({
+        root: process.cwd(),
+        base: process.env.base || "/",
+      });
+    }
     try {
       // Path matching
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return next();
+        if (!matcher.test(url || "")) return next?.();
       }
       // rpcPrefix matching
-      if (rpcPrefix && !url?.startsWith(rpcPrefix)) return next();
+      if (rpcPrefix && !url?.startsWith(rpcPrefix)) {
+        return next?.();
+      }
+      if (!handler) return next?.();
 
       // Set custom headers
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
           if (isExpressResponse(res)) {
-            res.set(key, value);
+            res.header(key, value);
           } else {
             res.setHeader(key, value);
           }
@@ -98,38 +100,11 @@ export const createMiddleware = (
         rateLimitStore.set(clientIp, clientState);
       }
 
-      // Store original end to intercept response
-      const originalEnd = res.end.bind(res);
-      res.end = function (
-        chunk?: string | Buffer | Uint8Array | (() => void),
-        encoding?: BufferEncoding | (() => void),
-        callback?: () => void,
-      ) {
-        try {
-          // Transform response if configured
-          if (transform && chunk && typeof chunk !== "function") {
-            const data = typeof chunk === "string" ? JSON.parse(chunk) : chunk;
-            chunk = JSON.stringify(transform(data, req, res));
-          }
-        } catch (error) {
-          console.error("Response handling error:", String(error));
-        }
+      // Execute handler if provided
+      // return await handler(req, res, next);
+      await handler(req, res, next);
 
-        // Handle overloads
-        if (
-          chunk &&
-          (typeof chunk === "function" ||
-            encoding === undefined && callback === undefined)
-        ) {
-          return originalEnd(chunk);
-        }
-        if (chunk && typeof encoding === "function") {
-          return originalEnd(chunk, encoding);
-        }
-        return originalEnd(chunk, encoding as BufferEncoding, callback);
-      };
-
-      return next?.();
+      next?.();
     } catch (error) {
       if (onError) {
         onError(error as Error, req, res);
@@ -137,7 +112,7 @@ export const createMiddleware = (
         console.error("Middleware error:", String(error));
         // res.statusCode = 500;
         // res.end("Internal Server Error");
-        sendResponse(res, { error: "Internal Server Error" }, 500);
+        sendResponse(res, { error: "Middleware error:" + String(error) }, 500);
       }
     }
   };
@@ -147,16 +122,19 @@ export const createMiddleware = (
 export const createRPCMiddleware = (
   initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
-  return async (
-    req: IncomingMessage,
-    res: ServerResponse<IncomingMessage>,
-    next: Connect.NextFunction,
-  ) => {
-    const options = { ...defaultRPCOptions, ...initialOptions };
-    const url = isExpressRequest(req) ? req.originalUrl : req.url;
+  const options = { ...defaultRPCOptions, ...initialOptions };
 
-    try {
-      if (!url?.startsWith(`/${options.rpcPrefix}/`)) return next();
+  return createMiddleware({
+    ...options,
+    handler: async (
+      req: IncomingMessage | Request,
+      res: ServerResponse | Response,
+      next: Connect.NextFunction,
+    ) => {
+      const url = isExpressRequest(req) ? req.originalUrl : req.url;
+      if (!url?.startsWith(`/${options.rpcPrefix}/`)) {
+        return next?.();
+      }
 
       const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
@@ -165,13 +143,14 @@ export const createRPCMiddleware = (
         if (process.env.NODE_ENV === "development") {
           console.error("RPC middleware requires CSRF middleware");
         }
+
         // res.statusCode = 403;
         // res.end(JSON.stringify({ error: "Unauthorized access" }));
         sendResponse(res, { error: "Unauthorized access" }, 403);
         return;
       }
 
-      const functionName = url?.replace(`/${options.rpcPrefix}/`, "");
+      const functionName = url.replace(`/${options.rpcPrefix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
@@ -193,11 +172,12 @@ export const createRPCMiddleware = (
       // res.statusCode = 200;
       // res.end(JSON.stringify({ data: result }));
       sendResponse(res, { data: result }, 200);
-    } catch (error) {
+    },
+    onError: (error, _req, res) => {
       console.error("RPC error:", error);
       // res.statusCode = 500;
       // res.end(JSON.stringify({ error: String(error) }));
       sendResponse(res, { error: "Internal Server Error" }, 500);
-    }
-  };
+    },
+  });
 };

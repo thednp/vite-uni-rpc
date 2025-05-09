@@ -2,7 +2,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
 // import { createHash } from "node:crypto";
 // import cors from "cors";
 import { transformWithEsbuild } from "vite";
-import { serverFunctionsMap } from "./registry";
+// import { serverFunctionsMap } from "./registry";
 import {
   functionMappings,
   getModule,
@@ -30,20 +30,16 @@ export default function rpcPlugin(
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-    buildStart() {
-      serverFunctionsMap.clear();
+    async buildStart() {
+      await scanForServerFiles(config, viteServer);
     },
     async transform(code: string, id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
       if (
         !code.includes("createServerFunction") ||
-        // config.command === "build" && process.env.MODE !== "production" ||
         ops?.ssr
       ) {
         return null;
-      }
-      if (functionMappings.size === 0) {
-        await scanForServerFiles(config, viteServer);
       }
 
       const transformedCode = `
@@ -70,7 +66,7 @@ ${
 
     configureServer(server) {
       viteServer = server;
-      scanForServerFiles(config, server);
+      // scanForServerFiles(config, server);
 
       // First register CORS middleware
       server.middlewares.use(corsMiddleware);

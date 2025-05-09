@@ -6,13 +6,12 @@
 
 
 
-
-var _chunk6QZPQIC4cjs = require('./chunk-6QZPQIC4.cjs');
+var _chunkSXL2KUCDcjs = require('./chunk-SXL2KUCD.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunk6QZPQIC4cjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkSXL2KUCDcjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -21,21 +20,17 @@ function rpcPlugin(initialOptions = {}) {
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-    buildStart() {
-      _chunk6QZPQIC4cjs.serverFunctionsMap.clear();
+    async buildStart() {
+      await _chunkSXL2KUCDcjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
-      if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
-      _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
+      if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
-      }
-      if (_chunk6QZPQIC4cjs.functionMappings.size === 0) {
-        await _chunk6QZPQIC4cjs.scanForServerFiles.call(void 0, config, viteServer);
       }
       const transformedCode = `
 // Client-side RPC modules
-${Array.from(_chunk6QZPQIC4cjs.functionMappings.entries()).map(
-        ([registeredName, exportName]) => _chunk6QZPQIC4cjs.getModule.call(void 0, registeredName, exportName, options)
+${Array.from(_chunkSXL2KUCDcjs.functionMappings.entries()).map(
+        ([registeredName, exportName]) => _chunkSXL2KUCDcjs.getModule.call(void 0, registeredName, exportName, options)
       ).join("\n")}
 `.trim();
       const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
@@ -50,10 +45,9 @@ ${Array.from(_chunk6QZPQIC4cjs.functionMappings.entries()).map(
     },
     configureServer(server) {
       viteServer = server;
-      _chunk6QZPQIC4cjs.scanForServerFiles.call(void 0, config, server);
-      server.middlewares.use(_chunk6QZPQIC4cjs.corsMiddleware);
-      server.middlewares.use(_chunk6QZPQIC4cjs.csrfMiddleware);
-      server.middlewares.use(_chunk6QZPQIC4cjs.rpcMiddleware);
+      server.middlewares.use(_chunkSXL2KUCDcjs.corsMiddleware);
+      server.middlewares.use(_chunkSXL2KUCDcjs.csrfMiddleware);
+      server.middlewares.use(_chunkSXL2KUCDcjs.rpcMiddleware);
     }
   };
 }

@@ -5,9 +5,8 @@ import {
   functionMappings,
   getModule,
   rpcMiddleware,
-  scanForServerFiles,
-  serverFunctionsMap
-} from "./chunk-MFIQKM6S.js";
+  scanForServerFiles
+} from "./chunk-TIY6GOZR.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";
@@ -21,16 +20,12 @@ function rpcPlugin(initialOptions = {}) {
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-    buildStart() {
-      serverFunctionsMap.clear();
+    async buildStart() {
+      await scanForServerFiles(config, viteServer);
     },
     async transform(code, id, ops) {
-      if (!code.includes("createServerFunction") || // config.command === "build" && process.env.MODE !== "production" ||
-      ops?.ssr) {
+      if (!code.includes("createServerFunction") || ops?.ssr) {
         return null;
-      }
-      if (functionMappings.size === 0) {
-        await scanForServerFiles(config, viteServer);
       }
       const transformedCode = `
 // Client-side RPC modules
@@ -50,7 +45,6 @@ ${Array.from(functionMappings.entries()).map(
     },
     configureServer(server) {
       viteServer = server;
-      scanForServerFiles(config, server);
       server.middlewares.use(corsMiddleware);
       server.middlewares.use(csrfMiddleware);
       server.middlewares.use(rpcMiddleware);

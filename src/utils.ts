@@ -29,8 +29,12 @@ export const readBody = (req: Request | IncomingMessage): Promise<string> => {
 
 export const functionMappings = new Map<string, string>();
 
+type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
+  server?: Partial<ResolvedConfig["server"]>;
+};
+
 export const scanForServerFiles = async (
-  config: ResolvedConfig,
+  config: ScanConfig,
   devServer?: ViteDevServer,
 ) => {
   functionMappings.clear();
@@ -39,7 +43,7 @@ export const scanForServerFiles = async (
   if (!server) {
     const { createServer } = await import("vite");
     server = await createServer({
-      server: { ...config.server, middlewareMode: true },
+      server: { ...(config?.server || {}), middlewareMode: true },
       appType: "custom",
       base: config.base,
     });
