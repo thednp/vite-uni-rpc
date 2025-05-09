@@ -1,8 +1,10 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+// import { existsSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+// import { join, resolve } from "node:path";
+import { join } from "node:path";
 import process from "node:process";
 import type { ConfigEnv, ResolvedConfig, ViteDevServer } from "vite";
 import { loadConfigFromFile, mergeConfig } from "vite";
@@ -126,15 +128,17 @@ export const scanForServerFiles = async (
     "server.mjs",
     "server.mts",
   ];
+  const apiDir = join(config.root, "src", "api");
 
-  const apiDir = resolve(config.root, "api/src");
-  for (const file of svFiles) {
+  const files = (await readdir(apiDir, { withFileTypes: true }))
+    .filter((f) => svFiles.some((fn) => f.name.includes(fn)))
+    .map((f) => join(apiDir, f.name));
+
+  for (const file of files) {
     try {
       // Transform TypeScript to JavaScript using the loaded transform function
-      const resolvedFile = resolve(apiDir, file);
-      if (!existsSync(resolvedFile)) return;
       const moduleExports = await server.ssrLoadModule(
-        resolvedFile,
+        file,
       ) as Record<
         string,
         ServerFnEntry

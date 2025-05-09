@@ -7,7 +7,7 @@ import {
   getClientModules,
   loadRPCConfig,
   scanForServerFiles
-} from "./chunk-CWIKKML7.js";
+} from "./chunk-PDPDHOHS.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";

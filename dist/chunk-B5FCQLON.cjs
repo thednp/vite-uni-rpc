@@ -52,7 +52,7 @@ var defaultMiddlewareOptions = {
 };
 
 // src/utils.ts
-var _fs = require('fs');
+var _promises = require('fs/promises');
 var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var _vite = require('vite');
@@ -99,10 +99,10 @@ async function loadRPCConfig(configFile) {
   }
 }
 var readBody = (req) => {
-  return new Promise((resolve2) => {
+  return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
-    req.on("end", () => resolve2(body));
+    req.on("end", () => resolve(body));
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
@@ -128,13 +128,12 @@ var scanForServerFiles = async (initialCfg, devServer) => {
     "server.mjs",
     "server.mts"
   ];
-  const apiDir = _path.resolve.call(void 0, config.root, "api/src");
-  for (const file of svFiles) {
+  const apiDir = _path.join.call(void 0, config.root, "src", "api");
+  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => _path.join.call(void 0, apiDir, f.name));
+  for (const file of files) {
     try {
-      const resolvedFile = _path.resolve.call(void 0, apiDir, file);
-      if (!_fs.existsSync.call(void 0, resolvedFile)) return;
       const moduleExports = await server.ssrLoadModule(
-        resolvedFile
+        file
       );
       const moduleEntries = Object.entries(moduleExports);
       if (!moduleEntries.length) {

@@ -52,8 +52,8 @@ var defaultMiddlewareOptions = {
 };
 
 // src/utils.ts
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 import process from "node:process";
 import { loadConfigFromFile, mergeConfig } from "vite";
 var serverFunctionsMap = /* @__PURE__ */ new Map();
@@ -99,10 +99,10 @@ async function loadRPCConfig(configFile) {
   }
 }
 var readBody = (req) => {
-  return new Promise((resolve2) => {
+  return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
-    req.on("end", () => resolve2(body));
+    req.on("end", () => resolve(body));
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
@@ -128,13 +128,12 @@ var scanForServerFiles = async (initialCfg, devServer) => {
     "server.mjs",
     "server.mts"
   ];
-  const apiDir = resolve(config.root, "api/src");
-  for (const file of svFiles) {
+  const apiDir = join(config.root, "src", "api");
+  const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => join(apiDir, f.name));
+  for (const file of files) {
     try {
-      const resolvedFile = resolve(apiDir, file);
-      if (!existsSync(resolvedFile)) return;
       const moduleExports = await server.ssrLoadModule(
-        resolvedFile
+        file
       );
       const moduleEntries = Object.entries(moduleExports);
       if (!moduleEntries.length) {
