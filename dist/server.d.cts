@@ -1,4 +1,4 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions, b as ServerFunction } from './types.d-sWpoQFhb.cjs';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-sWpoQFhb.cjs';
 import * as cors from 'cors';
 import cors__default from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';
@@ -69,8 +69,6 @@ type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
 };
 declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
 declare const sendResponse: (res: ServerResponse | Response, response: Record<string, string | unknown>, statusCode?: number) => Response<any, Record<string, any>> | undefined;
-declare const getModule: (fnName: string, fnEntry: string, options: {
-    rpcPreffix: string;
-}) => string;
+declare const getClientModules: (options: RpcPluginOptions) => string;
 
-export { corsMiddleware, createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, csrfMiddleware, functionMappings, getCookies, getModule, isExpressRequest, isExpressResponse, readBody, rpcMiddleware, scanForServerFiles, sendResponse, serverFunctionsMap, setSecureCookie, useSession };
+export { corsMiddleware, createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, csrfMiddleware, functionMappings, getClientModules, getCookies, isExpressRequest, isExpressResponse, readBody, rpcMiddleware, scanForServerFiles, sendResponse, serverFunctionsMap, setSecureCookie, useSession };

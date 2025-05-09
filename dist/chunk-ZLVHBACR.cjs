@@ -1,11 +1,11 @@
-var __defProp = Object.defineProperty;
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/utils.ts
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import process from "node:process";
+var _promises = require('fs/promises');
+var _path = require('path');
+var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var serverFunctionsMap = /* @__PURE__ */ new Map();
 var isExpressRequest = (r) => {
   return "header" in r && "get" in r;
@@ -25,20 +25,20 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
-    root: process.cwd(),
-    base: process.env.BASE || "/",
+    root: _process2.default.cwd(),
+    base: _process2.default.env.BASE || "/",
     server: { middlewareMode: true }
   } : initialCfg;
-  const apiDir = join(config.root, "src", "api");
+  const apiDir = _path.join.call(void 0, config.root, "src", "api");
   if (!server) {
-    const { createServer } = await import("vite");
+    const { createServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("vite")));
     server = await createServer({
       server: config.server,
       appType: "custom",
       base: config.base
     });
   }
-  const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
+  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => _path.join.call(void 0, apiDir, f.name));
   for (const file of files) {
     try {
       const moduleExports = await server.ssrLoadModule(file);
@@ -76,9 +76,23 @@ export const ${fnEntry} = async (...args) => {
     credentials: 'include',
     body: JSON.stringify(args)
   });
-  return handleResponse(response);
+  return await handleResponse(response);
 }
   `.trim();
+var getClientModules = (options) => {
+  return `
+// Client-side RPC modules
+const handleResponse = async (response) => {
+if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+const result = await response.json();
+if (result.error) throw new Error(result.error);
+return result.data;
+}
+${Array.from(functionMappings.entries()).map(
+    ([registeredName, exportName]) => getModule(registeredName, exportName, options)
+  ).join("\n")}
+`.trim();
+};
 
 // src/options.ts
 var defaultCorsOptions = {
@@ -130,18 +144,18 @@ var defaultMiddlewareOptions = {
 };
 
 // src/createCors.ts
-import cors from "cors";
+var _cors = require('cors'); var _cors2 = _interopRequireDefault(_cors);
 var createCors = (initialOptions = {}) => {
   const options = { ...defaultCorsOptions, ...initialOptions };
-  return cors(options);
+  return _cors2.default.call(void 0, options);
 };
 
 // src/cookie.ts
-import { parse as parseCookies } from "node:querystring";
+var _querystring = require('querystring');
 function getCookies(req) {
-  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : req.get?.("cookie");
+  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : _optionalChain([req, 'access', _ => _.get, 'optionalCall', _2 => _2("cookie")]);
   if (!cookieHeader) return {};
-  return parseCookies(cookieHeader.replace(/; /g, "&"));
+  return _querystring.parse.call(void 0, cookieHeader.replace(/; /g, "&"));
 }
 var defaultsTokenOptions = {
   expires: "",
@@ -161,24 +175,24 @@ function setSecureCookie(res, name, value, options = {}) {
 }
 
 // src/createCSRF.ts
-import { createHash } from "node:crypto";
+var _crypto = require('crypto');
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
     const cookies = getCookies(req);
     if (!cookies["X-CSRF-Token"]) {
-      const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
+      const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
         ...options,
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    next?.();
+    _optionalChain([next, 'optionalCall', _3 => _3()]);
   };
 };
 
 // src/createMid.ts
-import process2 from "node:process";
+
 var createMiddleware = (initialOptions = {}) => {
   const {
     rpcPreffix,
@@ -200,7 +214,7 @@ var createMiddleware = (initialOptions = {}) => {
       await scanForServerFiles();
     }
     if (!handler) {
-      return next?.();
+      return _optionalChain([next, 'optionalCall', _4 => _4()]);
     }
     try {
       if (onRequest) {
@@ -208,10 +222,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return next?.();
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _5 => _5()]);
       }
-      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
-        return next?.();
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _8 => _8()]);
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -250,7 +264,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      next?.();
+      _optionalChain([next, 'optionalCall', _9 => _9()]);
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -275,13 +289,13 @@ var createRPCMiddleware = (initialOptions = {}) => {
     handler: async (req, res, next) => {
       const url = isExpressRequest(req) ? req.originalUrl : req.url;
       const { rpcPreffix } = options;
-      if (!url?.startsWith(`/${rpcPreffix}/`)) {
-        return next?.();
+      if (!_optionalChain([url, 'optionalAccess', _10 => _10.startsWith, 'call', _11 => _11(`/${rpcPreffix}/`)])) {
+        return _optionalChain([next, 'optionalCall', _12 => _12()]);
       }
       const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
-        if (process2.env.NODE_ENV === "development") {
+        if (_process2.default.env.NODE_ENV === "development") {
           console.error("RPC middleware requires CSRF middleware");
         }
         sendResponse(res, { error: "Unauthorized access" }, 403);
@@ -309,22 +323,22 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-export {
-  __publicField,
-  serverFunctionsMap,
-  isExpressRequest,
-  isExpressResponse,
-  readBody,
-  functionMappings,
-  scanForServerFiles,
-  sendResponse,
-  getModule,
-  defaultServerFnOptions,
-  defaultRPCOptions,
-  createCors,
-  getCookies,
-  setSecureCookie,
-  createCSRF,
-  createMiddleware,
-  createRPCMiddleware
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.readBody = readBody; exports.functionMappings = functionMappings; exports.scanForServerFiles = scanForServerFiles; exports.sendResponse = sendResponse; exports.getClientModules = getClientModules; exports.defaultServerFnOptions = defaultServerFnOptions; exports.defaultRPCOptions = defaultRPCOptions; exports.createCors = createCors; exports.getCookies = getCookies; exports.setSecureCookie = setSecureCookie; exports.createCSRF = createCSRF; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;

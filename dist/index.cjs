@@ -5,13 +5,12 @@
 
 
 
-
-var _chunkWFDYUAHDcjs = require('./chunk-WFDYUAHD.cjs');
+var _chunkZLVHBACRcjs = require('./chunk-ZLVHBACR.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkWFDYUAHDcjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkZLVHBACRcjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -21,25 +20,13 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     async buildStart() {
-      await _chunkWFDYUAHDcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunkZLVHBACRcjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      const transformedCode = `
-// Client-side RPC modules
-const handleResponse = async (response) => {
-  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
-  const result = await response.json();
-  if (result.error) throw new Error(result.error);
-  return result.data;
-}
-${Array.from(_chunkWFDYUAHDcjs.functionMappings.entries()).map(
-        ([registeredName, exportName]) => _chunkWFDYUAHDcjs.getModule.call(void 0, registeredName, exportName, options)
-      ).join("\n")}
-`.trim();
-      const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
+      const result = await _vite.transformWithEsbuild.call(void 0, _chunkZLVHBACRcjs.getClientModules.call(void 0, options), id, {
         loader: "js",
         target: "es2020"
       });
@@ -52,12 +39,12 @@ ${Array.from(_chunkWFDYUAHDcjs.functionMappings.entries()).map(
       viteServer = server;
       const { cors, csrf, ...rest } = options;
       if (cors) {
-        server.middlewares.use(_chunkWFDYUAHDcjs.createCors.call(void 0, cors));
+        server.middlewares.use(_chunkZLVHBACRcjs.createCors.call(void 0, cors));
       }
       if (csrf) {
-        server.middlewares.use(_chunkWFDYUAHDcjs.createCSRF.call(void 0, csrf));
+        server.middlewares.use(_chunkZLVHBACRcjs.createCSRF.call(void 0, csrf));
       }
-      server.middlewares.use(_chunkWFDYUAHDcjs.createRPCMiddleware.call(void 0, rest));
+      server.middlewares.use(_chunkZLVHBACRcjs.createRPCMiddleware.call(void 0, rest));
     }
   };
 }

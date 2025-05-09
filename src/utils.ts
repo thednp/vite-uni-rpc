@@ -4,7 +4,12 @@ import type { Request, Response } from "express";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
-import type { Arguments, ServerFnEntry, ServerFunction } from "./types";
+import type {
+  Arguments,
+  RpcPluginOptions,
+  ServerFnEntry,
+  ServerFunction,
+} from "./types";
 import { ResolvedConfig, ViteDevServer } from "vite";
 
 export const serverFunctionsMap = new Map<
@@ -116,7 +121,7 @@ export const sendResponse = (
   }
 };
 
-export const getModule = (
+const getModule = (
   fnName: string,
   fnEntry: string,
   options: { rpcPreffix: string },
@@ -131,6 +136,25 @@ export const ${fnEntry} = async (...args) => {
     credentials: 'include',
     body: JSON.stringify(args)
   });
-  return handleResponse(response);
+  return await handleResponse(response);
 }
   `.trim();
+
+export const getClientModules = (options: RpcPluginOptions) => {
+  return `
+// Client-side RPC modules
+const handleResponse = async (response) => {
+if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+const result = await response.json();
+if (result.error) throw new Error(result.error);
+return result.data;
+}
+${
+    Array.from(functionMappings.entries())
+      .map(([registeredName, exportName]) =>
+        getModule(registeredName, exportName, options)
+      )
+      .join("\n")
+  }
+`.trim();
+};

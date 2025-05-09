@@ -6,8 +6,8 @@ import {
   createRPCMiddleware,
   defaultServerFnOptions,
   functionMappings,
+  getClientModules,
   getCookies,
-  getModule,
   isExpressRequest,
   isExpressResponse,
   readBody,
@@ -15,7 +15,7 @@ import {
   sendResponse,
   serverFunctionsMap,
   setSecureCookie
-} from "./chunk-X5LHOXOQ.js";
+} from "./chunk-RWAQRZIP.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -138,8 +138,8 @@ export {
   createServerFunction,
   csrfMiddleware,
   functionMappings,
+  getClientModules,
   getCookies,
-  getModule,
   isExpressRequest,
   isExpressResponse,
   readBody,

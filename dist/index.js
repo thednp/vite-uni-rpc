@@ -3,10 +3,9 @@ import {
   createCors,
   createRPCMiddleware,
   defaultRPCOptions,
-  functionMappings,
-  getModule,
+  getClientModules,
   scanForServerFiles
-} from "./chunk-X5LHOXOQ.js";
+} from "./chunk-RWAQRZIP.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";
@@ -27,19 +26,7 @@ function rpcPlugin(initialOptions = {}) {
       if (!code.includes("createServerFunction") || ops?.ssr) {
         return null;
       }
-      const transformedCode = `
-// Client-side RPC modules
-const handleResponse = async (response) => {
-  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
-  const result = await response.json();
-  if (result.error) throw new Error(result.error);
-  return result.data;
-}
-${Array.from(functionMappings.entries()).map(
-        ([registeredName, exportName]) => getModule(registeredName, exportName, options)
-      ).join("\n")}
-`.trim();
-      const result = await transformWithEsbuild(transformedCode, id, {
+      const result = await transformWithEsbuild(getClientModules(options), id, {
         loader: "js",
         target: "es2020"
       });

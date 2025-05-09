@@ -1,6 +1,6 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
 import { transformWithEsbuild } from "vite";
-import { functionMappings, getModule, scanForServerFiles } from "./utils";
+import { getClientModules, scanForServerFiles } from "./utils";
 import { defaultRPCOptions } from "./options";
 import { RpcPluginOptions } from "./types";
 import { createCors } from "./createCors";
@@ -34,23 +34,7 @@ export default function rpcPlugin(
         return null;
       }
 
-      const transformedCode = `
-// Client-side RPC modules
-const handleResponse = async (response) => {
-  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
-  const result = await response.json();
-  if (result.error) throw new Error(result.error);
-  return result.data;
-}
-${
-        Array.from(functionMappings.entries())
-          .map(([registeredName, exportName]) =>
-            getModule(registeredName, exportName, options)
-          )
-          .join("\n")
-      }
-`.trim();
-      const result = await transformWithEsbuild(transformedCode, id, {
+      const result = await transformWithEsbuild(getClientModules(options), id, {
         loader: "js",
         target: "es2020",
       });

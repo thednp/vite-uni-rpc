@@ -15,14 +15,14 @@
 
 
 
-var _chunkWFDYUAHDcjs = require('./chunk-WFDYUAHD.cjs');
+var _chunkZLVHBACRcjs = require('./chunk-ZLVHBACR.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkWFDYUAHDcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkZLVHBACRcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkWFDYUAHDcjs.defaultServerFnOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkZLVHBACRcjs.defaultServerFnOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -64,7 +64,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ..._chunkWFDYUAHDcjs.defaultServerFnOptions, ...initialOptions };
+  const options = { ..._chunkZLVHBACRcjs.defaultServerFnOptions, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -77,7 +77,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkWFDYUAHDcjs.serverFunctionsMap.set(name, {
+  _chunkZLVHBACRcjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -86,19 +86,19 @@ function createServerFunction(name, fn, initialOptions = {}) {
 }
 
 // src/midCors.ts
-var corsMiddleware = _chunkWFDYUAHDcjs.createCors.call(void 0, );
+var corsMiddleware = _chunkZLVHBACRcjs.createCors.call(void 0, );
 
 // src/midCSRF.ts
-var csrfMiddleware = _chunkWFDYUAHDcjs.createCSRF.call(void 0, );
+var csrfMiddleware = _chunkZLVHBACRcjs.createCSRF.call(void 0, );
 
 // src/midRPC.ts
-var rpcMiddleware = _chunkWFDYUAHDcjs.createRPCMiddleware.call(void 0, );
+var rpcMiddleware = _chunkZLVHBACRcjs.createRPCMiddleware.call(void 0, );
 
 // src/session.ts
 var _crypto = require('crypto');
 var SessionManager = class {
   constructor() {
-    _chunkWFDYUAHDcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+    _chunkZLVHBACRcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
   }
   createSession(userId, duration = 24 * 60 * 60 * 1e3) {
     const session = {
@@ -149,4 +149,4 @@ var useSession = () => {
 
 
 
-exports.corsMiddleware = corsMiddleware; exports.createCSRF = _chunkWFDYUAHDcjs.createCSRF; exports.createCors = _chunkWFDYUAHDcjs.createCors; exports.createMiddleware = _chunkWFDYUAHDcjs.createMiddleware; exports.createRPCMiddleware = _chunkWFDYUAHDcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = csrfMiddleware; exports.functionMappings = _chunkWFDYUAHDcjs.functionMappings; exports.getCookies = _chunkWFDYUAHDcjs.getCookies; exports.getModule = _chunkWFDYUAHDcjs.getModule; exports.isExpressRequest = _chunkWFDYUAHDcjs.isExpressRequest; exports.isExpressResponse = _chunkWFDYUAHDcjs.isExpressResponse; exports.readBody = _chunkWFDYUAHDcjs.readBody; exports.rpcMiddleware = rpcMiddleware; exports.scanForServerFiles = _chunkWFDYUAHDcjs.scanForServerFiles; exports.sendResponse = _chunkWFDYUAHDcjs.sendResponse; exports.serverFunctionsMap = _chunkWFDYUAHDcjs.serverFunctionsMap; exports.setSecureCookie = _chunkWFDYUAHDcjs.setSecureCookie; exports.useSession = useSession;
+exports.corsMiddleware = corsMiddleware; exports.createCSRF = _chunkZLVHBACRcjs.createCSRF; exports.createCors = _chunkZLVHBACRcjs.createCors; exports.createMiddleware = _chunkZLVHBACRcjs.createMiddleware; exports.createRPCMiddleware = _chunkZLVHBACRcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = csrfMiddleware; exports.functionMappings = _chunkZLVHBACRcjs.functionMappings; exports.getClientModules = _chunkZLVHBACRcjs.getClientModules; exports.getCookies = _chunkZLVHBACRcjs.getCookies; exports.isExpressRequest = _chunkZLVHBACRcjs.isExpressRequest; exports.isExpressResponse = _chunkZLVHBACRcjs.isExpressResponse; exports.readBody = _chunkZLVHBACRcjs.readBody; exports.rpcMiddleware = rpcMiddleware; exports.scanForServerFiles = _chunkZLVHBACRcjs.scanForServerFiles; exports.sendResponse = _chunkZLVHBACRcjs.sendResponse; exports.serverFunctionsMap = _chunkZLVHBACRcjs.serverFunctionsMap; exports.setSecureCookie = _chunkZLVHBACRcjs.setSecureCookie; exports.useSession = useSession;
