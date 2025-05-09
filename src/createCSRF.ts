@@ -5,14 +5,7 @@ import { type Connect } from "vite";
 import { createHash } from "node:crypto";
 import { getCookies, setSecureCookie } from "./cookie";
 import type { CSRFMiddlewareOptions } from "./types";
-
-const defaultCSRFOptions: CSRFMiddlewareOptions = {
-  expires: 24,
-  HttpOnly: true,
-  Secure: true,
-  SameSite: "Strict",
-  Path: "/",
-};
+import { defaultCSRFOptions } from "./options";
 
 /**
  * Create a Cross Site Request Forgery (CSRF) middleware

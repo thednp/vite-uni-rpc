@@ -1,7 +1,7 @@
 import { parse as parseCookies } from "node:querystring";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import type { CSRFTokenOptions } from "./types";
+import type { TokenOptions } from "./types";
 import { isExpressRequest, isExpressResponse } from "./utils";
 
 // Helper to parse cookies from request header
@@ -13,7 +13,7 @@ export function getCookies(req: Request | IncomingMessage) {
   return parseCookies(cookieHeader.replace(/; /g, "&"));
 }
 
-const defaultsTokenOptions: CSRFTokenOptions = {
+const defaultsTokenOptions: TokenOptions = {
   expires: "",
   HttpOnly: true,
   Secure: true,
@@ -26,7 +26,7 @@ export function setSecureCookie(
   res: ServerResponse | Response,
   name: string,
   value: string,
-  options: Partial<CSRFTokenOptions> = {},
+  options: Partial<TokenOptions> = {},
 ) {
   const cookieOptions = { ...defaultsTokenOptions, ...options };
   const cookieString = Object.entries(cookieOptions)

@@ -11,27 +11,24 @@ import {
   sendResponse,
 } from "./utils";
 import { getCookies } from "./cookie";
-import { serverFunctionsMap } from "./registry";
+import { serverFunctionsMap } from "./utils";
 import type { MiddlewareOptions } from "./types";
-import { defaultRPCOptions } from "./options";
-
-const middlewareDefaults: MiddlewareOptions = {
-  rpcPrefix: undefined,
-  path: undefined,
-  headers: {},
-  rateLimit: {
-    max: 100,
-    windowMs: 5 * 60 * 1000, // 5m
-  },
-  handler: undefined,
-  onError: undefined,
-};
+import { defaultMiddlewareOptions, defaultRPCOptions } from "./options";
 
 export const createMiddleware = (
   initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
-  const { rpcPrefix, path, headers, rateLimit, handler, onError } = {
-    ...middlewareDefaults,
+  const {
+    rpcPreffix,
+    path,
+    headers,
+    rateLimit,
+    handler,
+    onRequest,
+    onResponse,
+    onError,
+  } = {
+    ...defaultMiddlewareOptions,
     ...initialOptions,
   };
 
@@ -46,23 +43,31 @@ export const createMiddleware = (
     next: Connect.NextFunction,
   ) => {
     const url = isExpressRequest(req) ? req.originalUrl : req.url;
+    // When serving from production server, it's a good idea to
+    // scan for server files and populate the serverFunctionsMap
     if (serverFunctionsMap.size === 0) {
-      await scanForServerFiles({
-        root: process.cwd(),
-        base: process.env.base || "/",
-      });
+      // Let the utility use its own defaults
+      await scanForServerFiles();
     }
+    // No need to continue when no handler provided
+    if (!handler) {
+      return next?.();
+    }
+
     try {
+      // Execute onRequest hook if provided
+      if (onRequest) {
+        await onRequest(req);
+      }
       // Path matching
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
         if (!matcher.test(url || "")) return next?.();
       }
-      // rpcPrefix matching
-      if (rpcPrefix && !url?.startsWith(rpcPrefix)) {
+      // rpcPreffix matching
+      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
         return next?.();
       }
-      if (!handler) return next?.();
 
       // Set custom headers
       if (headers) {
@@ -76,22 +81,23 @@ export const createMiddleware = (
       }
 
       // Rate limiting check
-      if (rateLimitStore) {
+      if (rateLimit && rateLimitStore) {
         const clientIp = req.socket.remoteAddress || "unknown";
         const now = Date.now();
         const clientState = rateLimitStore.get(clientIp) || {
           count: 0,
-          resetTime: now + rateLimit!.windowMs,
+          resetTime: now + rateLimit.windowMs,
         };
 
         if (now > clientState.resetTime) {
           clientState.count = 0;
-          clientState.resetTime = now + rateLimit!.windowMs;
+          clientState.resetTime = now + rateLimit.windowMs;
         }
 
-        if (clientState.count >= rateLimit!.max) {
-          // res.statusCode = 429;
-          // res.end("Too Many Requests");
+        if (clientState.count >= rateLimit.max) {
+          if (onResponse) {
+            await onResponse(res);
+          }
           sendResponse(res, { error: "Too Many Requests" }, 429);
           return;
         }
@@ -101,20 +107,23 @@ export const createMiddleware = (
       }
 
       // Execute handler if provided
-      // return await handler(req, res, next);
       if (handler) {
         await handler(req, res, next);
+        if (onResponse) {
+          await onResponse(res);
+        }
         return;
       }
 
       next?.();
     } catch (error) {
+      if (onResponse) {
+        await onResponse(res);
+      }
       if (onError) {
         onError(error as Error, req, res);
       } else {
         console.error("Middleware error:", String(error));
-        // res.statusCode = 500;
-        // res.end("Internal Server Error");
         sendResponse(res, { error: "Middleware error:" + String(error) }, 500);
       }
     }
@@ -125,7 +134,11 @@ export const createMiddleware = (
 export const createRPCMiddleware = (
   initialOptions: Partial<MiddlewareOptions> = {},
 ) => {
-  const options = { ...defaultRPCOptions, ...initialOptions };
+  const options = {
+    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    ...defaultMiddlewareOptions,
+    ...initialOptions,
+  };
 
   return createMiddleware({
     ...options,
@@ -135,7 +148,9 @@ export const createRPCMiddleware = (
       next: Connect.NextFunction,
     ) => {
       const url = isExpressRequest(req) ? req.originalUrl : req.url;
-      if (!url?.startsWith(`/${options.rpcPrefix}/`)) {
+      const { rpcPreffix } = options;
+
+      if (!url?.startsWith(`/${rpcPreffix}/`)) {
         return next?.();
       }
 
@@ -147,20 +162,14 @@ export const createRPCMiddleware = (
           console.error("RPC middleware requires CSRF middleware");
         }
 
-        // res.statusCode = 403;
-        // res.end(JSON.stringify({ error: "Unauthorized access" }));
         sendResponse(res, { error: "Unauthorized access" }, 403);
         return;
       }
 
-      const functionName = url.replace(`/${options.rpcPrefix}/`, "");
+      const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
-        // res.statusCode = 404;
-        // res.end(
-        //   JSON.stringify({ error: `Function "${functionName}" not found` }),
-        // );
         sendResponse(
           res,
           { error: `Function "${functionName}" not found` },
@@ -172,14 +181,10 @@ export const createRPCMiddleware = (
       const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
-      // res.statusCode = 200;
-      // res.end(JSON.stringify({ data: result }));
       sendResponse(res, { data: result }, 200);
     },
     onError: (error, _req, res) => {
       console.error("RPC error:", error);
-      // res.statusCode = 500;
-      // res.end(JSON.stringify({ error: String(error) }));
       sendResponse(res, { error: "Internal Server Error" }, 500);
     },
   });

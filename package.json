@@ -1,7 +1,7 @@
 {
   "name": "vite-mini-rpc",
   "version": "0.0.1",
-  "description": "Basic RPC",
+  "description": "A Vite plugin for creating server functions with automatic remote procedure calls (RPC)",
   "homepage": "https://github.com/thednp/rpc#readme",
   "bugs": {
     "url": "https://github.com/thednp/rpc/issues"

@@ -1,12 +1,6 @@
 // src/createCors.ts
 import cors from "cors";
-
-const defaultCorsOptions: cors.CorsOptions = {
-  origin: true,
-  credentials: true,
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "X-CSRF-Token"],
-};
+import { defaultCorsOptions } from "./options";
 
 /**
  * Create a Cross-Origin Resource Sharing (CORS) middleware

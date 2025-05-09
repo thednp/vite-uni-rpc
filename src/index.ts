@@ -1,20 +1,11 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
-// import { createHash } from "node:crypto";
-// import cors from "cors";
 import { transformWithEsbuild } from "vite";
-// import { serverFunctionsMap } from "./registry";
-import {
-  functionMappings,
-  getModule,
-  // readBody,
-  scanForServerFiles,
-} from "./utils";
-// import { getCookies, setSecureCookie } from "./cookie";
+import { functionMappings, getModule, scanForServerFiles } from "./utils";
 import { defaultRPCOptions } from "./options";
-import { corsMiddleware } from "./midCors";
-import { csrfMiddleware } from "./midCSRF";
-import { rpcMiddleware } from "./midRPC";
 import { RpcPluginOptions } from "./types";
+import { createCors } from "./createCors";
+import { createCSRF } from "./createCSRF";
+import { createRPCMiddleware } from "./createMid";
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
@@ -31,6 +22,7 @@ export default function rpcPlugin(
       config = resolvedConfig;
     },
     async buildStart() {
+      // Prepare the server functions
       await scanForServerFiles(config, viteServer);
     },
     async transform(code: string, id: string, ops?: { ssr?: boolean }) {
@@ -44,6 +36,12 @@ export default function rpcPlugin(
 
       const transformedCode = `
 // Client-side RPC modules
+const handleResponse = (response) => {
+  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+  const result = await response.json();
+  if (result.error) throw new Error(result.error);
+  return result.data;
+}
 ${
         Array.from(functionMappings.entries())
           .map(([registeredName, exportName]) =>
@@ -58,7 +56,6 @@ ${
       });
 
       return {
-        // code: transformedCode,
         code: result.code,
         map: null,
       };
@@ -66,69 +63,20 @@ ${
 
     configureServer(server) {
       viteServer = server;
-      // scanForServerFiles(config, server);
+      const { cors, csrf, ...rest } = options;
 
       // First register CORS middleware
-      server.middlewares.use(corsMiddleware);
-      // server.middlewares.use(cors({
-      //   origin: true,
-      //   credentials: true,
-      //   methods: ["GET", "POST"],
-      //   allowedHeaders: ["Content-Type", "X-CSRF-Token"],
-      // }));
+      if (cors) {
+        server.middlewares.use(createCors(cors));
+      }
 
       // Then register CSRF token middleware
-      server.middlewares.use(csrfMiddleware);
-      // server.middlewares.use((req, res, next) => {
-      //   const cookies = getCookies(req.headers.cookie);
-      //   if (!cookies["X-CSRF-Token"]) {
-      //     const csrfToken = createHash("sha256").update(Date.now().toString())
-      //       .digest("hex");
-      //     setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-      //       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString(),
-      //       SameSite: "Strict",
-      //     });
-      //   }
-      //   next();
-      // });
+      if (csrf) {
+        server.middlewares.use(createCSRF(csrf));
+      }
 
-      // Handle RPC calls
-      server.middlewares.use(rpcMiddleware);
-
-      // server.middlewares.use(async (req, res, next) => {
-      //   if (!req.originalUrl?.startsWith(`/${options.rpcPrefix}/`)) return next();
-
-      //   const cookies = getCookies(req.headers.cookie);
-      //   const csrfToken = cookies["X-CSRF-Token"];
-
-      //   if (!csrfToken) {
-      //     res.statusCode = 403;
-      //     res.end(JSON.stringify({ error: "Unauthorized access" }));
-      //     return;
-      //   }
-
-      //   const functionName = req.originalUrl.replace(`/${options.rpcPrefix}/`, "");
-      //   const serverFunction = serverFunctionsMap.get(functionName);
-
-      //   if (!serverFunction) {
-      //     res.statusCode = 404;
-      //     res.end(
-      //       JSON.stringify({ error: `Function "${functionName}" not found` }),
-      //     );
-      //     return;
-      //   }
-
-      //   try {
-      //     const body = await readBody(req);
-      //     const args = JSON.parse(body || "[]");
-      //     const result = await serverFunction.fn(...args);
-      //     res.end(JSON.stringify({ data: result }));
-      //   } catch (error) {
-      //     console.error("RPC error:", error);
-      //     res.statusCode = 500;
-      //     res.end(JSON.stringify({ error: String(error) }));
-      //   }
-      // });
+      // Lastly, handle RPC calls
+      server.middlewares.use(createRPCMiddleware(rest));
     },
   };
 }

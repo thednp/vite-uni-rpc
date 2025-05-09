@@ -11,14 +11,18 @@
 
 
 
-var _chunkDLYFGQW5cjs = require('./chunk-DLYFGQW5.cjs');
+
+
+
+
+var _chunkWFDYUAHDcjs = require('./chunk-WFDYUAHD.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkDLYFGQW5cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkWFDYUAHDcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkDLYFGQW5cjs.defaultRPCOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkWFDYUAHDcjs.defaultServerFnOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -60,7 +64,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ttl: _chunkDLYFGQW5cjs.defaultRPCOptions.ttl, ...initialOptions };
+  const options = { ..._chunkWFDYUAHDcjs.defaultServerFnOptions, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -73,7 +77,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkDLYFGQW5cjs.serverFunctionsMap.set(name, {
+  _chunkWFDYUAHDcjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -81,11 +85,20 @@ function createServerFunction(name, fn, initialOptions = {}) {
   return wrappedFunction;
 }
 
+// src/midCors.ts
+var corsMiddleware = _chunkWFDYUAHDcjs.createCors.call(void 0, );
+
+// src/midCSRF.ts
+var csrfMiddleware = _chunkWFDYUAHDcjs.createCSRF.call(void 0, );
+
+// src/midRPC.ts
+var rpcMiddleware = _chunkWFDYUAHDcjs.createRPCMiddleware.call(void 0, );
+
 // src/session.ts
 var _crypto = require('crypto');
 var SessionManager = class {
   constructor() {
-    _chunkDLYFGQW5cjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+    _chunkWFDYUAHDcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
   }
   createSession(userId, duration = 24 * 60 * 60 * 1e3) {
     const session = {
@@ -128,4 +141,12 @@ var useSession = () => {
 
 
 
-exports.corsMiddleware = _chunkDLYFGQW5cjs.corsMiddleware; exports.createCSRF = _chunkDLYFGQW5cjs.createCSRF; exports.createCors = _chunkDLYFGQW5cjs.createCors; exports.createMiddleware = _chunkDLYFGQW5cjs.createMiddleware; exports.createRPCMiddleware = _chunkDLYFGQW5cjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = _chunkDLYFGQW5cjs.csrfMiddleware; exports.getCookies = _chunkDLYFGQW5cjs.getCookies; exports.rpcMiddleware = _chunkDLYFGQW5cjs.rpcMiddleware; exports.setSecureCookie = _chunkDLYFGQW5cjs.setSecureCookie; exports.useSession = useSession;
+
+
+
+
+
+
+
+
+exports.corsMiddleware = corsMiddleware; exports.createCSRF = _chunkWFDYUAHDcjs.createCSRF; exports.createCors = _chunkWFDYUAHDcjs.createCors; exports.createMiddleware = _chunkWFDYUAHDcjs.createMiddleware; exports.createRPCMiddleware = _chunkWFDYUAHDcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.csrfMiddleware = csrfMiddleware; exports.functionMappings = _chunkWFDYUAHDcjs.functionMappings; exports.getCookies = _chunkWFDYUAHDcjs.getCookies; exports.getModule = _chunkWFDYUAHDcjs.getModule; exports.isExpressRequest = _chunkWFDYUAHDcjs.isExpressRequest; exports.isExpressResponse = _chunkWFDYUAHDcjs.isExpressResponse; exports.readBody = _chunkWFDYUAHDcjs.readBody; exports.rpcMiddleware = rpcMiddleware; exports.scanForServerFiles = _chunkWFDYUAHDcjs.scanForServerFiles; exports.sendResponse = _chunkWFDYUAHDcjs.sendResponse; exports.serverFunctionsMap = _chunkWFDYUAHDcjs.serverFunctionsMap; exports.setSecureCookie = _chunkWFDYUAHDcjs.setSecureCookie; exports.useSession = useSession;

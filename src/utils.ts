@@ -3,20 +3,25 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { serverFunctionsMap } from "./registry";
-import { type ServerFnEntry } from "./types";
+import process from "node:process";
+import type { Arguments, ServerFnEntry, ServerFunction } from "./types";
 import { ResolvedConfig, ViteDevServer } from "vite";
+
+export const serverFunctionsMap = new Map<
+  string,
+  ServerFunction<Arguments[], unknown>
+>();
 
 export const isExpressRequest = (
   r: Request | IncomingMessage,
 ): r is Request => {
-  return "header" in r;
+  return "header" in r && "get" in r;
 };
 
 export const isExpressResponse = (
   r: Response | ServerResponse,
 ): r is Response => {
-  return "header" in r;
+  return "header" in r && "set" in r;
 };
 
 export const readBody = (req: Request | IncomingMessage): Promise<string> => {
@@ -34,16 +39,24 @@ type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
 };
 
 export const scanForServerFiles = async (
-  config: ScanConfig,
+  initialCfg?: ScanConfig,
   devServer?: ViteDevServer,
 ) => {
   functionMappings.clear();
-  const apiDir = join(config.root, "src", "api");
   let server = devServer;
+  const config = !initialCfg && !devServer || !initialCfg
+    ? {
+      root: process.cwd(),
+      base: process.env.BASE || "/",
+      server: { middlewareMode: true },
+    }
+    : initialCfg;
+
+  const apiDir = join(config.root, "src", "api");
   if (!server) {
     const { createServer } = await import("vite");
     server = await createServer({
-      server: { ...(config?.server || {}), middlewareMode: true },
+      server: config.server,
       appType: "custom",
       base: config.base,
     });
@@ -77,6 +90,7 @@ export const scanForServerFiles = async (
     } catch (error) {
       console.error("Error loading server file:", file, error);
     }
+    // Remember to always close the temporary dev server!
     if (!devServer) {
       server.close();
     }
@@ -85,7 +99,7 @@ export const scanForServerFiles = async (
 
 export const sendResponse = (
   res: ServerResponse | Response,
-  data: Record<string, string | unknown>,
+  response: Record<string, string | unknown>,
   statusCode = 200,
 ) => {
   if (isExpressResponse(res)) {
@@ -93,23 +107,23 @@ export const sendResponse = (
     return res
       .status(statusCode)
       .set({ "Content-Type": "application/json" })
-      .send(data);
+      .send(response);
   } else {
     // Vite/Connect-style response
     res.statusCode = statusCode;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(data));
+    res.end(JSON.stringify(response));
   }
 };
 
 export const getModule = (
   fnName: string,
   fnEntry: string,
-  options: { rpcPrefix: string },
+  options: { rpcPreffix: string },
 ) =>
   `
 export const ${fnEntry} = async (...args) => {
-  const response = await fetch('/${options.rpcPrefix}/${fnName}', {
+  const response = await fetch('/${options.rpcPreffix}/${fnName}', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -117,9 +131,6 @@ export const ${fnEntry} = async (...args) => {
     credentials: 'include',
     body: JSON.stringify(args)
   });
-  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
-  const result = await response.json();
-  if (result.error) throw new Error(result.error);
-  return result.data;
+  return handleResponse(response);
 }
   `.trim();

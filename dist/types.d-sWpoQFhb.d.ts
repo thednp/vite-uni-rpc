@@ -1,10 +1,10 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Request, Response } from "express";
-import type { Connect } from "vite";
-import type { CorsOptions } from "cors";
+import { IncomingMessage, ServerResponse } from 'node:http';
+import { Request, Response } from 'express';
+import { Connect } from 'vite';
+import { CorsOptions } from 'cors';
 
 // vite-mini-rpc/src/types.d.ts
-export interface ServerFunctionOptions {
+interface ServerFunctionOptions {
   ttl: number;
   invalidateKeys: string | RegExp | RegExp[] | string[];
 }
@@ -13,17 +13,9 @@ export interface ServerFunctionOptions {
 type JsonPrimitive = string | number | boolean | null | undefined;
 type JsonArray = JsonValue[];
 type JsonObject = { [key: string]: JsonValue | JsonArray };
-type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+type JsonValue = JsonPrimitive | JsonArray | JsonObject; // for email addresses
 
-// Date strings are common in APIs
-type ISODateString = string; // for dates in ISO format
-
-// Special types that might be useful
-type Base64String = string; // for binary data encoded as base64
-type URLString = string; // for URLs
-type EmailString = string; // for email addresses
-
-export type RPCValue =
+type RPCValue =
   | JsonValue
   | Date // will be serialized as ISOString
   | Uint8Array // will be serialized as base64
@@ -32,16 +24,16 @@ export type RPCValue =
   | FormData // for form submissions
   | URLSearchParams; // for query parameters
 
-export type Arguments =
+type Arguments =
   | RPCValue
   | Array<JsonPrimitive | JsonPrimitive[] | JsonObject | JsonObject[]>;
 
-export type ServerFnEntry<
+type ServerFnEntry<
   TArgs extends Arguments[] = Arguments[],
   TResult = unknown,
 > = (...args: TArgs) => Promise<TResult>;
 
-export interface ServerFunction<
+interface ServerFunction<
   TArgs extends Arguments[] = Arguments[],
   TResult = unknown,
 > {
@@ -50,19 +42,13 @@ export interface ServerFunction<
   options?: ServerFunctionOptions;
 }
 
-export interface CacheEntry<T> {
-  data?: T;
-  timestamp: number;
-  promise?: Promise<T>;
-}
-
 /**
  * ### vite-mini-rpc
  * The plugin configuration allows for granular control of your
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
  */
-export interface RpcPluginOptions {
+interface RpcPluginOptions {
   // Security Middlewares
   /**
    * Option to disable by setting `false` or customize the cors middleware.
@@ -206,7 +192,7 @@ export interface RpcPluginOptions {
 /**
  * Options for the token used by CSRF middleware
  */
-export type TokenOptions = {
+type TokenOptions = {
   expires: string;
   HttpOnly: boolean | "true";
   Secure: boolean | "true";
@@ -214,7 +200,7 @@ export type TokenOptions = {
   Path: string;
 };
 
-export type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
+type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
   /**
    * number of hours till expiry
    * @default 24
@@ -222,7 +208,7 @@ export type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
   expires: number;
 };
 
-export interface MiddlewareOptions {
+interface MiddlewareOptions {
   /**
    * Path pattern to match for middleware execution.
    * Accepts string or RegExp to filter requests based on URL path.
@@ -362,3 +348,5 @@ export interface MiddlewareOptions {
    */
   onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
 }
+
+export type { Arguments as A, CSRFMiddlewareOptions as C, MiddlewareOptions as M, RpcPluginOptions as R, ServerFnEntry as S, TokenOptions as T, ServerFunctionOptions as a, ServerFunction as b };
