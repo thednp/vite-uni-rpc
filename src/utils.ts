@@ -1,7 +1,7 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-// import { existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
 import type { ConfigEnv, ResolvedConfig, ViteDevServer } from "vite";
@@ -131,8 +131,10 @@ export const scanForServerFiles = async (
   for (const file of svFiles) {
     try {
       // Transform TypeScript to JavaScript using the loaded transform function
+      const resolvedFile = resolve(apiDir, file);
+      if (!existsSync(resolvedFile)) return;
       const moduleExports = await server.ssrLoadModule(
-        resolve(apiDir, file),
+        resolvedFile,
       ) as Record<
         string,
         ServerFnEntry

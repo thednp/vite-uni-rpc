@@ -7,12 +7,12 @@
 
 
 
-var _chunkJP7WE3WMcjs = require('./chunk-JP7WE3WM.cjs');
+var _chunkFLJC723Icjs = require('./chunk-FLJC723I.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkJP7WE3WMcjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkFLJC723Icjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -23,13 +23,13 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     async buildStart() {
-      await _chunkJP7WE3WMcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunkFLJC723Icjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      const result = await _vite.transformWithEsbuild.call(void 0, _chunkJP7WE3WMcjs.getClientModules.call(void 0, options), id, {
+      const result = await _vite.transformWithEsbuild.call(void 0, _chunkFLJC723Icjs.getClientModules.call(void 0, options), id, {
         loader: "js",
         target: "es2020"
       });
@@ -42,12 +42,12 @@ function rpcPlugin(initialOptions = {}) {
       viteServer = server;
       const { cors, csrf, ...rest } = options;
       if (cors) {
-        server.middlewares.use(_chunkJP7WE3WMcjs.createCors.call(void 0, cors));
+        server.middlewares.use(_chunkFLJC723Icjs.createCors.call(void 0, cors));
       }
       if (csrf) {
-        server.middlewares.use(_chunkJP7WE3WMcjs.createCSRF.call(void 0, csrf));
+        server.middlewares.use(_chunkFLJC723Icjs.createCSRF.call(void 0, csrf));
       }
-      server.middlewares.use(_chunkJP7WE3WMcjs.createRPCMiddleware.call(void 0, rest));
+      server.middlewares.use(_chunkFLJC723Icjs.createRPCMiddleware.call(void 0, rest));
     }
   };
 }
@@ -55,4 +55,4 @@ function rpcPlugin(initialOptions = {}) {
 
 
 
-exports.default = rpcPlugin; exports.defineRPCConfig = _chunkJP7WE3WMcjs.defineRPCConfig; exports.loadRPCConfig = _chunkJP7WE3WMcjs.loadRPCConfig;
+exports.default = rpcPlugin; exports.defineRPCConfig = _chunkFLJC723Icjs.defineRPCConfig; exports.loadRPCConfig = _chunkFLJC723Icjs.loadRPCConfig;

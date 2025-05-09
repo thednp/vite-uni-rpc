@@ -1,4 +1,4 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __defProp = Object.defineProperty;
+var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
@@ -52,9 +52,10 @@ var defaultMiddlewareOptions = {
 };
 
 // src/utils.ts
-var _path = require('path');
-var _process = require('process'); var _process2 = _interopRequireDefault(_process);
-var _vite = require('vite');
+import { resolve } from "node:path";
+import process from "node:process";
+import { loadConfigFromFile, mergeConfig } from "vite";
+import { existsSync } from "node:fs";
 var serverFunctionsMap = /* @__PURE__ */ new Map();
 var isExpressRequest = (r) => {
   return "header" in r && "get" in r;
@@ -63,13 +64,13 @@ var isExpressResponse = (r) => {
   return "header" in r && "set" in r;
 };
 function defineRPCConfig(config) {
-  return _vite.mergeConfig.call(void 0, defaultRPCOptions, config);
+  return mergeConfig(defaultRPCOptions, config);
 }
 async function loadRPCConfig(configFile) {
   try {
     const env = {
       command: "serve",
-      mode: _process2.default.env.NODE_ENV || "development"
+      mode: process.env.NODE_ENV || "development"
     };
     const defaultConfigFiles = [
       "rpc.config.ts",
@@ -80,15 +81,15 @@ async function loadRPCConfig(configFile) {
       "rpc.config.cts"
     ];
     if (configFile) {
-      const result = await _vite.loadConfigFromFile.call(void 0, env, configFile);
+      const result = await loadConfigFromFile(env, configFile);
       if (result) {
-        return _vite.mergeConfig.call(void 0, defaultRPCOptions, result.config);
+        return mergeConfig(defaultRPCOptions, result.config);
       }
     }
     for (const file of defaultConfigFiles) {
-      const result = await _vite.loadConfigFromFile.call(void 0, env, file);
+      const result = await loadConfigFromFile(env, file);
       if (result) {
-        return _vite.mergeConfig.call(void 0, defaultRPCOptions, result.config);
+        return mergeConfig(defaultRPCOptions, result.config);
       }
     }
     return defaultRPCOptions;
@@ -109,12 +110,12 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
-    root: _process2.default.cwd(),
-    base: _process2.default.env.BASE || "/",
+    root: process.cwd(),
+    base: process.env.BASE || "/",
     server: { middlewareMode: true }
   } : initialCfg;
   if (!server) {
-    const { createServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("vite")));
+    const { createServer } = await import("vite");
     server = await createServer({
       server: config.server,
       appType: "custom",
@@ -127,11 +128,13 @@ var scanForServerFiles = async (initialCfg, devServer) => {
     "server.mjs",
     "server.mts"
   ];
-  const apiDir = _path.resolve.call(void 0, config.root, "api/src");
+  const apiDir = resolve(config.root, "api/src");
   for (const file of svFiles) {
     try {
+      const resolvedFile = resolve(apiDir, file);
+      if (!existsSync(resolvedFile)) return;
       const moduleExports = await server.ssrLoadModule(
-        _path.resolve.call(void 0, apiDir, file)
+        resolvedFile
       );
       const moduleEntries = Object.entries(moduleExports);
       if (!moduleEntries.length) {
@@ -191,18 +194,18 @@ ${Array.from(functionMappings.entries()).map(
 };
 
 // src/createCors.ts
-var _cors = require('cors'); var _cors2 = _interopRequireDefault(_cors);
+import cors from "cors";
 var createCors = (initialOptions = {}) => {
   const options = { ...defaultCorsOptions, ...initialOptions };
-  return _cors2.default.call(void 0, options);
+  return cors(options);
 };
 
 // src/cookie.ts
-var _querystring = require('querystring');
+import { parse as parseCookies } from "node:querystring";
 function getCookies(req) {
-  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : _optionalChain([req, 'access', _ => _.get, 'optionalCall', _2 => _2("cookie")]);
+  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : req.get?.("cookie");
   if (!cookieHeader) return {};
-  return _querystring.parse.call(void 0, cookieHeader.replace(/; /g, "&"));
+  return parseCookies(cookieHeader.replace(/; /g, "&"));
 }
 var defaultsTokenOptions = {
   expires: "",
@@ -222,24 +225,24 @@ function setSecureCookie(res, name, value, options = {}) {
 }
 
 // src/createCSRF.ts
-var _crypto = require('crypto');
+import { createHash } from "node:crypto";
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
   return (req, res, next) => {
     const cookies = getCookies(req);
     if (!cookies["X-CSRF-Token"]) {
-      const csrfToken = _crypto.createHash.call(void 0, "sha256").update(Date.now().toString()).digest("hex");
+      const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
       setSecureCookie(res, "X-CSRF-Token", csrfToken, {
         ...options,
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    _optionalChain([next, 'optionalCall', _3 => _3()]);
+    next?.();
   };
 };
 
 // src/createMid.ts
-
+import process2 from "node:process";
 var createMiddleware = (initialOptions = {}) => {
   const {
     rpcPreffix,
@@ -261,7 +264,7 @@ var createMiddleware = (initialOptions = {}) => {
       await scanForServerFiles();
     }
     if (!handler) {
-      return _optionalChain([next, 'optionalCall', _4 => _4()]);
+      return next?.();
     }
     try {
       if (onRequest) {
@@ -269,10 +272,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _5 => _5()]);
+        if (!matcher.test(url || "")) return next?.();
       }
-      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _8 => _8()]);
+      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
+        return next?.();
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -311,7 +314,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      _optionalChain([next, 'optionalCall', _9 => _9()]);
+      next?.();
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -336,13 +339,13 @@ var createRPCMiddleware = (initialOptions = {}) => {
     handler: async (req, res, next) => {
       const url = isExpressRequest(req) ? req.originalUrl : req.url;
       const { rpcPreffix } = options;
-      if (!_optionalChain([url, 'optionalAccess', _10 => _10.startsWith, 'call', _11 => _11(`/${rpcPreffix}/`)])) {
-        return _optionalChain([next, 'optionalCall', _12 => _12()]);
+      if (!url?.startsWith(`/${rpcPreffix}/`)) {
+        return next?.();
       }
       const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
       if (!csrfToken) {
-        if (_process2.default.env.NODE_ENV === "development") {
+        if (process2.env.NODE_ENV === "development") {
           console.error("RPC middleware requires CSRF middleware");
         }
         sendResponse(res, { error: "Unauthorized access" }, 403);
@@ -370,24 +373,24 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-exports.__publicField = __publicField; exports.defaultServerFnOptions = defaultServerFnOptions; exports.defaultRPCOptions = defaultRPCOptions; exports.serverFunctionsMap = serverFunctionsMap; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.defineRPCConfig = defineRPCConfig; exports.loadRPCConfig = loadRPCConfig; exports.readBody = readBody; exports.functionMappings = functionMappings; exports.scanForServerFiles = scanForServerFiles; exports.sendResponse = sendResponse; exports.getClientModules = getClientModules; exports.createCors = createCors; exports.getCookies = getCookies; exports.setSecureCookie = setSecureCookie; exports.createCSRF = createCSRF; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
+export {
+  __publicField,
+  defaultServerFnOptions,
+  defaultRPCOptions,
+  serverFunctionsMap,
+  isExpressRequest,
+  isExpressResponse,
+  defineRPCConfig,
+  loadRPCConfig,
+  readBody,
+  functionMappings,
+  scanForServerFiles,
+  sendResponse,
+  getClientModules,
+  createCors,
+  getCookies,
+  setSecureCookie,
+  createCSRF,
+  createMiddleware,
+  createRPCMiddleware
+};
