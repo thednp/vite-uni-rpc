@@ -5,7 +5,7 @@ import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
-} from "./chunk-RWAQRZIP.js";
+} from "./chunk-6235YIZK.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";

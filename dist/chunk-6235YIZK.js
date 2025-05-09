@@ -3,8 +3,8 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/utils.ts
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import process from "node:process";
 var serverFunctionsMap = /* @__PURE__ */ new Map();
 var isExpressRequest = (r) => {
@@ -13,11 +13,35 @@ var isExpressRequest = (r) => {
 var isExpressResponse = (r) => {
   return "header" in r && "set" in r;
 };
+var resolveExtension = (filePath, extensions = [".tsx", ".jsx", ".ts", ".js"]) => {
+  const [noExt] = filePath?.split(".");
+  const [noSlash] = noExt.slice(filePath.startsWith("/") ? 1 : 0);
+  const paths = extensions.map((ext) => noSlash + ext);
+  const path = paths.find((p) => existsSync(resolve(process.cwd() + p)));
+  return path || noExt + ".js";
+};
+var getViteConfig = async () => {
+  const filePath = resolveExtension("/vite.config.ts");
+  return (await import("." + filePath)).default;
+};
+var getRPCPluginConfig = async () => {
+  const viteConfig = await getViteConfig();
+  const rpcPluginConfig = viteConfig?.plugins?.find(
+    (p) => p.name === "vite-mini-rpc"
+  );
+  if (!rpcPluginConfig) {
+    console.warn(
+      `The "vite-mini-rpc" plugin is not present in the current configuration.`
+    );
+    return;
+  }
+  return rpcPluginConfig.pluginOptions;
+};
 var readBody = (req) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve2) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
-    req.on("end", () => resolve(body));
+    req.on("end", () => resolve2(body));
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
@@ -25,11 +49,9 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
-    root: process.cwd(),
-    base: process.env.BASE || "/",
+    ...await getViteConfig(),
     server: { middlewareMode: true }
   } : initialCfg;
-  const apiDir = join(config.root, "src", "api");
   if (!server) {
     const { createServer } = await import("vite");
     server = await createServer({
@@ -38,23 +60,21 @@ var scanForServerFiles = async (initialCfg, devServer) => {
       base: config.base
     });
   }
-  const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => join(apiDir, f.name));
-  for (const file of files) {
-    try {
-      const moduleExports = await server.ssrLoadModule(file);
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
-          }
+  const filePath = resolveExtension("/src/api/server.ts");
+  try {
+    const moduleExports = await server.ssrLoadModule("." + filePath);
+    for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+      for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+        if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+          functionMappings.set(registeredName, exportName);
         }
       }
-    } catch (error) {
-      console.error("Error loading server file:", file, error);
     }
-    if (!devServer) {
-      server.close();
-    }
+  } catch (error) {
+    console.error("Error loading file:", filePath, error);
+  }
+  if (!devServer) {
+    server.close();
   }
 };
 var sendResponse = (res, response, statusCode = 200) => {
@@ -328,6 +348,9 @@ export {
   serverFunctionsMap,
   isExpressRequest,
   isExpressResponse,
+  resolveExtension,
+  getViteConfig,
+  getRPCPluginConfig,
   readBody,
   functionMappings,
   scanForServerFiles,

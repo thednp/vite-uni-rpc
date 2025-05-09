@@ -5,12 +5,12 @@
 
 
 
-var _chunkZLVHBACRcjs = require('./chunk-ZLVHBACR.cjs');
+var _chunkGZTIXYQ7cjs = require('./chunk-GZTIXYQ7.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkZLVHBACRcjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkGZTIXYQ7cjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -23,13 +23,13 @@ function rpcPlugin(initialOptions = {}) {
       return options;
     },
     async buildStart() {
-      await _chunkZLVHBACRcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunkGZTIXYQ7cjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      const result = await _vite.transformWithEsbuild.call(void 0, _chunkZLVHBACRcjs.getClientModules.call(void 0, options), id, {
+      const result = await _vite.transformWithEsbuild.call(void 0, _chunkGZTIXYQ7cjs.getClientModules.call(void 0, options), id, {
         loader: "js",
         target: "es2020"
       });
@@ -42,12 +42,12 @@ function rpcPlugin(initialOptions = {}) {
       viteServer = server;
       const { cors, csrf, ...rest } = options;
       if (cors) {
-        server.middlewares.use(_chunkZLVHBACRcjs.createCors.call(void 0, cors));
+        server.middlewares.use(_chunkGZTIXYQ7cjs.createCors.call(void 0, cors));
       }
       if (csrf) {
-        server.middlewares.use(_chunkZLVHBACRcjs.createCSRF.call(void 0, csrf));
+        server.middlewares.use(_chunkGZTIXYQ7cjs.createCSRF.call(void 0, csrf));
       }
-      server.middlewares.use(_chunkZLVHBACRcjs.createRPCMiddleware.call(void 0, rest));
+      server.middlewares.use(_chunkGZTIXYQ7cjs.createRPCMiddleware.call(void 0, rest));
     }
   };
 }

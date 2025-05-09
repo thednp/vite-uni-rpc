@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
-import { Connect } from 'vite';
+import { Connect, Plugin } from 'vite';
 import { CorsOptions } from 'cors';
 
 // vite-mini-rpc/src/types.d.ts
@@ -40,6 +40,11 @@ interface ServerFunction<
   name: string;
   fn: ServerFnEntry<TArgs, TResult>;
   options?: ServerFunctionOptions;
+}
+
+// Create a custom interface extending Plugin
+interface RpcPlugin extends Plugin {
+  pluginOptions: RpcPluginOptions;
 }
 
 /**
@@ -349,4 +354,4 @@ interface MiddlewareOptions {
   onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
 }
 
-export type { Arguments as A, CSRFMiddlewareOptions as C, MiddlewareOptions as M, RpcPluginOptions as R, ServerFnEntry as S, TokenOptions as T, ServerFunctionOptions as a, ServerFunction as b };
+export type { Arguments as A, CSRFMiddlewareOptions as C, MiddlewareOptions as M, RpcPluginOptions as R, ServerFnEntry as S, TokenOptions as T, RpcPlugin as a, ServerFunctionOptions as b, ServerFunction as c };

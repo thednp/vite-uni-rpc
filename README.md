@@ -1,6 +1,6 @@
 # vite-mini-rpc
 
-A Vite plugin for creating server functions with automatic remote procedure calls (RPC).
+A Vite plugin for creating server functions with automatic Remote Procedure Calls.
 
 ## Features
 
@@ -281,7 +281,7 @@ app.use("*all", async (req, res) => {
   //.. handle your catch all
 });
 ```
-**Note** - you may need to use [tsx](https://tsx.is/) with the `tsx server.js` command or execute `node run --experimental-strip-types server.js` command when using TypeScript.
+**Note** - you may need to use [tsx](https://tsx.is/) with the `tsx server.js` command or execute `node --experimental-strip-types server.js` command when using TypeScript.
 
 
 #### Middleware Options

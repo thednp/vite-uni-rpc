@@ -1,16 +1,17 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import process from "node:process";
 import type {
   Arguments,
+  RpcPlugin,
   RpcPluginOptions,
   ServerFnEntry,
   ServerFunction,
 } from "./types";
-import { ResolvedConfig, ViteDevServer } from "vite";
+import type { ResolvedConfig, ViteDevServer } from "vite";
 
 export const serverFunctionsMap = new Map<
   string,
@@ -27,6 +28,46 @@ export const isExpressResponse = (
   r: Response | ServerResponse,
 ): r is Response => {
   return "header" in r && "set" in r;
+};
+
+/**
+ * Resolve file extension.
+ * @param filePath
+ * @param extensions default [".tsx", ".jsx", ".ts", ".js"]
+ */
+export const resolveExtension = (
+  filePath: string,
+  extensions = [".tsx", ".jsx", ".ts", ".js"],
+) => {
+  const [noExt] = filePath?.split(".");
+  const [noSlash] = noExt.slice(filePath.startsWith("/") ? 1 : 0);
+  const paths = extensions.map((ext) => (noSlash + ext));
+  const path = paths.find((p) => existsSync(resolve(process.cwd() + p)));
+
+  return path || (noExt + ".js");
+};
+
+/**
+ * Returns the current project vite configuration, more specifically
+ * the `ResolvedConfig`.
+ */
+export const getViteConfig = async () => {
+  const filePath = resolveExtension("/vite.config.ts");
+  return (await import("." + filePath)).default as ResolvedConfig;
+};
+
+export const getRPCPluginConfig = async () => {
+  const viteConfig = await getViteConfig();
+  const rpcPluginConfig = viteConfig?.plugins?.find((p) =>
+    p.name === "vite-mini-rpc"
+  ) as RpcPlugin;
+  if (!rpcPluginConfig) {
+    console.warn(
+      `The "vite-mini-rpc" plugin is not present in the current configuration.`,
+    );
+    return;
+  }
+  return rpcPluginConfig.pluginOptions;
 };
 
 export const readBody = (req: Request | IncomingMessage): Promise<string> => {
@@ -51,13 +92,11 @@ export const scanForServerFiles = async (
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg
     ? {
-      root: process.cwd(),
-      base: process.env.BASE || "/",
+      ...(await getViteConfig()),
       server: { middlewareMode: true },
     }
     : initialCfg;
 
-  const apiDir = join(config.root, "src", "api");
   if (!server) {
     const { createServer } = await import("vite");
     server = await createServer({
@@ -67,38 +106,32 @@ export const scanForServerFiles = async (
     });
   }
 
-  // Find all server.ts/js files in the api directory
-  const files = (await readdir(apiDir, { withFileTypes: true }))
-    .filter((f) => f.name.includes("server.ts") || f.name.includes("server.js"))
-    .map((f) => join(apiDir, f.name));
+  const filePath = resolveExtension("/src/api/server.ts");
+  try {
+    // Transform TypeScript to JavaScript using the loaded transform function
+    const moduleExports = await server.ssrLoadModule("." + filePath) as Record<
+      string,
+      ServerFnEntry
+    >;
 
-  // Load and execute each server file
-  for (const file of files) {
-    try {
-      // Transform TypeScript to JavaScript using the loaded transform function
-      const moduleExports = await server.ssrLoadModule(file) as Record<
-        string,
-        ServerFnEntry
-      >;
-
-      // Examine each export
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (
-            serverFn.name === registeredName &&
-            serverFn.fn === exportValue
-          ) {
-            functionMappings.set(registeredName, exportName);
-          }
+    // Examine each export
+    for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+      for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+        if (
+          serverFn.name === registeredName &&
+          serverFn.fn === exportValue
+        ) {
+          functionMappings.set(registeredName, exportName);
         }
       }
-    } catch (error) {
-      console.error("Error loading server file:", file, error);
     }
-    // Remember to always close the temporary dev server!
-    if (!devServer) {
-      server.close();
-    }
+  } catch (error) {
+    console.error("Error loading file:", filePath, error);
+  }
+
+  // Remember to always close the temporary dev server!
+  if (!devServer) {
+    server.close();
   }
 };
 

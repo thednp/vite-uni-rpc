@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import type { Connect } from "vite";
+import type { Connect, Plugin } from "vite";
 import type { CorsOptions } from "cors";
 
 // vite-mini-rpc/src/types.d.ts
@@ -54,6 +54,11 @@ export interface CacheEntry<T> {
   data?: T;
   timestamp: number;
   promise?: Promise<T>;
+}
+
+// Create a custom interface extending Plugin
+export interface RpcPlugin extends Plugin {
+  pluginOptions: RpcPluginOptions;
 }
 
 /**

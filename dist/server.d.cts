@@ -1,12 +1,8 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-sWpoQFhb.cjs';
-import * as cors from 'cors';
-import cors__default from 'cors';
+import { A as Arguments, S as ServerFnEntry, b as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions, c as ServerFunction, R as RpcPluginOptions } from './types.d-D_cWYucW.cjs';
+import cors from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import * as express from 'express';
 import { Request, Response } from 'express';
-import * as vite from 'vite';
 import { Connect, ResolvedConfig, ViteDevServer } from 'vite';
-import * as http from 'http';
 import * as querystring from 'querystring';
 
 declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): ServerFnEntry<TArgs, TResult>;
@@ -16,7 +12,7 @@ declare function createServerFunction<TArgs extends Arguments[] = Arguments[], T
  * @param initialOptions
  * @returns a new cors middleware
  */
-declare const createCors: (initialOptions?: Partial<cors__default.CorsOptions>) => (req: cors__default.CorsRequest, res: {
+declare const createCors: (initialOptions?: Partial<cors.CorsOptions>) => (req: cors.CorsRequest, res: {
     statusCode?: number | undefined;
     setHeader(key: string, value: string): any;
     end(): any;
@@ -31,16 +27,6 @@ declare const createCSRF: (initialOptions?: Partial<CSRFMiddlewareOptions>) => (
 
 declare const createMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
 declare const createRPCMiddleware: (initialOptions?: Partial<MiddlewareOptions>) => (req: IncomingMessage | Request, res: ServerResponse<IncomingMessage>, next: Connect.NextFunction) => Promise<void>;
-
-declare const corsMiddleware: (req: cors.CorsRequest, res: {
-    statusCode?: number | undefined;
-    setHeader(key: string, value: string): any;
-    end(): any;
-}, next: (err?: any) => any) => void;
-
-declare const csrfMiddleware: (req: http.IncomingMessage | express.Request, res: http.ServerResponse | express.Response, next: vite.Connect.NextFunction) => void;
-
-declare const rpcMiddleware: (req: http.IncomingMessage | express.Request, res: http.ServerResponse<http.IncomingMessage>, next: vite.Connect.NextFunction) => Promise<void>;
 
 declare function getCookies(req: Request | IncomingMessage): querystring.ParsedUrlQuery;
 declare function setSecureCookie(res: ServerResponse | Response, name: string, value: string, options?: Partial<TokenOptions>): void;
@@ -62,6 +48,18 @@ declare const useSession: () => SessionManager;
 declare const serverFunctionsMap: Map<string, ServerFunction<Arguments[], unknown>>;
 declare const isExpressRequest: (r: Request | IncomingMessage) => r is Request;
 declare const isExpressResponse: (r: Response | ServerResponse) => r is Response;
+/**
+ * Resolve file extension.
+ * @param filePath
+ * @param extensions default [".tsx", ".jsx", ".ts", ".js"]
+ */
+declare const resolveExtension: (filePath: string, extensions?: string[]) => string;
+/**
+ * Returns the current project vite configuration, more specifically
+ * the `ResolvedConfig`.
+ */
+declare const getViteConfig: () => Promise<ResolvedConfig>;
+declare const getRPCPluginConfig: () => Promise<RpcPluginOptions | undefined>;
 declare const readBody: (req: Request | IncomingMessage) => Promise<string>;
 declare const functionMappings: Map<string, string>;
 type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
@@ -71,4 +69,4 @@ declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevS
 declare const sendResponse: (res: ServerResponse | Response, response: Record<string, string | unknown>, statusCode?: number) => Response<any, Record<string, any>> | undefined;
 declare const getClientModules: (options: RpcPluginOptions) => string;
 
-export { corsMiddleware, createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, csrfMiddleware, functionMappings, getClientModules, getCookies, isExpressRequest, isExpressResponse, readBody, rpcMiddleware, scanForServerFiles, sendResponse, serverFunctionsMap, setSecureCookie, useSession };
+export { createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, functionMappings, getClientModules, getCookies, getRPCPluginConfig, getViteConfig, isExpressRequest, isExpressResponse, readBody, resolveExtension, scanForServerFiles, sendResponse, serverFunctionsMap, setSecureCookie, useSession };

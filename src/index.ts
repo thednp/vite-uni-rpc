@@ -1,16 +1,11 @@
-import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import type { ResolvedConfig, ViteDevServer } from "vite";
+import type { RpcPlugin, RpcPluginOptions } from "./types";
 import { transformWithEsbuild } from "vite";
 import { getClientModules, scanForServerFiles } from "./utils";
 import { defaultRPCOptions } from "./options";
-import { RpcPluginOptions } from "./types";
 import { createCors } from "./createCors";
 import { createCSRF } from "./createCSRF";
 import { createRPCMiddleware } from "./createMid";
-
-// Create a custom interface extending Plugin
-interface RpcPlugin extends Plugin {
-  pluginOptions: RpcPluginOptions;
-}
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},

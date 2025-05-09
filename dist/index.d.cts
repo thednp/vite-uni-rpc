@@ -1,12 +1,9 @@
-import { Plugin } from 'vite';
-import { R as RpcPluginOptions } from './types.d-sWpoQFhb.cjs';
+import { R as RpcPluginOptions, a as RpcPlugin } from './types.d-D_cWYucW.cjs';
 import 'node:http';
 import 'express';
+import 'vite';
 import 'cors';
 
-interface RpcPlugin extends Plugin {
-    pluginOptions: RpcPluginOptions;
-}
 declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): RpcPlugin;
 
 export { rpcPlugin as default };

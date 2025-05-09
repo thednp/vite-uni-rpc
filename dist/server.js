@@ -8,14 +8,17 @@ import {
   functionMappings,
   getClientModules,
   getCookies,
+  getRPCPluginConfig,
+  getViteConfig,
   isExpressRequest,
   isExpressResponse,
   readBody,
+  resolveExtension,
   scanForServerFiles,
   sendResponse,
   serverFunctionsMap,
   setSecureCookie
-} from "./chunk-RWAQRZIP.js";
+} from "./chunk-6235YIZK.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -85,15 +88,6 @@ function createServerFunction(name, fn, initialOptions = {}) {
   return wrappedFunction;
 }
 
-// src/midCors.ts
-var corsMiddleware = createCors();
-
-// src/midCSRF.ts
-var csrfMiddleware = createCSRF();
-
-// src/midRPC.ts
-var rpcMiddleware = createRPCMiddleware();
-
 // src/session.ts
 import { randomBytes } from "node:crypto";
 var SessionManager = class {
@@ -130,20 +124,20 @@ var useSession = () => {
   return currentSession;
 };
 export {
-  corsMiddleware,
   createCSRF,
   createCors,
   createMiddleware,
   createRPCMiddleware,
   createServerFunction,
-  csrfMiddleware,
   functionMappings,
   getClientModules,
   getCookies,
+  getRPCPluginConfig,
+  getViteConfig,
   isExpressRequest,
   isExpressResponse,
   readBody,
-  rpcMiddleware,
+  resolveExtension,
   scanForServerFiles,
   sendResponse,
   serverFunctionsMap,

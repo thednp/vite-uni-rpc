@@ -3,7 +3,7 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/utils.ts
-var _promises = require('fs/promises');
+var _fs = require('fs');
 var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var serverFunctionsMap = /* @__PURE__ */ new Map();
@@ -13,11 +13,35 @@ var isExpressRequest = (r) => {
 var isExpressResponse = (r) => {
   return "header" in r && "set" in r;
 };
+var resolveExtension = (filePath, extensions = [".tsx", ".jsx", ".ts", ".js"]) => {
+  const [noExt] = _optionalChain([filePath, 'optionalAccess', _ => _.split, 'call', _2 => _2(".")]);
+  const [noSlash] = noExt.slice(filePath.startsWith("/") ? 1 : 0);
+  const paths = extensions.map((ext) => noSlash + ext);
+  const path = paths.find((p) => _fs.existsSync.call(void 0, _path.resolve.call(void 0, _process2.default.cwd() + p)));
+  return path || noExt + ".js";
+};
+var getViteConfig = async () => {
+  const filePath = resolveExtension("/vite.config.ts");
+  return (await Promise.resolve().then(() => _interopRequireWildcard(require("." + filePath)))).default;
+};
+var getRPCPluginConfig = async () => {
+  const viteConfig = await getViteConfig();
+  const rpcPluginConfig = _optionalChain([viteConfig, 'optionalAccess', _3 => _3.plugins, 'optionalAccess', _4 => _4.find, 'call', _5 => _5(
+    (p) => p.name === "vite-mini-rpc"
+  )]);
+  if (!rpcPluginConfig) {
+    console.warn(
+      `The "vite-mini-rpc" plugin is not present in the current configuration.`
+    );
+    return;
+  }
+  return rpcPluginConfig.pluginOptions;
+};
 var readBody = (req) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve2) => {
     let body = "";
     req.on("data", (chunk) => body += chunk);
-    req.on("end", () => resolve(body));
+    req.on("end", () => resolve2(body));
   });
 };
 var functionMappings = /* @__PURE__ */ new Map();
@@ -25,11 +49,9 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
-    root: _process2.default.cwd(),
-    base: _process2.default.env.BASE || "/",
+    ...await getViteConfig(),
     server: { middlewareMode: true }
   } : initialCfg;
-  const apiDir = _path.join.call(void 0, config.root, "src", "api");
   if (!server) {
     const { createServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("vite")));
     server = await createServer({
@@ -38,23 +60,21 @@ var scanForServerFiles = async (initialCfg, devServer) => {
       base: config.base
     });
   }
-  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => f.name.includes("server.ts") || f.name.includes("server.js")).map((f) => _path.join.call(void 0, apiDir, f.name));
-  for (const file of files) {
-    try {
-      const moduleExports = await server.ssrLoadModule(file);
-      for (const [exportName, exportValue] of Object.entries(moduleExports)) {
-        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
-            functionMappings.set(registeredName, exportName);
-          }
+  const filePath = resolveExtension("/src/api/server.ts");
+  try {
+    const moduleExports = await server.ssrLoadModule("." + filePath);
+    for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+      for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+        if (serverFn.name === registeredName && serverFn.fn === exportValue) {
+          functionMappings.set(registeredName, exportName);
         }
       }
-    } catch (error) {
-      console.error("Error loading server file:", file, error);
     }
-    if (!devServer) {
-      server.close();
-    }
+  } catch (error) {
+    console.error("Error loading file:", filePath, error);
+  }
+  if (!devServer) {
+    server.close();
   }
 };
 var sendResponse = (res, response, statusCode = 200) => {
@@ -153,7 +173,7 @@ var createCors = (initialOptions = {}) => {
 // src/cookie.ts
 var _querystring = require('querystring');
 function getCookies(req) {
-  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : _optionalChain([req, 'access', _ => _.get, 'optionalCall', _2 => _2("cookie")]);
+  const cookieHeader = !isExpressRequest(req) ? req.headers.cookie : _optionalChain([req, 'access', _6 => _6.get, 'optionalCall', _7 => _7("cookie")]);
   if (!cookieHeader) return {};
   return _querystring.parse.call(void 0, cookieHeader.replace(/; /g, "&"));
 }
@@ -187,7 +207,7 @@ var createCSRF = (initialOptions = {}) => {
         expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
       });
     }
-    _optionalChain([next, 'optionalCall', _3 => _3()]);
+    _optionalChain([next, 'optionalCall', _8 => _8()]);
   };
 };
 
@@ -214,7 +234,7 @@ var createMiddleware = (initialOptions = {}) => {
       await scanForServerFiles();
     }
     if (!handler) {
-      return _optionalChain([next, 'optionalCall', _4 => _4()]);
+      return _optionalChain([next, 'optionalCall', _9 => _9()]);
     }
     try {
       if (onRequest) {
@@ -222,10 +242,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _5 => _5()]);
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _10 => _10()]);
       }
-      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _8 => _8()]);
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _11 => _11.startsWith, 'call', _12 => _12(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _13 => _13()]);
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -264,7 +284,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      _optionalChain([next, 'optionalCall', _9 => _9()]);
+      _optionalChain([next, 'optionalCall', _14 => _14()]);
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -289,8 +309,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
     handler: async (req, res, next) => {
       const url = isExpressRequest(req) ? req.originalUrl : req.url;
       const { rpcPreffix } = options;
-      if (!_optionalChain([url, 'optionalAccess', _10 => _10.startsWith, 'call', _11 => _11(`/${rpcPreffix}/`)])) {
-        return _optionalChain([next, 'optionalCall', _12 => _12()]);
+      if (!_optionalChain([url, 'optionalAccess', _15 => _15.startsWith, 'call', _16 => _16(`/${rpcPreffix}/`)])) {
+        return _optionalChain([next, 'optionalCall', _17 => _17()]);
       }
       const cookies = getCookies(req);
       const csrfToken = cookies["X-CSRF-Token"];
@@ -341,4 +361,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
 
 
 
-exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.readBody = readBody; exports.functionMappings = functionMappings; exports.scanForServerFiles = scanForServerFiles; exports.sendResponse = sendResponse; exports.getClientModules = getClientModules; exports.defaultServerFnOptions = defaultServerFnOptions; exports.defaultRPCOptions = defaultRPCOptions; exports.createCors = createCors; exports.getCookies = getCookies; exports.setSecureCookie = setSecureCookie; exports.createCSRF = createCSRF; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
+
+
+
+exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.resolveExtension = resolveExtension; exports.getViteConfig = getViteConfig; exports.getRPCPluginConfig = getRPCPluginConfig; exports.readBody = readBody; exports.functionMappings = functionMappings; exports.scanForServerFiles = scanForServerFiles; exports.sendResponse = sendResponse; exports.getClientModules = getClientModules; exports.defaultServerFnOptions = defaultServerFnOptions; exports.defaultRPCOptions = defaultRPCOptions; exports.createCors = createCors; exports.getCookies = getCookies; exports.setSecureCookie = setSecureCookie; exports.createCSRF = createCSRF; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
