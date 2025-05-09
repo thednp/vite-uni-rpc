@@ -142,6 +142,10 @@ export const scanForServerFiles = async (
       const moduleEntries = Object.entries(moduleExports);
       if (!moduleEntries.length) {
         console.warn("No server function found.");
+        // Remember to always close the temporary dev server!
+        if (!devServer) {
+          server.close();
+        }
         return;
       }
 
@@ -156,14 +160,13 @@ export const scanForServerFiles = async (
           }
         }
       }
+      // Remember to always close the temporary dev server!
+      if (!devServer) {
+        server.close();
+      }
     } catch (error) {
       console.error("Error loading file:", file, error);
     }
-  }
-
-  // Remember to always close the temporary dev server!
-  if (!devServer) {
-    server.close();
   }
 };
 

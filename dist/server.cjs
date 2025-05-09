@@ -17,14 +17,14 @@
 
 
 
-var _chunkFLJC723Icjs = require('./chunk-FLJC723I.cjs');
+var _chunkJB7TUQRXcjs = require('./chunk-JB7TUQRX.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkFLJC723Icjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkJB7TUQRXcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkFLJC723Icjs.defaultServerFnOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkJB7TUQRXcjs.defaultServerFnOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -66,7 +66,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ..._chunkFLJC723Icjs.defaultServerFnOptions, ...initialOptions };
+  const options = { ..._chunkJB7TUQRXcjs.defaultServerFnOptions, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -79,7 +79,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkFLJC723Icjs.serverFunctionsMap.set(name, {
+  _chunkJB7TUQRXcjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -91,7 +91,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
 var _crypto = require('crypto');
 var SessionManager = class {
   constructor() {
-    _chunkFLJC723Icjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+    _chunkJB7TUQRXcjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
   }
   createSession(userId, duration = 24 * 60 * 60 * 1e3) {
     const session = {
@@ -141,4 +141,4 @@ var useSession = () => {
 
 
 
-exports.createCSRF = _chunkFLJC723Icjs.createCSRF; exports.createCors = _chunkFLJC723Icjs.createCors; exports.createMiddleware = _chunkFLJC723Icjs.createMiddleware; exports.createRPCMiddleware = _chunkFLJC723Icjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.defineRPCConfig = _chunkFLJC723Icjs.defineRPCConfig; exports.functionMappings = _chunkFLJC723Icjs.functionMappings; exports.getClientModules = _chunkFLJC723Icjs.getClientModules; exports.getCookies = _chunkFLJC723Icjs.getCookies; exports.isExpressRequest = _chunkFLJC723Icjs.isExpressRequest; exports.isExpressResponse = _chunkFLJC723Icjs.isExpressResponse; exports.loadRPCConfig = _chunkFLJC723Icjs.loadRPCConfig; exports.readBody = _chunkFLJC723Icjs.readBody; exports.scanForServerFiles = _chunkFLJC723Icjs.scanForServerFiles; exports.sendResponse = _chunkFLJC723Icjs.sendResponse; exports.serverFunctionsMap = _chunkFLJC723Icjs.serverFunctionsMap; exports.setSecureCookie = _chunkFLJC723Icjs.setSecureCookie; exports.useSession = useSession;
+exports.createCSRF = _chunkJB7TUQRXcjs.createCSRF; exports.createCors = _chunkJB7TUQRXcjs.createCors; exports.createMiddleware = _chunkJB7TUQRXcjs.createMiddleware; exports.createRPCMiddleware = _chunkJB7TUQRXcjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.defineRPCConfig = _chunkJB7TUQRXcjs.defineRPCConfig; exports.functionMappings = _chunkJB7TUQRXcjs.functionMappings; exports.getClientModules = _chunkJB7TUQRXcjs.getClientModules; exports.getCookies = _chunkJB7TUQRXcjs.getCookies; exports.isExpressRequest = _chunkJB7TUQRXcjs.isExpressRequest; exports.isExpressResponse = _chunkJB7TUQRXcjs.isExpressResponse; exports.loadRPCConfig = _chunkJB7TUQRXcjs.loadRPCConfig; exports.readBody = _chunkJB7TUQRXcjs.readBody; exports.scanForServerFiles = _chunkJB7TUQRXcjs.scanForServerFiles; exports.sendResponse = _chunkJB7TUQRXcjs.sendResponse; exports.serverFunctionsMap = _chunkJB7TUQRXcjs.serverFunctionsMap; exports.setSecureCookie = _chunkJB7TUQRXcjs.setSecureCookie; exports.useSession = useSession;
