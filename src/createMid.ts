@@ -102,7 +102,10 @@ export const createMiddleware = (
 
       // Execute handler if provided
       // return await handler(req, res, next);
-      await handler(req, res, next);
+      if (handler) {
+        await handler(req, res, next);
+        return;
+      }
 
       next?.();
     } catch (error) {

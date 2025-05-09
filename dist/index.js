@@ -6,7 +6,7 @@ import {
   getModule,
   rpcMiddleware,
   scanForServerFiles
-} from "./chunk-TIY6GOZR.js";
+} from "./chunk-CQAUGGHN.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";

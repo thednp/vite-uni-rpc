@@ -6,12 +6,12 @@
 
 
 
-var _chunkSXL2KUCDcjs = require('./chunk-SXL2KUCD.cjs');
+var _chunkDLYFGQW5cjs = require('./chunk-DLYFGQW5.cjs');
 
 // src/index.ts
 var _vite = require('vite');
 function rpcPlugin(initialOptions = {}) {
-  const options = { ..._chunkSXL2KUCDcjs.defaultRPCOptions, ...initialOptions };
+  const options = { ..._chunkDLYFGQW5cjs.defaultRPCOptions, ...initialOptions };
   let config;
   let viteServer;
   return {
@@ -21,7 +21,7 @@ function rpcPlugin(initialOptions = {}) {
       config = resolvedConfig;
     },
     async buildStart() {
-      await _chunkSXL2KUCDcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunkDLYFGQW5cjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
@@ -29,8 +29,8 @@ function rpcPlugin(initialOptions = {}) {
       }
       const transformedCode = `
 // Client-side RPC modules
-${Array.from(_chunkSXL2KUCDcjs.functionMappings.entries()).map(
-        ([registeredName, exportName]) => _chunkSXL2KUCDcjs.getModule.call(void 0, registeredName, exportName, options)
+${Array.from(_chunkDLYFGQW5cjs.functionMappings.entries()).map(
+        ([registeredName, exportName]) => _chunkDLYFGQW5cjs.getModule.call(void 0, registeredName, exportName, options)
       ).join("\n")}
 `.trim();
       const result = await _vite.transformWithEsbuild.call(void 0, transformedCode, id, {
@@ -45,9 +45,9 @@ ${Array.from(_chunkSXL2KUCDcjs.functionMappings.entries()).map(
     },
     configureServer(server) {
       viteServer = server;
-      server.middlewares.use(_chunkSXL2KUCDcjs.corsMiddleware);
-      server.middlewares.use(_chunkSXL2KUCDcjs.csrfMiddleware);
-      server.middlewares.use(_chunkSXL2KUCDcjs.rpcMiddleware);
+      server.middlewares.use(_chunkDLYFGQW5cjs.corsMiddleware);
+      server.middlewares.use(_chunkDLYFGQW5cjs.csrfMiddleware);
+      server.middlewares.use(_chunkDLYFGQW5cjs.rpcMiddleware);
     }
   };
 }

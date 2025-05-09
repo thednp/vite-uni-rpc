@@ -218,7 +218,10 @@ var createMiddleware = (initialOptions = {}) => {
         clientState.count++;
         rateLimitStore.set(clientIp, clientState);
       }
-      await handler(req, res, next);
+      if (handler) {
+        await handler(req, res, next);
+        return;
+      }
       next?.();
     } catch (error) {
       if (onError) {
