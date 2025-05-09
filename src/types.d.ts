@@ -1,8 +1,8 @@
 // vite-mini-rpc/src/types.d.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Request, Response } from "express";
+import type { Request, Response } from "@types/express";
+import type { CorsOptions } from "@types/cors";
 import type { Connect } from "vite";
-import type { CorsOptions } from "cors";
 
 export interface ServerFunctionOptions {
   ttl: number;

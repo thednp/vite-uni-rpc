@@ -1,7 +1,7 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Request, Response } from "express";
-import { existsSync } from "node:fs";
+// import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
 import type { ConfigEnv, ResolvedConfig, ViteDevServer } from "vite";
@@ -120,46 +120,43 @@ export const scanForServerFiles = async (
     });
   }
 
-  const fileTypes = [
+  const svFiles = [
     "server.ts",
     "server.js",
     "server.mjs",
     "server.mts",
   ];
-  const fileName = fileTypes.find((file) =>
-    existsSync(resolve(config.root, "src", "api", file))
-  );
-  if (!fileName) {
-    console.warn("Server file not found.");
-    return;
-  }
 
-  const filePath = resolve(config.root, "api/src", fileName);
-  try {
-    // Transform TypeScript to JavaScript using the loaded transform function
-    const moduleExports = await server.ssrLoadModule(filePath) as Record<
-      string,
-      ServerFnEntry
-    >;
-    const moduleEntries = Object.entries(moduleExports);
-    if (!moduleEntries.length) {
-      console.warn("No server function found.");
-      return;
-    }
+  const apiDir = resolve(config.root, "api/src");
+  for (const file of svFiles) {
+    try {
+      // Transform TypeScript to JavaScript using the loaded transform function
+      const moduleExports = await server.ssrLoadModule(
+        resolve(apiDir, file),
+      ) as Record<
+        string,
+        ServerFnEntry
+      >;
+      const moduleEntries = Object.entries(moduleExports);
+      if (!moduleEntries.length) {
+        console.warn("No server function found.");
+        return;
+      }
 
-    // Examine each export
-    for (const [exportName, exportValue] of moduleEntries) {
-      for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-        if (
-          serverFn.name === registeredName &&
-          serverFn.fn === exportValue
-        ) {
-          functionMappings.set(registeredName, exportName);
+      // Examine each export
+      for (const [exportName, exportValue] of moduleEntries) {
+        for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
+          if (
+            serverFn.name === registeredName &&
+            serverFn.fn === exportValue
+          ) {
+            functionMappings.set(registeredName, exportName);
+          }
         }
       }
+    } catch (error) {
+      console.error("Error loading file:", file, error);
     }
-  } catch (error) {
-    console.error("Error loading file:", filePath, error);
   }
 
   // Remember to always close the temporary dev server!

@@ -1,7 +1,8 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { Request, Response } from 'express';
+import { Request as Request$1, Response as Response$1 } from 'express';
 import { Connect, ResolvedConfig, ViteDevServer } from 'vite';
-import { CorsOptions } from 'cors';
+import { Request, Response } from '@types/express';
+import { CorsOptions } from '@types/cors';
 
 // vite-mini-rpc/src/types.d.ts
 
@@ -352,8 +353,8 @@ interface MiddlewareOptions {
 }
 
 declare const serverFunctionsMap: Map<string, ServerFunction<Arguments[], unknown>>;
-declare const isExpressRequest: (r: Request | IncomingMessage) => r is Request;
-declare const isExpressResponse: (r: Response | ServerResponse) => r is Response;
+declare const isExpressRequest: (r: Request$1 | IncomingMessage) => r is Request$1;
+declare const isExpressResponse: (r: Response$1 | ServerResponse) => r is Response$1;
 /**
  * Utility to define `vite-mini-rpc` configuration file similar to other
  * popular frameworks like vite.
@@ -389,13 +390,13 @@ declare function loadRPCConfig(configFile?: string): Promise<{
     onRequest: undefined;
     onResponse: undefined;
 } | Record<string, any>>;
-declare const readBody: (req: Request | IncomingMessage) => Promise<string>;
+declare const readBody: (req: Request$1 | IncomingMessage) => Promise<string>;
 declare const functionMappings: Map<string, string>;
 type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
     server?: Partial<ResolvedConfig["server"]>;
 };
 declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
-declare const sendResponse: (res: ServerResponse | Response, response: Record<string, string | unknown>, statusCode?: number) => Response<any, Record<string, any>> | undefined;
+declare const sendResponse: (res: ServerResponse | Response$1, response: Record<string, string | unknown>, statusCode?: number) => Response$1<any, Record<string, any>> | undefined;
 declare const getClientModules: (options: RpcPluginOptions) => string;
 
 export { type Arguments as A, type CSRFMiddlewareOptions as C, type MiddlewareOptions as M, type RpcPluginOptions as R, type ServerFnEntry as S, type TokenOptions as T, type ServerFunctionOptions as a, isExpressResponse as b, scanForServerFiles as c, defineRPCConfig as d, sendResponse as e, functionMappings as f, getClientModules as g, isExpressRequest as i, loadRPCConfig as l, readBody as r, serverFunctionsMap as s };

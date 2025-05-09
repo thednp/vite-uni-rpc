@@ -1,10 +1,12 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions } from './utils-BoTUpDy1.js';
-export { d as defineRPCConfig, f as functionMappings, g as getClientModules, i as isExpressRequest, b as isExpressResponse, l as loadRPCConfig, r as readBody, c as scanForServerFiles, e as sendResponse, s as serverFunctionsMap } from './utils-BoTUpDy1.js';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions } from './utils-B6drRPIQ.js';
+export { d as defineRPCConfig, f as functionMappings, g as getClientModules, i as isExpressRequest, b as isExpressResponse, l as loadRPCConfig, r as readBody, c as scanForServerFiles, e as sendResponse, s as serverFunctionsMap } from './utils-B6drRPIQ.js';
 import cors from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
 import { Connect } from 'vite';
 import * as querystring from 'querystring';
+import '@types/express';
+import '@types/cors';
 
 declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): ServerFnEntry<TArgs, TResult>;
 
