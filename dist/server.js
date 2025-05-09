@@ -5,20 +5,19 @@ import {
   createMiddleware,
   createRPCMiddleware,
   defaultServerFnOptions,
+  defineRPCConfig,
   functionMappings,
   getClientModules,
   getCookies,
-  getRPCPluginConfig,
-  getViteConfig,
   isExpressRequest,
   isExpressResponse,
+  loadRPCConfig,
   readBody,
-  resolveExtension,
   scanForServerFiles,
   sendResponse,
   serverFunctionsMap,
   setSecureCookie
-} from "./chunk-6235YIZK.js";
+} from "./chunk-XWUIKFW4.js";
 
 // src/cache.ts
 var ServerCache = class {
@@ -129,15 +128,14 @@ export {
   createMiddleware,
   createRPCMiddleware,
   createServerFunction,
+  defineRPCConfig,
   functionMappings,
   getClientModules,
   getCookies,
-  getRPCPluginConfig,
-  getViteConfig,
   isExpressRequest,
   isExpressResponse,
+  loadRPCConfig,
   readBody,
-  resolveExtension,
   scanForServerFiles,
   sendResponse,
   serverFunctionsMap,

@@ -4,14 +4,15 @@ import type { Request, Response } from "express";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
+import type { ConfigEnv, ResolvedConfig, ViteDevServer } from "vite";
+import { loadConfigFromFile, mergeConfig } from "vite";
+import { defaultRPCOptions } from "./options";
 import type {
   Arguments,
-  RpcPlugin,
   RpcPluginOptions,
   ServerFnEntry,
   ServerFunction,
 } from "./types";
-import type { ResolvedConfig, ViteDevServer } from "vite";
 
 export const serverFunctionsMap = new Map<
   string,
@@ -31,44 +32,56 @@ export const isExpressResponse = (
 };
 
 /**
- * Resolve file extension.
- * @param filePath
- * @param extensions default [".tsx", ".jsx", ".ts", ".js"]
+ * Utility to define `vite-mini-rpc` configuration file similar to other
+ * popular frameworks like vite.
+ * @param configFile
  */
-export const resolveExtension = (
-  filePath: string,
-  extensions = [".tsx", ".jsx", ".ts", ".js"],
-) => {
-  const [noExt] = filePath?.split(".");
-  const [noSlash] = noExt.slice(filePath.startsWith("/") ? 1 : 0);
-  const paths = extensions.map((ext) => (noSlash + ext));
-  const path = paths.find((p) => existsSync(resolve(process.cwd() + p)));
-
-  return path || (noExt + ".js");
-};
+export function defineRPCConfig(config: Partial<RpcPluginOptions>) {
+  return mergeConfig(defaultRPCOptions, config) as RpcPluginOptions;
+}
 
 /**
- * Returns the current project vite configuration, more specifically
- * the `ResolvedConfig`.
+ * Utility to load `vite-mini-rpc` configuration file similar to other
+ * popular frameworks like vite.
+ * @param configFile
  */
-export const getViteConfig = async () => {
-  const filePath = resolveExtension("/vite.config.ts");
-  return (await import("." + filePath)).default as ResolvedConfig;
-};
+export async function loadRPCConfig(configFile?: string) {
+  try {
+    const env: ConfigEnv = {
+      command: "serve",
+      mode: process.env.NODE_ENV || "development",
+    };
+    const defaultConfigFiles = [
+      "rpc.config.ts",
+      "rpc.config.js",
+      "rpc.config.mjs",
+      "rpc.config.mts",
+      "rpc.config.cjs",
+      "rpc.config.cts",
+    ];
 
-export const getRPCPluginConfig = async () => {
-  const viteConfig = await getViteConfig();
-  const rpcPluginConfig = viteConfig?.plugins?.find((p) =>
-    p.name === "vite-mini-rpc"
-  ) as RpcPlugin;
-  if (!rpcPluginConfig) {
-    console.warn(
-      `The "vite-mini-rpc" plugin is not present in the current configuration.`,
-    );
-    return;
+    // If specific config file provided
+    if (configFile) {
+      const result = await loadConfigFromFile(env, configFile);
+      if (result) {
+        return mergeConfig(defaultRPCOptions, result.config);
+      }
+    }
+
+    // Try default config files
+    for (const file of defaultConfigFiles) {
+      const result = await loadConfigFromFile(env, file);
+      if (result) {
+        return mergeConfig(defaultRPCOptions, result.config);
+      }
+    }
+
+    return defaultRPCOptions;
+  } catch (error) {
+    console.warn("Failed to load RPC config:", error);
+    return defaultRPCOptions;
   }
-  return rpcPluginConfig.pluginOptions;
-};
+}
 
 export const readBody = (req: Request | IncomingMessage): Promise<string> => {
   return new Promise((resolve) => {
@@ -92,7 +105,8 @@ export const scanForServerFiles = async (
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg
     ? {
-      ...(await getViteConfig()),
+      root: process.cwd(),
+      base: process.env.BASE || "/",
       server: { middlewareMode: true },
     }
     : initialCfg;
@@ -106,16 +120,35 @@ export const scanForServerFiles = async (
     });
   }
 
-  const filePath = resolveExtension("/src/api/server.ts");
+  const fileTypes = [
+    "server.ts",
+    "server.js",
+    "server.mjs",
+    "server.mts",
+  ];
+  const fileName = fileTypes.find((file) =>
+    existsSync(resolve(config.root, "src", "api", file))
+  );
+  if (!fileName) {
+    console.warn("Server file not found.");
+    return;
+  }
+
+  const filePath = resolve(config.root, "api/src", fileName);
   try {
     // Transform TypeScript to JavaScript using the loaded transform function
-    const moduleExports = await server.ssrLoadModule("." + filePath) as Record<
+    const moduleExports = await server.ssrLoadModule(filePath) as Record<
       string,
       ServerFnEntry
     >;
+    const moduleEntries = Object.entries(moduleExports);
+    if (!moduleEntries.length) {
+      console.warn("No server function found.");
+      return;
+    }
 
     // Examine each export
-    for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+    for (const [exportName, exportValue] of moduleEntries) {
       for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
         if (
           serverFn.name === registeredName &&

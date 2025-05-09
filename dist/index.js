@@ -3,9 +3,11 @@ import {
   createCors,
   createRPCMiddleware,
   defaultRPCOptions,
+  defineRPCConfig,
   getClientModules,
+  loadRPCConfig,
   scanForServerFiles
-} from "./chunk-6235YIZK.js";
+} from "./chunk-XWUIKFW4.js";
 
 // src/index.ts
 import { transformWithEsbuild } from "vite";
@@ -16,11 +18,9 @@ function rpcPlugin(initialOptions = {}) {
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
+    // Plugin methods
     configResolved(resolvedConfig) {
       config = resolvedConfig;
-    },
-    get pluginOptions() {
-      return options;
     },
     async buildStart() {
       await scanForServerFiles(config, viteServer);
@@ -52,5 +52,7 @@ function rpcPlugin(initialOptions = {}) {
   };
 }
 export {
-  rpcPlugin as default
+  rpcPlugin as default,
+  defineRPCConfig,
+  loadRPCConfig
 };

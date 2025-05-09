@@ -1,8 +1,9 @@
-import { A as Arguments, S as ServerFnEntry, b as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions, c as ServerFunction, R as RpcPluginOptions } from './types.d-D_cWYucW.js';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, C as CSRFMiddlewareOptions, M as MiddlewareOptions, T as TokenOptions } from './utils-CHvpVg9J.js';
+export { d as defineRPCConfig, f as functionMappings, g as getClientModules, i as isExpressRequest, b as isExpressResponse, l as loadRPCConfig, r as readBody, c as scanForServerFiles, e as sendResponse, s as serverFunctionsMap } from './utils-CHvpVg9J.js';
 import cors from 'cors';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
-import { Connect, ResolvedConfig, ViteDevServer } from 'vite';
+import { Connect } from 'vite';
 import * as querystring from 'querystring';
 
 declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): ServerFnEntry<TArgs, TResult>;
@@ -45,28 +46,4 @@ declare class SessionManager {
 }
 declare const useSession: () => SessionManager;
 
-declare const serverFunctionsMap: Map<string, ServerFunction<Arguments[], unknown>>;
-declare const isExpressRequest: (r: Request | IncomingMessage) => r is Request;
-declare const isExpressResponse: (r: Response | ServerResponse) => r is Response;
-/**
- * Resolve file extension.
- * @param filePath
- * @param extensions default [".tsx", ".jsx", ".ts", ".js"]
- */
-declare const resolveExtension: (filePath: string, extensions?: string[]) => string;
-/**
- * Returns the current project vite configuration, more specifically
- * the `ResolvedConfig`.
- */
-declare const getViteConfig: () => Promise<ResolvedConfig>;
-declare const getRPCPluginConfig: () => Promise<RpcPluginOptions | undefined>;
-declare const readBody: (req: Request | IncomingMessage) => Promise<string>;
-declare const functionMappings: Map<string, string>;
-type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
-    server?: Partial<ResolvedConfig["server"]>;
-};
-declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
-declare const sendResponse: (res: ServerResponse | Response, response: Record<string, string | unknown>, statusCode?: number) => Response<any, Record<string, any>> | undefined;
-declare const getClientModules: (options: RpcPluginOptions) => string;
-
-export { createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, functionMappings, getClientModules, getCookies, getRPCPluginConfig, getViteConfig, isExpressRequest, isExpressResponse, readBody, resolveExtension, scanForServerFiles, sendResponse, serverFunctionsMap, setSecureCookie, useSession };
+export { createCSRF, createCors, createMiddleware, createRPCMiddleware, createServerFunction, getCookies, setSecureCookie, useSession };

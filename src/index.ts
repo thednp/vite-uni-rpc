@@ -1,15 +1,23 @@
-import type { ResolvedConfig, ViteDevServer } from "vite";
-import type { RpcPlugin, RpcPluginOptions } from "./types";
+import type { Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import type { RpcPluginOptions } from "./types";
 import { transformWithEsbuild } from "vite";
-import { getClientModules, scanForServerFiles } from "./utils";
+import {
+  defineRPCConfig,
+  getClientModules,
+  loadRPCConfig,
+  scanForServerFiles,
+} from "./utils";
 import { defaultRPCOptions } from "./options";
 import { createCors } from "./createCors";
 import { createCSRF } from "./createCSRF";
 import { createRPCMiddleware } from "./createMid";
 
-export default function rpcPlugin(
+export { defineRPCConfig, loadRPCConfig, type RpcPluginOptions };
+export { rpcPlugin as default };
+
+function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
-): RpcPlugin {
+): Plugin {
   const options = { ...defaultRPCOptions, ...initialOptions };
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
@@ -17,12 +25,9 @@ export default function rpcPlugin(
   return {
     name: "vite-mini-rpc",
     enforce: "pre",
-
+    // Plugin methods
     configResolved(resolvedConfig) {
       config = resolvedConfig;
-    },
-    get pluginOptions() {
-      return options;
     },
     async buildStart() {
       // Prepare the server functions
@@ -67,3 +72,5 @@ export default function rpcPlugin(
     },
   };
 }
+
+export {};

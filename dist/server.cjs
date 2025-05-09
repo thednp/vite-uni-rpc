@@ -17,15 +17,14 @@
 
 
 
-
-var _chunkGZTIXYQ7cjs = require('./chunk-GZTIXYQ7.cjs');
+var _chunkJU3IWJF7cjs = require('./chunk-JU3IWJF7.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkGZTIXYQ7cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkJU3IWJF7cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkGZTIXYQ7cjs.defaultServerFnOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkJU3IWJF7cjs.defaultServerFnOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -67,7 +66,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ..._chunkGZTIXYQ7cjs.defaultServerFnOptions, ...initialOptions };
+  const options = { ..._chunkJU3IWJF7cjs.defaultServerFnOptions, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -80,7 +79,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkGZTIXYQ7cjs.serverFunctionsMap.set(name, {
+  _chunkJU3IWJF7cjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -92,7 +91,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
 var _crypto = require('crypto');
 var SessionManager = class {
   constructor() {
-    _chunkGZTIXYQ7cjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
+    _chunkJU3IWJF7cjs.__publicField.call(void 0, this, "sessions", /* @__PURE__ */ new Map());
   }
   createSession(userId, duration = 24 * 60 * 60 * 1e3) {
     const session = {
@@ -142,5 +141,4 @@ var useSession = () => {
 
 
 
-
-exports.createCSRF = _chunkGZTIXYQ7cjs.createCSRF; exports.createCors = _chunkGZTIXYQ7cjs.createCors; exports.createMiddleware = _chunkGZTIXYQ7cjs.createMiddleware; exports.createRPCMiddleware = _chunkGZTIXYQ7cjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.functionMappings = _chunkGZTIXYQ7cjs.functionMappings; exports.getClientModules = _chunkGZTIXYQ7cjs.getClientModules; exports.getCookies = _chunkGZTIXYQ7cjs.getCookies; exports.getRPCPluginConfig = _chunkGZTIXYQ7cjs.getRPCPluginConfig; exports.getViteConfig = _chunkGZTIXYQ7cjs.getViteConfig; exports.isExpressRequest = _chunkGZTIXYQ7cjs.isExpressRequest; exports.isExpressResponse = _chunkGZTIXYQ7cjs.isExpressResponse; exports.readBody = _chunkGZTIXYQ7cjs.readBody; exports.resolveExtension = _chunkGZTIXYQ7cjs.resolveExtension; exports.scanForServerFiles = _chunkGZTIXYQ7cjs.scanForServerFiles; exports.sendResponse = _chunkGZTIXYQ7cjs.sendResponse; exports.serverFunctionsMap = _chunkGZTIXYQ7cjs.serverFunctionsMap; exports.setSecureCookie = _chunkGZTIXYQ7cjs.setSecureCookie; exports.useSession = useSession;
+exports.createCSRF = _chunkJU3IWJF7cjs.createCSRF; exports.createCors = _chunkJU3IWJF7cjs.createCors; exports.createMiddleware = _chunkJU3IWJF7cjs.createMiddleware; exports.createRPCMiddleware = _chunkJU3IWJF7cjs.createRPCMiddleware; exports.createServerFunction = createServerFunction; exports.defineRPCConfig = _chunkJU3IWJF7cjs.defineRPCConfig; exports.functionMappings = _chunkJU3IWJF7cjs.functionMappings; exports.getClientModules = _chunkJU3IWJF7cjs.getClientModules; exports.getCookies = _chunkJU3IWJF7cjs.getCookies; exports.isExpressRequest = _chunkJU3IWJF7cjs.isExpressRequest; exports.isExpressResponse = _chunkJU3IWJF7cjs.isExpressResponse; exports.loadRPCConfig = _chunkJU3IWJF7cjs.loadRPCConfig; exports.readBody = _chunkJU3IWJF7cjs.readBody; exports.scanForServerFiles = _chunkJU3IWJF7cjs.scanForServerFiles; exports.sendResponse = _chunkJU3IWJF7cjs.sendResponse; exports.serverFunctionsMap = _chunkJU3IWJF7cjs.serverFunctionsMap; exports.setSecureCookie = _chunkJU3IWJF7cjs.setSecureCookie; exports.useSession = useSession;
