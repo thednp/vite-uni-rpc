@@ -292,13 +292,13 @@ var createMiddleware = (initialOptions = {}) => {
         const now = Date.now();
         const clientState = rateLimitStore.get(clientIp) || {
           count: 0,
-          resetTime: now + rateLimit.windowMs
+          resetTime: now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs)
         };
         if (now > clientState.resetTime) {
           clientState.count = 0;
-          clientState.resetTime = now + rateLimit.windowMs;
+          clientState.resetTime = now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs);
         }
-        if (clientState.count >= rateLimit.max) {
+        if (clientState.count >= (rateLimit.max || defaultRPCOptions.rateLimit.max)) {
           if (onResponse) {
             await onResponse(res);
           }
@@ -331,7 +331,7 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    // rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...defaultMiddlewareOptions,
     ...initialOptions
   };

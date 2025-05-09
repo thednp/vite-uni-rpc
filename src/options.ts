@@ -6,27 +6,27 @@ import type {
   ServerFunctionOptions,
 } from "./types";
 
-export const defaultCorsOptions: CorsOptions = {
+export const defaultCorsOptions = {
   origin: true,
   credentials: true,
   methods: ["GET", "POST"],
   allowedHeaders: ["Set-Cookie", "Content-Type", "X-CSRF-Token"],
-};
+} satisfies CorsOptions;
 
-export const defaultCSRFOptions: CSRFMiddlewareOptions = {
+export const defaultCSRFOptions = {
   expires: 24, // 24h
   HttpOnly: true,
   Secure: true,
   SameSite: "Strict",
   Path: "/",
-};
+} satisfies CSRFMiddlewareOptions;
 
-export const defaultServerFnOptions: ServerFunctionOptions = {
+export const defaultServerFnOptions = {
   ttl: 10 * 1000, // 10s
   invalidateKeys: [],
-};
+} satisfies ServerFunctionOptions;
 
-export const defaultRPCOptions: RpcPluginOptions = {
+export const defaultRPCOptions = {
   cors: defaultCorsOptions,
   csrf: defaultCSRFOptions,
   rpcPreffix: "__rpc",
@@ -38,12 +38,12 @@ export const defaultRPCOptions: RpcPluginOptions = {
   onError: undefined,
   onRequest: undefined,
   onResponse: undefined,
-};
+} satisfies RpcPluginOptions;
 
-export const defaultMiddlewareOptions: MiddlewareOptions = {
+export const defaultMiddlewareOptions = {
   rpcPreffix: defaultRPCOptions.rpcPreffix,
   path: undefined,
-  headers: {},
+  headers: {} as Record<string, string>,
   rateLimit: {
     max: 100,
     windowMs: 5 * 60 * 1000, // 5m
@@ -52,4 +52,4 @@ export const defaultMiddlewareOptions: MiddlewareOptions = {
   onError: undefined,
   onRequest: undefined,
   onResponse: undefined,
-};
+} satisfies MiddlewareOptions;

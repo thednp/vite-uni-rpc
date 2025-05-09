@@ -71,7 +71,7 @@ interface RpcPluginOptions {
    *  // or ["https://site1.com", "https://site2.com"]
    * ```
    */
-  cors?: CorsOptions | false;
+  cors?: Partial<CorsOptions> | false;
 
   /**
    * Option to disable by setting `false` or customize CSRF middleware.
@@ -87,7 +87,7 @@ interface RpcPluginOptions {
    * }
    * ```
    */
-  csrf?: CSRFMiddlewareOptions | false;
+  csrf?: Partial<CSRFMiddlewareOptions> | false;
 
   // RPC Middleware Options
   /**
@@ -124,7 +124,7 @@ interface RpcPluginOptions {
    * // translates to 100 requests for each 5 minutes
    * ```
    */
-  rateLimit?: MiddlewareOptions["rateLimit"] | false; // false to disable
+  rateLimit?: Partial<MiddlewareOptions["rateLimit"]> | false; // false to disable
 
   /**
    * Custom error handling hook for RPC middleware errors.
@@ -286,8 +286,8 @@ interface MiddlewareOptions {
    * ```
    */
   rateLimit?: {
-    windowMs: number;
-    max: number;
+    windowMs?: number;
+    max?: number;
   } | false;
 
   /**
@@ -365,7 +365,30 @@ declare function defineRPCConfig(config: Partial<RpcPluginOptions>): RpcPluginOp
  * popular frameworks like vite.
  * @param configFile
  */
-declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions | Record<string, any>>;
+declare function loadRPCConfig(configFile?: string): Promise<{
+    cors: {
+        origin: true;
+        credentials: true;
+        methods: string[];
+        allowedHeaders: string[];
+    };
+    csrf: {
+        expires: number;
+        HttpOnly: true;
+        Secure: true;
+        SameSite: string;
+        Path: string;
+    };
+    rpcPreffix: string;
+    headers: undefined;
+    rateLimit: {
+        windowMs: number;
+        max: number;
+    };
+    onError: undefined;
+    onRequest: undefined;
+    onResponse: undefined;
+} | Record<string, any>>;
 declare const readBody: (req: Request | IncomingMessage) => Promise<string>;
 declare const functionMappings: Map<string, string>;
 type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {

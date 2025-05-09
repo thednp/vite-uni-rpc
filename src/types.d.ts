@@ -83,7 +83,7 @@ export interface RpcPluginOptions {
    *  // or ["https://site1.com", "https://site2.com"]
    * ```
    */
-  cors?: CorsOptions | false;
+  cors?: Partial<CorsOptions> | false;
 
   /**
    * Option to disable by setting `false` or customize CSRF middleware.
@@ -99,7 +99,7 @@ export interface RpcPluginOptions {
    * }
    * ```
    */
-  csrf?: CSRFMiddlewareOptions | false;
+  csrf?: Partial<CSRFMiddlewareOptions> | false;
 
   // RPC Middleware Options
   /**
@@ -136,7 +136,7 @@ export interface RpcPluginOptions {
    * // translates to 100 requests for each 5 minutes
    * ```
    */
-  rateLimit?: MiddlewareOptions["rateLimit"] | false; // false to disable
+  rateLimit?: Partial<MiddlewareOptions["rateLimit"]> | false; // false to disable
 
   /**
    * Custom error handling hook for RPC middleware errors.
@@ -298,8 +298,8 @@ export interface MiddlewareOptions {
    * ```
    */
   rateLimit?: {
-    windowMs: number;
-    max: number;
+    windowMs?: number;
+    max?: number;
   } | false;
 
   /**
