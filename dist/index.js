@@ -19,8 +19,8 @@ function rpcPlugin(initialOptions = {}) {
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-    options(ops) {
-      return ops;
+    get pluginOptions() {
+      return options;
     },
     async buildStart() {
       await scanForServerFiles(config, viteServer);

@@ -4,6 +4,9 @@ import 'node:http';
 import 'express';
 import 'cors';
 
-declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): Plugin;
+interface RpcPlugin extends Plugin {
+    pluginOptions: RpcPluginOptions;
+}
+declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): RpcPlugin;
 
 export { rpcPlugin as default };

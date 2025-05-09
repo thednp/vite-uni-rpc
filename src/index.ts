@@ -8,13 +8,13 @@ import { createCSRF } from "./createCSRF";
 import { createRPCMiddleware } from "./createMid";
 
 // Create a custom interface extending Plugin
-// interface RpcPlugin extends Plugin {
-//   options: RpcPluginOptions;
-// }
+interface RpcPlugin extends Plugin {
+  pluginOptions: RpcPluginOptions;
+}
 
 export default function rpcPlugin(
   initialOptions: Partial<RpcPluginOptions> = {},
-): Plugin {
+): RpcPlugin {
   const options = { ...defaultRPCOptions, ...initialOptions };
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
@@ -26,8 +26,8 @@ export default function rpcPlugin(
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
-    options(ops) {
-      return ops;
+    get pluginOptions() {
+      return options;
     },
     async buildStart() {
       // Prepare the server functions
