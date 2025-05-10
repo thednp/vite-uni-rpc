@@ -71,7 +71,7 @@ function rpcPlugin(
  * popular frameworks like vite.
  * @param configFile
  */
-function defineRPCConfig(config: Partial<RpcPluginOptions>) {
+function defineConfig(config: Partial<RpcPluginOptions>) {
   return mergeConfig(defaultRPCOptions, config) as RpcPluginOptions;
 }
 
@@ -118,7 +118,7 @@ async function loadRPCConfig(configFile?: string) {
   }
 }
 
-export { defineRPCConfig, loadRPCConfig, type RpcPluginOptions };
+export { defineConfig, loadRPCConfig, type RpcPluginOptions };
 export { rpcPlugin as default };
 
 export {};

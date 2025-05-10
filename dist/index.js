@@ -50,7 +50,7 @@ function rpcPlugin(initialOptions = {}) {
     }
   };
 }
-function defineRPCConfig(config) {
+function defineConfig(config) {
   return mergeConfig(defaultRPCOptions, config);
 }
 async function loadRPCConfig(configFile) {
@@ -87,6 +87,6 @@ async function loadRPCConfig(configFile) {
 }
 export {
   rpcPlugin as default,
-  defineRPCConfig,
+  defineConfig,
   loadRPCConfig
 };

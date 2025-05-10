@@ -10,7 +10,7 @@ declare function rpcPlugin(initialOptions?: Partial<RpcPluginOptions>): Plugin;
  * popular frameworks like vite.
  * @param configFile
  */
-declare function defineRPCConfig(config: Partial<RpcPluginOptions>): RpcPluginOptions;
+declare function defineConfig(config: Partial<RpcPluginOptions>): RpcPluginOptions;
 /**
  * Utility to load `vite-mini-rpc` configuration file similar to other
  * popular frameworks like vite.
@@ -41,4 +41,4 @@ declare function loadRPCConfig(configFile?: string): Promise<{
     onResponse: undefined;
 } | Record<string, any>>;
 
-export { RpcPluginOptions, rpcPlugin as default, defineRPCConfig, loadRPCConfig };
+export { RpcPluginOptions, rpcPlugin as default, defineConfig, loadRPCConfig };

@@ -50,7 +50,7 @@ function rpcPlugin(initialOptions = {}) {
     }
   };
 }
-function defineRPCConfig(config) {
+function defineConfig(config) {
   return _vite.mergeConfig.call(void 0, _chunkM7KPJXHTcjs.defaultRPCOptions, config);
 }
 async function loadRPCConfig(configFile) {
@@ -89,4 +89,4 @@ async function loadRPCConfig(configFile) {
 
 
 
-exports.default = rpcPlugin; exports.defineRPCConfig = defineRPCConfig; exports.loadRPCConfig = loadRPCConfig;
+exports.default = rpcPlugin; exports.defineConfig = defineConfig; exports.loadRPCConfig = loadRPCConfig;
