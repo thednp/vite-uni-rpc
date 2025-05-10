@@ -1,6 +1,9 @@
 // vite-mini-rpc/src/types.d.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Request, Response } from "@types/express";
+import type {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "@types/express";
 import type { CorsOptions } from "@types/cors";
 import type { Connect } from "vite";
 
@@ -9,19 +12,50 @@ export interface ServerFunctionOptions {
   invalidateKeys: string | RegExp | RegExp[] | string[];
 }
 
+export type AnyRequest = ExpressRequest | IncomingMessage | {
+  raw: IncomingMessage;
+};
+export type AnyResponse = ExpressResponse | ServerResponse | {
+  raw: ServerResponse;
+};
+
+export type FrameworkRequest = {
+  raw?: IncomingMessage; // Hono, Fastify
+  req?: IncomingMessage; // Koa
+  originalUrl?: string; // Express
+  url?: string; // Node.js
+};
+
+export type FrameworkResponse = {
+  raw?: ServerResponse; // Hono, Fastify
+  res?: ServerResponse; // Koa
+  headersSent?: boolean; // Express
+  writableEnded?: boolean; // Node.js
+  // Common methods across frameworks
+  setHeader?: (
+    name: string,
+    value: string | number | readonly string[],
+  ) => void;
+  getHeader?: (name: string) => string | number | string[] | undefined;
+  header?: ExpressResponse["header"]; // Express
+  set?: ExpressResponse["set"]; // Express
+  send?: ExpressResponse["send"]; // Express
+  status?: ExpressResponse["status"]; // Express
+};
+
 // primitives and their compositions
-type JsonPrimitive = string | number | boolean | null | undefined;
-type JsonArray = JsonValue[];
-type JsonObject = { [key: string]: JsonValue | JsonArray };
-type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+export type JsonPrimitive = string | number | boolean | null | undefined;
+export type JsonArray = JsonValue[];
+export type JsonObject = { [key: string]: JsonValue | JsonArray };
+export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
 // Date strings are common in APIs
-type ISODateString = string; // for dates in ISO format
+export type ISODateString = string; // for dates in ISO format
 
 // Special types that might be useful
-type Base64String = string; // for binary data encoded as base64
-type URLString = string; // for URLs
-type EmailString = string; // for email addresses
+export type Base64String = string; // for binary data encoded as base64
+export type URLString = string; // for URLs
+export type EmailString = string; // for email addresses
 
 export type RPCValue =
   | JsonValue
@@ -258,8 +292,8 @@ export interface MiddlewareOptions {
    * ```
    */
   handler?: (
-    req: IncomingMessage | Request,
-    res: ServerResponse | Response,
+    req: AnyRequest,
+    res: AnyResponse,
     next: Connect.NextFunction,
   ) => unknown;
 
@@ -319,7 +353,7 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
+  onError?: (error: Error, req: AnyRequest, res: AnyResponse) => void;
 
   /**
    * Hook executed before processing each RPC request.
@@ -340,7 +374,7 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onRequest?: (req: Request | IncomingMessage) => void | Promise<void>;
+  onRequest?: (req: AnyRequest) => void | Promise<void>;
 
   /**
    * Hook executed before sending each RPC response.
@@ -360,5 +394,5 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
+  onResponse?: (res: AnyResponse) => void | Promise<void>;
 }

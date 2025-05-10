@@ -3,14 +3,13 @@ import {
   createCors,
   createRPCMiddleware,
   defaultRPCOptions,
-  defineRPCConfig,
   getClientModules,
-  loadRPCConfig,
   scanForServerFiles
-} from "./chunk-PDPDHOHS.js";
+} from "./chunk-UVTBKHHN.js";
 
 // src/index.ts
-import { transformWithEsbuild } from "vite";
+import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
+import process from "node:process";
 function rpcPlugin(initialOptions = {}) {
   const options = { ...defaultRPCOptions, ...initialOptions };
   let config;
@@ -50,6 +49,41 @@ function rpcPlugin(initialOptions = {}) {
       server.middlewares.use(createRPCMiddleware(rest));
     }
   };
+}
+function defineRPCConfig(config) {
+  return mergeConfig(defaultRPCOptions, config);
+}
+async function loadRPCConfig(configFile) {
+  try {
+    const env = {
+      command: "serve",
+      mode: process.env.NODE_ENV || "development"
+    };
+    const defaultConfigFiles = [
+      "rpc.config.ts",
+      "rpc.config.js",
+      "rpc.config.mjs",
+      "rpc.config.mts",
+      "rpc.config.cjs",
+      "rpc.config.cts"
+    ];
+    if (configFile) {
+      const result = await loadConfigFromFile(env, configFile);
+      if (result) {
+        return mergeConfig(defaultRPCOptions, result.config);
+      }
+    }
+    for (const file of defaultConfigFiles) {
+      const result = await loadConfigFromFile(env, file);
+      if (result) {
+        return mergeConfig(defaultRPCOptions, result.config);
+      }
+    }
+    return defaultRPCOptions;
+  } catch (error) {
+    console.warn("Failed to load RPC config:", error);
+    return defaultRPCOptions;
+  }
 }
 export {
   rpcPlugin as default,

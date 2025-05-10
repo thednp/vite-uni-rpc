@@ -1,18 +1,25 @@
 // src/createMid.ts
 import process from "node:process";
-import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Request, Response } from "express";
+// import type { IncomingMessage, ServerResponse } from "node:http";
+// import type { Request, Response } from "express";
 import type { Connect } from "vite";
 import {
-  isExpressRequest,
-  isExpressResponse,
+  getRequestDetails,
+  getResponseDetails,
+  // isExpressRequest,
+  // isExpressResponse,
   readBody,
   scanForServerFiles,
-  sendResponse,
+  // sendResponse,
 } from "./utils";
 import { getCookies } from "./cookie";
 import { serverFunctionsMap } from "./utils";
-import type { MiddlewareOptions } from "./types";
+import type {
+  AnyRequest,
+  AnyResponse,
+  JsonValue,
+  MiddlewareOptions,
+} from "./types";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "./options";
 
 export const createMiddleware = (
@@ -38,11 +45,13 @@ export const createMiddleware = (
     : null;
 
   return async (
-    req: IncomingMessage | Request,
-    res: ServerResponse<IncomingMessage>,
+    req: AnyRequest,
+    res: AnyResponse,
     next: Connect.NextFunction,
   ) => {
-    const url = isExpressRequest(req) ? req.originalUrl : req.url;
+    const { url, nodeRequest } = getRequestDetails(req);
+    const { sendResponse, setHeader } = getResponseDetails(res);
+    // const url = isExpressRequest(req) ? req.originalUrl : req.url;
     // When serving from production server, it's a good idea to
     // scan for server files and populate the serverFunctionsMap
     if (serverFunctionsMap.size === 0) {
@@ -72,17 +81,13 @@ export const createMiddleware = (
       // Set custom headers
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          if (isExpressResponse(res)) {
-            res.header(key, value);
-          } else {
-            res.setHeader(key, value);
-          }
+          setHeader(key, value);
         });
       }
 
       // Rate limiting check
       if (rateLimit && rateLimitStore) {
-        const clientIp = req.socket.remoteAddress || "unknown";
+        const clientIp = nodeRequest.socket.remoteAddress || "unknown";
         const now = Date.now();
         const clientState = rateLimitStore.get(clientIp) || {
           count: 0,
@@ -103,7 +108,7 @@ export const createMiddleware = (
           if (onResponse) {
             await onResponse(res);
           }
-          sendResponse(res, { error: "Too Many Requests" }, 429);
+          sendResponse(429, { error: "Too Many Requests" });
           return;
         }
 
@@ -129,7 +134,7 @@ export const createMiddleware = (
         onError(error as Error, req, res);
       } else {
         console.error("Middleware error:", String(error));
-        sendResponse(res, { error: "Middleware error:" + String(error) }, 500);
+        sendResponse(500, { error: "Internal Server Error" });
       }
     }
   };
@@ -148,11 +153,13 @@ export const createRPCMiddleware = (
   return createMiddleware({
     ...options,
     handler: async (
-      req: IncomingMessage | Request,
-      res: ServerResponse | Response,
+      req: AnyRequest,
+      res: AnyResponse,
       next: Connect.NextFunction,
     ) => {
-      const url = isExpressRequest(req) ? req.originalUrl : req.url;
+      // const url = isExpressRequest(req) ? req.originalUrl : req.url;
+      const { url, nodeRequest } = getRequestDetails(req);
+      const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
 
       if (!url?.startsWith(`/${rpcPreffix}/`)) {
@@ -167,7 +174,7 @@ export const createRPCMiddleware = (
           console.error("RPC middleware requires CSRF middleware");
         }
 
-        sendResponse(res, { error: "Unauthorized access" }, 403);
+        sendResponse(403, { error: "Unauthorized access" });
         return;
       }
 
@@ -176,21 +183,21 @@ export const createRPCMiddleware = (
 
       if (!serverFunction) {
         sendResponse(
-          res,
-          { error: `Function "${functionName}" not found` },
           404,
+          { error: `Function "${functionName}" not found` },
         );
         return;
       }
 
-      const body = await readBody(req);
+      const body = await readBody(nodeRequest);
       const args = JSON.parse(body || "[]");
-      const result = await serverFunction.fn(...args);
-      sendResponse(res, { data: result }, 200);
+      const result = await serverFunction.fn(...args) as JsonValue;
+      sendResponse(200, { data: result });
     },
     onError: (error, _req, res) => {
+      const { sendResponse } = getResponseDetails(res);
       console.error("RPC error:", error);
-      sendResponse(res, { error: "Internal Server Error" }, 500);
+      sendResponse(500, { error: "Internal Server Error" });
     },
   });
 };

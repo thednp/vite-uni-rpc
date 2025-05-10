@@ -1,16 +1,20 @@
 // vite-mini-rpc/src/utils.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Request, Response } from "express";
-// import { existsSync } from "node:fs";
+import type {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import { readdir } from "node:fs/promises";
-// import { join, resolve } from "node:path";
 import { join } from "node:path";
 import process from "node:process";
-import type { ConfigEnv, ResolvedConfig, ViteDevServer } from "vite";
-import { loadConfigFromFile, mergeConfig } from "vite";
-import { defaultRPCOptions } from "./options";
+import type { ResolvedConfig, ViteDevServer } from "vite";
 import type {
+  AnyRequest,
+  AnyResponse,
   Arguments,
+  FrameworkRequest,
+  FrameworkResponse,
+  JsonValue,
   RpcPluginOptions,
   ServerFnEntry,
   ServerFunction,
@@ -21,71 +25,126 @@ export const serverFunctionsMap = new Map<
   ServerFunction<Arguments[], unknown>
 >();
 
+export const isNodeRequest = (
+  req: AnyRequest,
+): req is IncomingMessage => {
+  return "url" in req && !("raw" in req) && !("originalUrl" in req);
+};
+
+export const isHonoRequest = (
+  req: AnyRequest,
+): req is { raw: IncomingMessage } => {
+  return "raw" in req;
+};
+
 export const isExpressRequest = (
-  r: Request | IncomingMessage,
-): r is Request => {
-  return "header" in r && "get" in r;
+  req: AnyRequest,
+): req is ExpressRequest => {
+  return "originalUrl" in req;
+};
+
+export const isNodeResponse = (
+  res: AnyResponse,
+): res is ServerResponse => {
+  return "end" in res && !("raw" in res) && !("json" in res);
+};
+
+export const isHonoResponse = (
+  res: AnyResponse,
+): res is { raw: ServerResponse } => {
+  return "raw" in res;
 };
 
 export const isExpressResponse = (
-  r: Response | ServerResponse,
-): r is Response => {
-  return "header" in r && "set" in r;
+  res: AnyResponse,
+): res is ExpressResponse => {
+  return "json" in res && "send" in res;
 };
 
-/**
- * Utility to define `vite-mini-rpc` configuration file similar to other
- * popular frameworks like vite.
- * @param configFile
- */
-export function defineRPCConfig(config: Partial<RpcPluginOptions>) {
-  return mergeConfig(defaultRPCOptions, config) as RpcPluginOptions;
-}
+export const getRequestDetails = (request: FrameworkRequest) => {
+  const nodeRequest: IncomingMessage =
+    (request.raw || request.req || request) as IncomingMessage;
 
-/**
- * Utility to load `vite-mini-rpc` configuration file similar to other
- * popular frameworks like vite.
- * @param configFile
- */
-export async function loadRPCConfig(configFile?: string) {
-  try {
-    const env: ConfigEnv = {
-      command: "serve",
-      mode: process.env.NODE_ENV || "development",
-    };
-    const defaultConfigFiles = [
-      "rpc.config.ts",
-      "rpc.config.js",
-      "rpc.config.mjs",
-      "rpc.config.mts",
-      "rpc.config.cjs",
-      "rpc.config.cts",
-    ];
+  const url = request.originalUrl ||
+    request.url ||
+    nodeRequest.url;
 
-    // If specific config file provided
-    if (configFile) {
-      const result = await loadConfigFromFile(env, configFile);
-      if (result) {
-        return mergeConfig(defaultRPCOptions, result.config);
-      }
+  return {
+    nodeRequest,
+    url,
+    headers: nodeRequest.headers,
+    method: nodeRequest.method,
+  };
+};
+
+export const getResponseDetails = (response: FrameworkResponse) => {
+  const nodeResponse: ServerResponse =
+    (response.raw || response.res || response) as ServerResponse;
+
+  const isResponseSent = response.headersSent ||
+    response.writableEnded ||
+    nodeResponse.writableEnded;
+
+  const setHeader = (name: string, value: string) => {
+    if (response.header) {
+      response.header(name, value);
+    } else if (response.setHeader) {
+      response.setHeader(name, value);
+    } else {
+      nodeResponse.setHeader(name, value);
     }
+  };
 
-    // Try default config files
-    for (const file of defaultConfigFiles) {
-      const result = await loadConfigFromFile(env, file);
-      if (result) {
-        return mergeConfig(defaultRPCOptions, result.config);
-      }
+  const getHeader = (name: string) => {
+    if (response.getHeader) {
+      return response.getHeader(name);
     }
+    return nodeResponse.getHeader(name);
+  };
 
-    return defaultRPCOptions;
-  } catch (error) {
-    console.warn("Failed to load RPC config:", error);
-    return defaultRPCOptions;
-  }
-}
+  const setStatusCode = (code: number) => {
+    if (response.status) {
+      response.status(code);
+    } else {
+      nodeResponse.statusCode = code;
+    }
+  };
 
-export const readBody = (req: Request | IncomingMessage): Promise<string> => {
+  const send = (output: Record<string, string | unknown>) => {
+    if (response.send) {
+      response.send(JSON.stringify(output));
+    } else {
+      nodeResponse.end(JSON.stringify(output));
+    }
+  };
+
+  const sendResponse = (
+    code: number,
+    output: Record<string, JsonValue>,
+    contentType?: string,
+  ) => {
+    setStatusCode(code);
+    if (contentType) {
+      setHeader("Content-Type", contentType);
+    }
+    send(output);
+  };
+
+  return {
+    nodeResponse,
+    isResponseSent,
+    setHeader,
+    getHeader,
+    statusCode: nodeResponse.statusCode,
+    setStatusCode,
+    send,
+    sendResponse,
+  };
+};
+
+export const readBody = (
+  req: ExpressRequest | IncomingMessage,
+): Promise<string> => {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk: string) => body += chunk);
@@ -175,8 +234,8 @@ export const scanForServerFiles = async (
 };
 
 export const sendResponse = (
-  res: ServerResponse | Response,
-  response: Record<string, string | unknown>,
+  res: ServerResponse | ExpressResponse,
+  output: Record<string, string | number>,
   statusCode = 200,
 ) => {
   if (isExpressResponse(res)) {
@@ -184,12 +243,12 @@ export const sendResponse = (
     return res
       .status(statusCode)
       .set({ "Content-Type": "application/json" })
-      .send(response);
+      .send(output);
   } else {
     // Vite/Connect-style response
     res.statusCode = statusCode;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(response));
+    res.end(JSON.stringify(output));
   }
 };
 

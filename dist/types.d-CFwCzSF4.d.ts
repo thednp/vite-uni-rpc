@@ -1,8 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { Request as Request$1, Response as Response$1 } from 'express';
-import { Connect, ResolvedConfig, ViteDevServer } from 'vite';
 import { Request, Response } from '@types/express';
 import { CorsOptions } from '@types/cors';
+import { Connect } from 'vite';
 
 // vite-mini-rpc/src/types.d.ts
 
@@ -11,6 +10,37 @@ interface ServerFunctionOptions {
   ttl: number;
   invalidateKeys: string | RegExp | RegExp[] | string[];
 }
+
+type AnyRequest = Request | IncomingMessage | {
+  raw: IncomingMessage;
+};
+type AnyResponse = Response | ServerResponse | {
+  raw: ServerResponse;
+};
+
+type FrameworkRequest = {
+  raw?: IncomingMessage; // Hono, Fastify
+  req?: IncomingMessage; // Koa
+  originalUrl?: string; // Express
+  url?: string; // Node.js
+};
+
+type FrameworkResponse = {
+  raw?: ServerResponse; // Hono, Fastify
+  res?: ServerResponse; // Koa
+  headersSent?: boolean; // Express
+  writableEnded?: boolean; // Node.js
+  // Common methods across frameworks
+  setHeader?: (
+    name: string,
+    value: string | number | readonly string[],
+  ) => void;
+  getHeader?: (name: string) => string | number | string[] | undefined;
+  header?: Response["header"]; // Express
+  set?: Response["set"]; // Express
+  send?: Response["send"]; // Express
+  status?: Response["status"]; // Express
+};
 
 // primitives and their compositions
 type JsonPrimitive = string | number | boolean | null | undefined;
@@ -247,8 +277,8 @@ interface MiddlewareOptions {
    * ```
    */
   handler?: (
-    req: IncomingMessage | Request,
-    res: ServerResponse | Response,
+    req: AnyRequest,
+    res: AnyResponse,
     next: Connect.NextFunction,
   ) => unknown;
 
@@ -308,7 +338,7 @@ interface MiddlewareOptions {
    * }
    * ```
    */
-  onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
+  onError?: (error: Error, req: AnyRequest, res: AnyResponse) => void;
 
   /**
    * Hook executed before processing each RPC request.
@@ -329,7 +359,7 @@ interface MiddlewareOptions {
    * }
    * ```
    */
-  onRequest?: (req: Request | IncomingMessage) => void | Promise<void>;
+  onRequest?: (req: AnyRequest) => void | Promise<void>;
 
   /**
    * Hook executed before sending each RPC response.
@@ -349,54 +379,7 @@ interface MiddlewareOptions {
    * }
    * ```
    */
-  onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
+  onResponse?: (res: AnyResponse) => void | Promise<void>;
 }
 
-declare const serverFunctionsMap: Map<string, ServerFunction<Arguments[], unknown>>;
-declare const isExpressRequest: (r: Request$1 | IncomingMessage) => r is Request$1;
-declare const isExpressResponse: (r: Response$1 | ServerResponse) => r is Response$1;
-/**
- * Utility to define `vite-mini-rpc` configuration file similar to other
- * popular frameworks like vite.
- * @param configFile
- */
-declare function defineRPCConfig(config: Partial<RpcPluginOptions>): RpcPluginOptions;
-/**
- * Utility to load `vite-mini-rpc` configuration file similar to other
- * popular frameworks like vite.
- * @param configFile
- */
-declare function loadRPCConfig(configFile?: string): Promise<{
-    cors: {
-        origin: true;
-        credentials: true;
-        methods: string[];
-        allowedHeaders: string[];
-    };
-    csrf: {
-        expires: number;
-        HttpOnly: true;
-        Secure: true;
-        SameSite: string;
-        Path: string;
-    };
-    rpcPreffix: string;
-    headers: undefined;
-    rateLimit: {
-        windowMs: number;
-        max: number;
-    };
-    onError: undefined;
-    onRequest: undefined;
-    onResponse: undefined;
-} | Record<string, any>>;
-declare const readBody: (req: Request$1 | IncomingMessage) => Promise<string>;
-declare const functionMappings: Map<string, string>;
-type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
-    server?: Partial<ResolvedConfig["server"]>;
-};
-declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
-declare const sendResponse: (res: ServerResponse | Response$1, response: Record<string, string | unknown>, statusCode?: number) => Response$1<any, Record<string, any>> | undefined;
-declare const getClientModules: (options: RpcPluginOptions) => string;
-
-export { type Arguments as A, type CSRFMiddlewareOptions as C, type MiddlewareOptions as M, type RpcPluginOptions as R, type ServerFnEntry as S, type TokenOptions as T, type ServerFunctionOptions as a, isExpressResponse as b, scanForServerFiles as c, defineRPCConfig as d, sendResponse as e, functionMappings as f, getClientModules as g, isExpressRequest as i, loadRPCConfig as l, readBody as r, serverFunctionsMap as s };
+export type { Arguments as A, CSRFMiddlewareOptions as C, FrameworkRequest as F, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions as R, ServerFnEntry as S, TokenOptions as T, ServerFunctionOptions as a, AnyRequest as b, AnyResponse as c, ServerFunction as d, FrameworkResponse as e };
