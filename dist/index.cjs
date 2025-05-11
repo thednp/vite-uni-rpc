@@ -100,8 +100,8 @@ async function rpcPlugin(devOptions = {}) {
       viteServer = server;
       const { cors, csrf, adapter, ...rest } = options;
       const adaptersMap = {
-        express: "./express",
-        hono: "./hono"
+        express: "vite-mini-rpc/express",
+        hono: "vite-mini-rpc/hono"
       };
       const { createCors, createCSRF, createRPCMiddleware } = await Promise.resolve().then(() => _interopRequireWildcard(require(adaptersMap[adapter])));
       if (cors) {

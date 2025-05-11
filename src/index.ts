@@ -128,9 +128,10 @@ async function rpcPlugin(
     async configureServer(server) {
       viteServer = server;
       const { cors, csrf, adapter, ...rest } = options;
+      // const ext =
       const adaptersMap = {
-        express: "./express",
-        hono: "./hono",
+        express: "vite-mini-rpc/express",
+        hono: "vite-mini-rpc/hono",
       };
       const { createCors, createCSRF, createRPCMiddleware } = await import(
         adaptersMap[adapter]

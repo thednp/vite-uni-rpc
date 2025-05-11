@@ -4,7 +4,8 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     server: 'src/server.ts',
-    express: 'src/express/index.ts'
+    express: 'src/express/index.ts',
+    hono: 'src/hono/index.ts'
   },
   
   esbuildOptions: (ops) => {
