@@ -12,7 +12,6 @@ import type {
   AnyRequest,
   AnyResponse,
   Arguments,
-  FrameworkRequest,
   FrameworkResponse,
   JsonValue,
   RpcPluginOptions,
@@ -37,6 +36,12 @@ export const isHonoRequest = (
   return "raw" in req;
 };
 
+export const isKoaRequest = (
+  req: AnyRequest,
+): req is { req: IncomingMessage } => {
+  return "req" in req;
+};
+
 export const isExpressRequest = (
   req: AnyRequest,
 ): req is ExpressRequest => {
@@ -55,19 +60,26 @@ export const isHonoResponse = (
   return "raw" in res;
 };
 
+export const isKoaResponse = (
+  res: AnyResponse,
+): res is { res: ServerResponse } => {
+  return "res" in res;
+};
+
 export const isExpressResponse = (
   res: AnyResponse,
 ): res is ExpressResponse => {
   return "json" in res && "send" in res;
 };
 
-export const getRequestDetails = (request: FrameworkRequest) => {
-  const nodeRequest: IncomingMessage =
-    (request.raw || request.req || request) as IncomingMessage;
+export const getRequestDetails = (request: AnyRequest) => {
+  const nodeRequest: IncomingMessage = isHonoRequest(request)
+    ? request.raw
+    : isKoaRequest(request)
+    ? request.req
+    : request;
 
-  const url = request.originalUrl ||
-    request.url ||
-    nodeRequest.url;
+  const url = isExpressRequest(request) ? request.originalUrl : nodeRequest.url;
 
   return {
     nodeRequest,
@@ -137,7 +149,6 @@ export const getResponseDetails = (response: FrameworkResponse) => {
     getHeader,
     statusCode: nodeResponse.statusCode,
     setStatusCode,
-    send,
     sendResponse,
   };
 };

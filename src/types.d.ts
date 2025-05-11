@@ -1,6 +1,7 @@
 // vite-mini-rpc/src/types.d.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type {
+  NextFunction,
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "@types/express";
@@ -10,13 +11,18 @@ import type { Connect } from "vite";
 export interface ServerFunctionOptions {
   ttl: number;
   invalidateKeys: string | RegExp | RegExp[] | string[];
+  // contentType: string; // TO DO
 }
 
 export type AnyRequest = ExpressRequest | IncomingMessage | {
   raw: IncomingMessage;
+} | {
+  req: IncomingMessage;
 };
 export type AnyResponse = ExpressResponse | ServerResponse | {
   raw: ServerResponse;
+} | {
+  res: ServerResponse;
 };
 
 export type FrameworkRequest = {
@@ -103,27 +109,22 @@ export interface RpcPluginOptions {
    * When creating a middleware with special headers, it's a good idea to
    * include them into the cors `allowedHeaders` option.
    * @default
-   * ```
    * {
    *  origin: true, // allows all origins in development
    *  credentials: true,
    *  methods: ["GET", "POST"],
    *  allowedHeaders: ["Set-Cookie", "Content-Type", "X-CSRF-Token"]
    * }
-   * ```
    * @security For production environments, it's recommended to set a specific origin:
-   * ```
-   *  origin: "https://your-site.com",
+   * { origin: "https://your-site.com" }
    *  // or ["https://site1.com", "https://site2.com"]
-   * ```
    */
   cors?: Partial<CorsOptions> | false;
 
   /**
    * Option to disable by setting `false` or customize CSRF middleware.
-   * This middleware is required for RPC endpoints security.
+   * This middleware is **required** for RPC endpoints security.
    * @default
-   * ```
    * {
    *  expires: 24,
    *  HttpOnly: true,
@@ -131,7 +132,6 @@ export interface RpcPluginOptions {
    *  SameSite: "Strict",
    *  Path: "/"
    * }
-   * ```
    */
   csrf?: Partial<CSRFMiddlewareOptions> | false;
 
@@ -146,18 +146,21 @@ export interface RpcPluginOptions {
    * rpcPreffix: "api/rpc"
    */
   rpcPreffix: "__rpc" | string;
+  /**
+   * The most popular and battle tested server app is express
+   * and is the default adapter.
+   */
+  adapter: "express";
 
   /**
    * Custom headers to be set for middleware responses.
    * Use this to add specific headers to all responses handled by this middleware.
    *
    * @example
-   * ```ts
    * headers: {
    *   'X-Custom-Header': 'custom-value',
    *   'Cache-Control': 'no-cache'
    * }
-   * ```
    */
   headers?: MiddlewareOptions["headers"];
 
@@ -165,10 +168,8 @@ export interface RpcPluginOptions {
    * Option to disable by setting `false` or customize RPC rate limiting.
    * Protects your RPC endpoints from abuse by limiting request frequency.
    * @default
-   * ```
    * { max: 100, windowMs: 5 * 60 * 1000 }
    * // translates to 100 requests for each 5 minutes
-   * ```
    */
   rateLimit?: Partial<MiddlewareOptions["rateLimit"]> | false; // false to disable
 
@@ -181,13 +182,11 @@ export interface RpcPluginOptions {
    * @param res - The server response object
    *
    * @example
-   * ```ts
    * onError: (error, req, res) => {
    *   console.error(`[${new Date().toISOString()}] Error:`, error);
    *   // Custom error handling logic
    *   sendResponse(res, { error: "Custom error message" }, 500));
    * }
-   * ```
    */
   onError?: MiddlewareOptions["onError"];
 
@@ -199,7 +198,6 @@ export interface RpcPluginOptions {
    * @param req - The incoming request object
    *
    * @example
-   * ```ts
    * onRequest: async (req) => {
    *   // Log incoming requests
    *   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -208,7 +206,6 @@ export interface RpcPluginOptions {
    *   const apiKey = req.headers['x-api-key'];
    *   if (!apiKey) throw new Error('Missing API key');
    * }
-   * ```
    */
   onRequest?: MiddlewareOptions["onRequest"];
 
@@ -220,7 +217,6 @@ export interface RpcPluginOptions {
    * @param res - The server response object
    *
    * @example
-   * ```ts
    * onResponse: async (res) => {
    *   // Add custom headers
    *   if (isExpressResponse(res)) {
@@ -232,7 +228,6 @@ export interface RpcPluginOptions {
    *   // Log response metadata
    *   console.log(`[${new Date().toISOString()}] Status: ${res.statusCode}`);
    * }
-   * ```
    */
   onResponse?: MiddlewareOptions["onResponse"];
 }
@@ -254,6 +249,7 @@ export type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
    * @default 24
    */
   expires: number;
+  rpcPreffix?: string;
 };
 
 export interface MiddlewareOptions {
@@ -262,13 +258,11 @@ export interface MiddlewareOptions {
    * Accepts string or RegExp to filter requests based on URL path.
    *
    * @example
-   * ```ts
    * // String path
    * path: "/api/v1"
    *
    * // RegExp pattern
    * path: /^\/api\/v[0-9]+/
-   * ```
    */
   path?: string | RegExp;
 
@@ -281,7 +275,6 @@ export interface MiddlewareOptions {
    * @param next - Function to pass control to the next middleware
    *
    * @example
-   * ```ts
    * handler: async (req, res, next) => {
    *   // Process request
    *   const data = await processRequest(req);
@@ -289,13 +282,17 @@ export interface MiddlewareOptions {
    *   // Send response
    *   sendResponse(res, { data }, 200);
    * }
-   * ```
    */
   handler?: (
     req: AnyRequest,
     res: AnyResponse,
-    next: Connect.NextFunction,
-  ) => unknown;
+    next: NextFunction | Connect.NextFunction,
+  ) => void;
+  // handler?: <Q, S, N>(
+  //   req: Q,
+  //   res: S,
+  //   next: N,
+  // ) => void;
 
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -306,7 +303,7 @@ export interface MiddlewareOptions {
    * // Results in endpoints like: /api/rpc/myFunction
    * rpcPreffix: "api/rpc"
    */
-  rpcPreffix?: string;
+  rpcPreffix?: string | false;
 
   /**
    * Custom headers to be set for middleware responses.

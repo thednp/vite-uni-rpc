@@ -11,6 +11,12 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      hono:
+        specifier: ^4.7.9
+        version: 4.7.9
+      vite:
+        specifier: ^6.3.5
+        version: 6.3.5(@types/node@22.15.17)
     devDependencies:
       '@types/cors':
         specifier: ^2.8.18
@@ -27,9 +33,6 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
-      vite:
-        specifier: ^6.3.5
-        version: 6.3.5(@types/node@22.15.17)
 
 packages:
 
@@ -453,6 +456,10 @@ packages:
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
     hasBin: true
+
+  hono@4.7.9:
+    resolution: {integrity: sha512-/EsCoR5h7N4yu01TDu9GMCCJa6ZLk5ZJIWFFGNawAXmd1Tp53+Wir4xm0D2X19bbykWUlzQG0+BvPAji6p9E8Q==}
+    engines: {node: '>=16.9.0'}
 
   is-fullwidth-code-point@3.0.0:
     resolution: {integrity: sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==}
@@ -1049,6 +1056,8 @@ snapshots:
       minipass: 7.1.2
       package-json-from-dist: 1.0.1
       path-scurry: 1.11.1
+
+  hono@4.7.9: {}
 
   is-fullwidth-code-point@3.0.0: {}
 

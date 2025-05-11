@@ -13,6 +13,9 @@ var isNodeRequest = (req) => {
 var isHonoRequest = (req) => {
   return "raw" in req;
 };
+var isKoaRequest = (req) => {
+  return "req" in req;
+};
 var isExpressRequest = (req) => {
   return "originalUrl" in req;
 };
@@ -22,12 +25,15 @@ var isNodeResponse = (res) => {
 var isHonoResponse = (res) => {
   return "raw" in res;
 };
+var isKoaResponse = (res) => {
+  return "res" in res;
+};
 var isExpressResponse = (res) => {
   return "json" in res && "send" in res;
 };
 var getRequestDetails = (request) => {
-  const nodeRequest = request.raw || request.req || request;
-  const url = request.originalUrl || request.url || nodeRequest.url;
+  const nodeRequest = isHonoRequest(request) ? request.raw : isKoaRequest(request) ? request.req : request;
+  const url = isExpressRequest(request) ? request.originalUrl : nodeRequest.url;
   return {
     nodeRequest,
     url,
@@ -81,7 +87,6 @@ var getResponseDetails = (response) => {
     getHeader,
     statusCode: nodeResponse.statusCode,
     setStatusCode,
-    send,
     sendResponse: sendResponse2
   };
 };
@@ -190,6 +195,7 @@ var defaultCorsOptions = {
   allowedHeaders: ["Set-Cookie", "Content-Type", "X-CSRF-Token"]
 };
 var defaultCSRFOptions = {
+  rpcPreffix: void 0,
   expires: 24,
   // 24h
   HttpOnly: true,
@@ -198,14 +204,16 @@ var defaultCSRFOptions = {
   Path: "/"
 };
 var defaultServerFnOptions = {
+  // contentType: "application/json",
   ttl: 10 * 1e3,
   // 10s
   invalidateKeys: []
 };
 var defaultRPCOptions = {
-  cors: defaultCorsOptions,
-  csrf: defaultCSRFOptions,
   rpcPreffix: "__rpc",
+  adapter: "express",
+  cors: {},
+  csrf: {},
   headers: void 0,
   rateLimit: {
     windowMs: 5 * 60 * 1e3,
@@ -217,7 +225,8 @@ var defaultRPCOptions = {
   onResponse: void 0
 };
 var defaultMiddlewareOptions = {
-  rpcPreffix: defaultRPCOptions.rpcPreffix,
+  // rpcPreffix: defaultRPCOptions.rpcPreffix,
+  rpcPreffix: void 0,
   path: void 0,
   headers: {},
   rateLimit: {
@@ -231,190 +240,16 @@ var defaultMiddlewareOptions = {
   onResponse: void 0
 };
 
-// src/createCors.ts
-import cors from "cors";
-var createCors = (initialOptions = {}) => {
-  const options = { ...defaultCorsOptions, ...initialOptions };
-  return cors(options);
-};
-
-// src/cookie.ts
-import { parse as parseCookies } from "node:querystring";
-function getCookies(req) {
-  const { headers } = getRequestDetails(req);
-  const cookieHeader = headers["cookie"];
-  if (!cookieHeader) return {};
-  return parseCookies(cookieHeader.replace(/; /g, "&"));
-}
-var defaultsTokenOptions = {
-  expires: "",
-  HttpOnly: true,
-  Secure: true,
-  SameSite: "Strict",
-  Path: "/"
-};
-function setSecureCookie(res, name, value, options = {}) {
-  const cookieOptions = { ...defaultsTokenOptions, ...options };
-  const { setHeader } = getResponseDetails(res);
-  const cookieString = Object.entries(cookieOptions).reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);
-  setHeader("Set-Cookie", cookieString);
-}
-
-// src/createCSRF.ts
-import { createHash } from "node:crypto";
-var createCSRF = (initialOptions = {}) => {
-  const options = { ...defaultCSRFOptions, ...initialOptions };
-  return (req, res, next) => {
-    const cookies = getCookies(req);
-    if (!cookies["X-CSRF-Token"]) {
-      const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
-      setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-        ...options,
-        expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
-      });
-    }
-    next?.();
-  };
-};
-
-// src/createMid.ts
-import process2 from "node:process";
-var createMiddleware = (initialOptions = {}) => {
-  const {
-    rpcPreffix,
-    path,
-    headers,
-    rateLimit,
-    handler,
-    onRequest,
-    onResponse,
-    onError
-  } = {
-    ...defaultMiddlewareOptions,
-    ...initialOptions
-  };
-  const rateLimitStore = rateLimit ? /* @__PURE__ */ new Map() : null;
-  return async (req, res, next) => {
-    const { url, nodeRequest } = getRequestDetails(req);
-    const { sendResponse: sendResponse2, setHeader } = getResponseDetails(res);
-    if (serverFunctionsMap.size === 0) {
-      await scanForServerFiles();
-    }
-    if (!handler) {
-      return next?.();
-    }
-    try {
-      if (onRequest) {
-        await onRequest(req);
-      }
-      if (path) {
-        const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return next?.();
-      }
-      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
-        return next?.();
-      }
-      if (headers) {
-        Object.entries(headers).forEach(([key, value]) => {
-          setHeader(key, value);
-        });
-      }
-      if (rateLimit && rateLimitStore) {
-        const clientIp = nodeRequest.socket.remoteAddress || "unknown";
-        const now = Date.now();
-        const clientState = rateLimitStore.get(clientIp) || {
-          count: 0,
-          resetTime: now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs)
-        };
-        if (now > clientState.resetTime) {
-          clientState.count = 0;
-          clientState.resetTime = now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs);
-        }
-        if (clientState.count >= (rateLimit.max || defaultRPCOptions.rateLimit.max)) {
-          if (onResponse) {
-            await onResponse(res);
-          }
-          sendResponse2(429, { error: "Too Many Requests" });
-          return;
-        }
-        clientState.count++;
-        rateLimitStore.set(clientIp, clientState);
-      }
-      if (handler) {
-        await handler(req, res, next);
-        if (onResponse) {
-          await onResponse(res);
-        }
-        return;
-      }
-      next?.();
-    } catch (error) {
-      if (onResponse) {
-        await onResponse(res);
-      }
-      if (onError) {
-        onError(error, req, res);
-      } else {
-        console.error("Middleware error:", String(error));
-        sendResponse2(500, { error: "Internal Server Error" });
-      }
-    }
-  };
-};
-var createRPCMiddleware = (initialOptions = {}) => {
-  const options = {
-    // rpcPreffix: defaultRPCOptions.rpcPreffix,
-    ...defaultMiddlewareOptions,
-    ...initialOptions
-  };
-  return createMiddleware({
-    ...options,
-    handler: async (req, res, next) => {
-      const { url, nodeRequest } = getRequestDetails(req);
-      const { sendResponse: sendResponse2 } = getResponseDetails(res);
-      const { rpcPreffix } = options;
-      if (!url?.startsWith(`/${rpcPreffix}/`)) {
-        return next?.();
-      }
-      const cookies = getCookies(req);
-      const csrfToken = cookies["X-CSRF-Token"];
-      if (!csrfToken) {
-        if (process2.env.NODE_ENV === "development") {
-          console.error("RPC middleware requires CSRF middleware");
-        }
-        sendResponse2(403, { error: "Unauthorized access" });
-        return;
-      }
-      const functionName = url.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = serverFunctionsMap.get(functionName);
-      if (!serverFunction) {
-        sendResponse2(
-          404,
-          { error: `Function "${functionName}" not found` }
-        );
-        return;
-      }
-      const body = await readBody(nodeRequest);
-      const args = JSON.parse(body || "[]");
-      const result = await serverFunction.fn(...args);
-      sendResponse2(200, { data: result });
-    },
-    onError: (error, _req, res) => {
-      const { sendResponse: sendResponse2 } = getResponseDetails(res);
-      console.error("RPC error:", error);
-      sendResponse2(500, { error: "Internal Server Error" });
-    }
-  });
-};
-
 export {
   __publicField,
   serverFunctionsMap,
   isNodeRequest,
   isHonoRequest,
+  isKoaRequest,
   isExpressRequest,
   isNodeResponse,
   isHonoResponse,
+  isKoaResponse,
   isExpressResponse,
   getRequestDetails,
   getResponseDetails,
@@ -423,12 +258,9 @@ export {
   scanForServerFiles,
   sendResponse,
   getClientModules,
+  defaultCorsOptions,
+  defaultCSRFOptions,
   defaultServerFnOptions,
   defaultRPCOptions,
-  createCors,
-  getCookies,
-  setSecureCookie,
-  createCSRF,
-  createMiddleware,
-  createRPCMiddleware
+  defaultMiddlewareOptions
 };

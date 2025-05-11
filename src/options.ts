@@ -14,6 +14,7 @@ export const defaultCorsOptions = {
 } satisfies CorsOptions;
 
 export const defaultCSRFOptions = {
+  rpcPreffix: undefined,
   expires: 24, // 24h
   HttpOnly: true,
   Secure: true,
@@ -22,14 +23,16 @@ export const defaultCSRFOptions = {
 } satisfies CSRFMiddlewareOptions;
 
 export const defaultServerFnOptions = {
+  // contentType: "application/json",
   ttl: 10 * 1000, // 10s
   invalidateKeys: [],
 } satisfies ServerFunctionOptions;
 
 export const defaultRPCOptions = {
-  cors: defaultCorsOptions,
-  csrf: defaultCSRFOptions,
   rpcPreffix: "__rpc",
+  adapter: "express",
+  cors: {},
+  csrf: {},
   headers: undefined,
   rateLimit: {
     windowMs: 5 * 60 * 1000, //5m
@@ -41,7 +44,8 @@ export const defaultRPCOptions = {
 } satisfies RpcPluginOptions;
 
 export const defaultMiddlewareOptions = {
-  rpcPreffix: defaultRPCOptions.rpcPreffix,
+  // rpcPreffix: defaultRPCOptions.rpcPreffix,
+  rpcPreffix: undefined,
   path: undefined,
   headers: {} as Record<string, string>,
   rateLimit: {

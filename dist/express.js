@@ -4,106 +4,16 @@ import {
   setSecureCookie
 } from "./chunk-KFVYA5E5.js";
 import {
-  __publicField,
   defaultCSRFOptions,
   defaultCorsOptions,
   defaultMiddlewareOptions,
   defaultRPCOptions,
-  defaultServerFnOptions,
-  functionMappings,
-  getClientModules,
-  getRequestDetails,
-  getResponseDetails,
-  isExpressRequest,
-  isExpressResponse,
-  isHonoRequest,
-  isHonoResponse,
-  isKoaRequest,
-  isKoaResponse,
-  isNodeRequest,
-  isNodeResponse,
   readBody,
   scanForServerFiles,
-  sendResponse,
   serverFunctionsMap
 } from "./chunk-JKZP7UJS.js";
 
-// src/cache.ts
-var ServerCache = class {
-  constructor() {
-    __publicField(this, "cache", /* @__PURE__ */ new Map());
-  }
-  async get(key, ttl = defaultServerFnOptions.ttl, fetcher) {
-    const entry = this.cache.get(key);
-    const now = Date.now();
-    if (entry?.promise) return entry.promise;
-    if (entry?.data && now - entry.timestamp < ttl) return await entry.data;
-    const promise = fetcher().then((data) => {
-      this.cache.set(key, { data, timestamp: now });
-      return data;
-    });
-    this.cache.set(key, { ...entry, promise });
-    return promise;
-  }
-  invalidate(pattern) {
-    if (!pattern) {
-      this.cache.clear();
-      return;
-    }
-    for (const key of this.cache.keys()) {
-      if (typeof pattern === "string" && key.includes(pattern)) {
-        this.cache.delete(key);
-        break;
-      } else if (pattern instanceof RegExp && pattern.test(key)) {
-        this.cache.delete(key);
-        break;
-      } else if (pattern instanceof Array) {
-        for (const p of pattern) {
-          if (typeof p === "string" && key.includes(p)) {
-            this.cache.delete(key);
-            break;
-          } else if (p instanceof RegExp && p.test(key)) {
-            this.cache.delete(key);
-            break;
-          }
-        }
-      }
-    }
-  }
-};
-var serverCache = new ServerCache();
-
-// src/createFn.ts
-function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ...defaultServerFnOptions, ...initialOptions };
-  const wrappedFunction = async (...args) => {
-    const cacheKey = `${name}:${JSON.stringify(args)}`;
-    const result = await serverCache.get(
-      cacheKey,
-      options.ttl,
-      async () => await fn(...args)
-    );
-    if (options.invalidateKeys) {
-      serverCache.invalidate(options.invalidateKeys);
-    }
-    return result;
-  };
-  serverFunctionsMap.set(name, {
-    name,
-    fn: wrappedFunction,
-    options
-  });
-  return wrappedFunction;
-}
-
-// src/createCors.ts
-import cors from "cors";
-var createCors = (initialOptions = {}) => {
-  const options = { ...defaultCorsOptions, ...initialOptions };
-  return cors(options);
-};
-
-// src/createCSRF.ts
+// src/express/createCSRF.ts
 import { createHash } from "node:crypto";
 var createCSRF = (initialOptions = {}) => {
   const options = { ...defaultCSRFOptions, ...initialOptions };
@@ -120,8 +30,84 @@ var createCSRF = (initialOptions = {}) => {
   };
 };
 
-// src/createMid.ts
+// src/express/createCors.ts
+import cors from "cors";
+var createCors = (initialOptions = {}) => {
+  const options = { ...defaultCorsOptions, ...initialOptions };
+  return cors(options);
+};
+
+// src/express/createMid.ts
 import process from "node:process";
+
+// src/express/helpers.ts
+var isExpressRequest = (req) => {
+  return "originalUrl" in req;
+};
+var isExpressResponse = (res) => {
+  return "json" in res && "send" in res;
+};
+var getRequestDetails = (request) => {
+  const nodeRequest = request.raw || request.req || request;
+  const url = request.originalUrl || request.url || nodeRequest.url;
+  return {
+    nodeRequest,
+    url,
+    headers: nodeRequest.headers,
+    method: nodeRequest.method
+  };
+};
+var getResponseDetails = (response) => {
+  const nodeResponse = response.raw || response.res || response;
+  const isResponseSent = response.headersSent || response.writableEnded || nodeResponse.writableEnded;
+  const setHeader = (name, value) => {
+    if (response.header) {
+      response.header(name, value);
+    } else if (response.setHeader) {
+      response.setHeader(name, value);
+    } else {
+      nodeResponse.setHeader(name, value);
+    }
+  };
+  const getHeader = (name) => {
+    if (response.getHeader) {
+      return response.getHeader(name);
+    }
+    return nodeResponse.getHeader(name);
+  };
+  const setStatusCode = (code) => {
+    if (response.status) {
+      response.status(code);
+    } else {
+      nodeResponse.statusCode = code;
+    }
+  };
+  const send = (output) => {
+    if (response.send) {
+      response.send(JSON.stringify(output));
+    } else {
+      nodeResponse.end(JSON.stringify(output));
+    }
+  };
+  const sendResponse = (code, output, contentType) => {
+    setStatusCode(code);
+    if (contentType) {
+      setHeader("Content-Type", contentType);
+    }
+    send(output);
+  };
+  return {
+    nodeResponse,
+    isResponseSent,
+    setHeader,
+    getHeader,
+    statusCode: nodeResponse.statusCode,
+    setStatusCode,
+    sendResponse
+  };
+};
+
+// src/express/createMid.ts
 var createMiddleware = (initialOptions = {}) => {
   const {
     rpcPreffix,
@@ -139,7 +125,7 @@ var createMiddleware = (initialOptions = {}) => {
   const rateLimitStore = rateLimit ? /* @__PURE__ */ new Map() : null;
   return async (req, res, next) => {
     const { url, nodeRequest } = getRequestDetails(req);
-    const { sendResponse: sendResponse2, setHeader } = getResponseDetails(res);
+    const { sendResponse, setHeader } = getResponseDetails(res);
     if (serverFunctionsMap.size === 0) {
       await scanForServerFiles();
     }
@@ -177,7 +163,7 @@ var createMiddleware = (initialOptions = {}) => {
           if (onResponse) {
             await onResponse(res);
           }
-          sendResponse2(429, { error: "Too Many Requests" });
+          sendResponse(429, { error: "Too Many Requests" });
           return;
         }
         clientState.count++;
@@ -199,7 +185,7 @@ var createMiddleware = (initialOptions = {}) => {
         onError(error, req, res);
       } else {
         console.error("Middleware error:", String(error));
-        sendResponse2(500, { error: "Internal Server Error" });
+        sendResponse(500, { error: "Internal Server Error" });
       }
     }
   };
@@ -215,7 +201,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
     ...options,
     handler: async (req, res, next) => {
       const { url, nodeRequest } = getRequestDetails(req);
-      const { sendResponse: sendResponse2 } = getResponseDetails(res);
+      const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
       if (!url?.startsWith(`/${rpcPreffix}/`)) {
         return next?.();
@@ -225,13 +211,13 @@ var createRPCMiddleware = (initialOptions = {}) => {
         if (process.env.NODE_ENV === "development") {
           console.error("RPC middleware requires CSRF middleware");
         }
-        sendResponse2(403, { error: "Unauthorized" });
+        sendResponse(403, { error: "Unauthorized" });
         return;
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
-        sendResponse2(
+        sendResponse(
           404,
           { error: `Function "${functionName}" not found` }
         );
@@ -240,75 +226,22 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const body = await readBody(nodeRequest);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
-      sendResponse2(200, { data: result });
+      sendResponse(200, { data: result });
     },
     onError: (error, _req, res) => {
-      const { sendResponse: sendResponse2 } = getResponseDetails(res);
+      const { sendResponse } = getResponseDetails(res);
       console.error("RPC error:", error);
-      sendResponse2(500, { error: "Internal Server Error" });
+      sendResponse(500, { error: "Internal Server Error" });
     }
   });
-};
-
-// src/session.ts
-import { randomBytes } from "node:crypto";
-var SessionManager = class {
-  constructor() {
-    __publicField(this, "sessions", /* @__PURE__ */ new Map());
-  }
-  createSession(userId, duration = 24 * 60 * 60 * 1e3) {
-    const session = {
-      id: randomBytes(32).toString("hex"),
-      userId,
-      createdAt: /* @__PURE__ */ new Date(),
-      expiresAt: new Date(Date.now() + duration),
-      data: {}
-    };
-    this.sessions.set(session.id, session);
-    return session;
-  }
-  getSession(id) {
-    const session = this.sessions.get(id);
-    if (!session) return null;
-    if (session.expiresAt < /* @__PURE__ */ new Date()) {
-      this.sessions.delete(id);
-      return null;
-    }
-    return session;
-  }
-  // Add more session management methods as needed
-};
-var currentSession;
-var useSession = () => {
-  if (!currentSession) {
-    currentSession = new SessionManager();
-  }
-  return currentSession;
 };
 export {
   createCSRF,
   createCors,
   createMiddleware,
   createRPCMiddleware,
-  createServerFunction,
-  functionMappings,
-  getClientModules,
-  getCookie,
-  getCookies,
   getRequestDetails,
   getResponseDetails,
   isExpressRequest,
-  isExpressResponse,
-  isHonoRequest,
-  isHonoResponse,
-  isKoaRequest,
-  isKoaResponse,
-  isNodeRequest,
-  isNodeResponse,
-  readBody,
-  scanForServerFiles,
-  sendResponse,
-  serverFunctionsMap,
-  setSecureCookie,
-  useSession
+  isExpressResponse
 };

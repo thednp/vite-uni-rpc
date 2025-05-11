@@ -1,13 +1,14 @@
 # vite-mini-rpc
 
-A Vite plugin for creating server functions with automatic Remote Procedure Calls.
+A Vite plugin for creating server functions with automatic Remote Procedure Calls generation.
 
 ## Features
 
 - File-level server code isolation without using directives like `'use server'`
+- System wide configuration via `rpc.config.ts` file
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
-- Built-in security with configurable CORS and CSRF protection
+- Built-in security with configurable and optional CORS and CSRF protection
 - Flexible middleware system with hooks support
 - Rate limiting support
 - Framework agnostic
@@ -38,7 +39,10 @@ bun add vite-mini-rpc@latest
 
 ### Vite Configuration
 
+> ℹ️ The RPC configuration in vite overrides the defaults and only apply to the development server.
+
 ```ts
+// vite.config.ts
 import { defineConfig } from 'vite';
 import rpc from 'vite-mini-rpc';
 import { isExpressResponse, sendResponse } from "vite-mini-rpc/server";
@@ -46,11 +50,17 @@ import { isExpressResponse, sendResponse } from "vite-mini-rpc/server";
 export default defineConfig({
   plugins: [
     rpc({
+      // RPC Options
+      rpcPreffix: '_myApi', // default is "__rpc"
+      adapter: "express", // default is express
+      // Rate Limiting
+      rateLimit: {
+        max: 1000, // default is 100
+        windowMs: 5 * 60 * 1000 // 5 minutes
+      },
       // Security Middlewares
       cors: {
-        origin: process.env.NODE_ENV === 'production' 
-          ? 'https://your-site.com' 
-          : true,
+        origin: true, // for production sites use 'https://your-site.com' 
         credentials: true,
         methods: ['GET', 'POST'],
         allowedHeaders: ['Set-Cookie', 'Content-Type', 'X-CSRF-Token']
@@ -62,20 +72,13 @@ export default defineConfig({
         sameSite: 'Strict',
         path: '/'
       },
-      // RPC Options
-      rpcPreffix: '_myApi', // default is "__rpc"
-      // Rate Limiting
-      rateLimit: {
-        max: 1000, // default is 100
-        windowMs: 5 * 60 * 1000 // 5 minutes
-      },
       // Optional Hooks
       onRequest: async (req) => {
         console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
       },
       onResponse: async (res) => {
         // handle differently depending on platform
-        isExpressResponse(res) {
+        if (isExpressResponse(res)) {
           res.set('X-Response-Time', Date.now());
         } else {
           res.setHeader('X-Response-Time', Date.now());
@@ -91,6 +94,46 @@ export default defineConfig({
 })
 ```
 
+### RPC Configuration
+
+For production, system wide configuration, use `rpc.config.ts` (or any other variation in this list: `rpc.config.js`, `rpc.config.mjs`, `rpc.config.mts`, `.rpcrc.ts`, `.rpcrc.js`):
+
+```ts
+// rpc.config.ts
+import { defineConfig } from "vite-mini-rpc";
+
+export default defineConfig({
+  rpcPreffix: "_myApi",
+  // ...other options
+})
+```
+In your express, hono, etc, use the `loadRPCConfig` to connect middlewares:
+
+```js
+// server.ts
+import express from "express";
+
+// Create http server
+const app = express();
+
+if (process.env.NODE_ENV === "development") {
+  // kickstart your vite dev server middleware mode
+} else {
+  const { loadRPCConfig } = await import("vite-mini-rpc");
+  const { cors, csrf, adapter, ...rest } = await loadRPCConfig();
+  // use config to create your middleware to your adapter specification
+}
+
+// ... register your express routes, SSR and start the server
+app.listen(port, () => {
+  console.log(
+    `Server started at http://localhost:${port}`,
+  );
+});
+```
+By default, the `loadRPCConfig` will look for `rpc.config.ts` file (or any in the list), and will log useful information in your console if the file was found, loaded or failed.
+
+
 ### Server Functions
 
 Create a new folder `api` in your project `root/src` folder and add a new file `server.ts` or `server.js`:
@@ -104,7 +147,7 @@ root/
 │   [...others]
 └── package.json
 ```
-**Very important**: you must use this exact file structure for the plugin to work. 
+> ℹ️ Very important: you must use this exact file structure for the plugin to work. 
 
 
 Add your server functions in the new file:
@@ -149,7 +192,6 @@ const handleResponse = async (response) => {
   return result.data;
 }
 
-// Client-side RPC modules
 export const sayHi = async (...args) => {
   // const requestToken = await getToken();
   const response = await fetch('/_myApi/say-hi', {
@@ -166,18 +208,16 @@ export const sayHi = async (...args) => {
 Create a `root/src/api/index.ts` file to export all necessary functions:
 
 ```ts
-import { sayHi } from "./server";
-
-export { sayHi };
+export * from "./server";
 ```
-Import from `index.ts` anywhere you need it.
+Import from `index.ts` anything and anywhere you need.
 
 
 ### Middleware System
 
 The plugin provides a simple API to create Vite / ExpressJS compatible middlewares, ranging from simple operations to complex RPC middlewares, fully type-safe and very configurable.
 
-While you can do all that by hand every single time, it's nice to have them all under the same roof for full control and ease of maintenance. You can have an `middleware.config.ts` to hold all your middleware options to be used in both the vite dev server via the plugin interface, or your express / hono / deno / bun / etc server.
+While you can do all that by hand every single time, it's nice to have them all under the same roof for full control and ease of maintenance. You can make sure of `rpc.config.ts` to hold all your middleware options to be used in both the vite dev server via the plugin interface, or your express / hono / deno / bun / etc server app.
 
 
 #### Create Basic Middleware

@@ -11,12 +11,17 @@ export function getCookies(req: AnyRequest) {
   // const cookieHeader = !isExpressRequest(req)
   //   ? req.headers.cookie
   //   : req.get?.("cookie");
-  const cookieHeader = headers["cookie"];
+  const cookieHeader = headers.cookie;
   if (!cookieHeader) return {};
   return parseCookies(cookieHeader.replace(/; /g, "&"));
 }
 
-const defaultsTokenOptions: TokenOptions = {
+// Helper to return cookies from request header
+export function getCookie(req: AnyRequest, name: string) {
+  return getCookies(req)[name];
+}
+
+const defaultTokenOptions: TokenOptions = {
   expires: "",
   HttpOnly: true,
   Secure: true,
@@ -31,7 +36,7 @@ export function setSecureCookie(
   value: string,
   options: Partial<TokenOptions> = {},
 ) {
-  const cookieOptions = { ...defaultsTokenOptions, ...options };
+  const cookieOptions = { ...defaultTokenOptions, ...options };
   const { setHeader } = getResponseDetails(res);
   const cookieString = Object.entries(cookieOptions)
     .reduce((acc, [key, val]) => `${acc}; ${key}=${val}`, `${name}=${value}`);

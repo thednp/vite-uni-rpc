@@ -1,30 +1,30 @@
-// src/createMid.ts
+// src/express/createMid.ts
 import process from "node:process";
-// import type { IncomingMessage, ServerResponse } from "node:http";
-// import type { Request, Response } from "express";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import type { Connect } from "vite";
 import type { NextFunction } from "express";
-import {
-  getRequestDetails,
-  getResponseDetails,
-  // isExpressRequest,
-  // isExpressResponse,
-  readBody,
-  scanForServerFiles,
-  // sendResponse,
-} from "./utils";
-import { getCookie } from "./cookie";
-import { serverFunctionsMap } from "./utils";
-import type {
-  AnyRequest,
-  AnyResponse,
-  JsonValue,
-  MiddlewareOptions,
-} from "./types";
-import { defaultMiddlewareOptions, defaultRPCOptions } from "./options";
+import { readBody, scanForServerFiles } from "../utils";
+import { getRequestDetails, getResponseDetails } from "./helpers";
+import { getCookie } from "../cookie";
+import { serverFunctionsMap } from "../utils";
+import type { JsonValue, MiddlewareOptions } from "../types";
+import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
+
+export interface ExpressMiddlewareOptions
+  extends Omit<MiddlewareOptions, "handler"> {
+  handler: (
+    req: IncomingMessage | ExpressRequest,
+    res: ServerResponse | ExpressResponse,
+    next: Connect.NextFunction | NextFunction,
+  ) => void;
+}
 
 export const createMiddleware = (
-  initialOptions: Partial<MiddlewareOptions> = {},
+  initialOptions: Partial<ExpressMiddlewareOptions> = {},
 ) => {
   const {
     rpcPreffix,
@@ -46,9 +46,9 @@ export const createMiddleware = (
     : null;
 
   return async (
-    req: AnyRequest,
-    res: AnyResponse,
-    next: NextFunction,
+    req: IncomingMessage | ExpressRequest,
+    res: ServerResponse | ExpressResponse,
+    next: Connect.NextFunction | NextFunction,
   ) => {
     const { url, nodeRequest } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
@@ -143,7 +143,7 @@ export const createMiddleware = (
 
 // Create RPC middleware
 export const createRPCMiddleware = (
-  initialOptions: Partial<MiddlewareOptions> = {},
+  initialOptions: Partial<ExpressMiddlewareOptions> = {},
 ) => {
   const options = {
     ...defaultMiddlewareOptions,
@@ -155,8 +155,8 @@ export const createRPCMiddleware = (
   return createMiddleware({
     ...options,
     handler: async (
-      req: AnyRequest,
-      res: AnyResponse,
+      req: IncomingMessage | ExpressRequest,
+      res: ServerResponse | ExpressResponse,
       next: NextFunction | Connect.NextFunction,
     ) => {
       // const url = isExpressRequest(req) ? req.originalUrl : req.url;
