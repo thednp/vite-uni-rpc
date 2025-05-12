@@ -76,11 +76,44 @@ interface FrameworkHooks {
   fastify: FastifyMiddlewareHooks;
 }
 
+interface ServerFunctionOptions {
+  ttl: number;
+  invalidateKeys: string | RegExp | RegExp[] | string[];
+  // contentType: string; // TO DO
+}
+
 // primitives and their compositions
 type JsonPrimitive = string | number | boolean | null | undefined;
 type JsonArray = JsonValue[];
 type JsonObject = { [key: string]: JsonValue | JsonArray | File };
-type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+type JsonValue = JsonPrimitive | JsonArray | JsonObject; // for email addresses
+
+type RPCValue =
+  | JsonValue
+  | Date // will be serialized as ISOString
+  | Uint8Array // will be serialized as base64
+  | File // for file uploads
+  | Blob // for binary data
+  | FormData // for form submissions
+  | URLSearchParams; // for query parameters
+
+type Arguments =
+  | RPCValue
+  | Array<JsonPrimitive | JsonPrimitive[] | JsonObject | JsonObject[]>;
+
+type ServerFnEntry<
+  TArgs extends Arguments[] = Arguments[],
+  TResult = unknown,
+> = (...args: TArgs) => Promise<TResult>;
+
+interface ServerFunction<
+  TArgs extends Arguments[] = Arguments[],
+  TResult = unknown,
+> {
+  name: string;
+  fn: ServerFnEntry<TArgs, TResult>;
+  options?: ServerFunctionOptions;
+}
 
 /**
  * ### vite-mini-rpc
@@ -298,4 +331,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, RpcPluginOptions$1 as R };
+export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b };

@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-Z66NX36T.js";
+} from "./chunk-LQUDPDUK.js";
 
 // src/hono/createMiddleware.ts
 var createMiddleware = (initialOptions = {}) => {

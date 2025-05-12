@@ -2,7 +2,7 @@ import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
-} from "./chunk-Z66NX36T.js";
+} from "./chunk-LQUDPDUK.js";
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";

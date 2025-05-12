@@ -26,6 +26,11 @@
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
     },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "require": "./dist/server.cjs",
+      "import": "./dist/server.js"
+    },
     "./express": {
       "types": "./dist/express.d.ts",
       "require": "./dist/express.cjs",
