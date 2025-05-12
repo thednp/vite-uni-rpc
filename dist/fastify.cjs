@@ -5,7 +5,7 @@
 
 var _chunkYDCKNVYRcjs = require('./chunk-YDCKNVYR.cjs');
 
-// src/hono/createMiddleware.ts
+// src/fastify/createMiddleware.ts
 var createMiddleware = (initialOptions = {}) => {
   const {
     rpcPreffix,
@@ -19,52 +19,52 @@ var createMiddleware = (initialOptions = {}) => {
     ..._chunkYDCKNVYRcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
-  return async (c, next) => {
-    const { path: pathname } = c.req;
+  return async (req, reply, done) => {
+    const [pathname] = req.url.split("?");
     if (_chunkYDCKNVYRcjs.serverFunctionsMap.size === 0) {
       await _chunkYDCKNVYRcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
-      await next();
+      done();
       return;
     }
     try {
       if (onRequest) {
-        await onRequest(c);
+        await onRequest(req);
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
         if (!matcher.test(pathname || "")) {
-          await next();
+          done();
           return;
         }
       }
       if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _ => _.startsWith, 'call', _2 => _2(`/${rpcPreffix}`)])) {
-        await next();
+        done();
         return;
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
-          c.res.headers.set(key, value);
+          reply.header(key, value);
         });
       }
       if (handler) {
-        await handler(c, next);
+        await handler(req, reply, done);
         if (onResponse) {
-          await onResponse(c);
+          await onResponse(reply);
         }
         return;
       }
-      next();
+      done();
     } catch (error) {
       if (onResponse) {
-        await onResponse(c);
+        await onResponse(reply);
       }
       if (onError) {
-        await onError(error, c);
+        await onError(error, req, reply);
       } else {
         console.error("Middleware error:", String(error));
-        c.json({ error: "Internal Server Error" }, 500);
+        reply.status(500).send({ error: "Internal Server Error" });
       }
     }
   };
@@ -72,28 +72,36 @@ var createMiddleware = (initialOptions = {}) => {
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
     ..._chunkYDCKNVYRcjs.defaultMiddlewareOptions,
-    // RPC middleware needs to have an RPC preffix
+    // RPC middleware needs to have the RPC prefix
     rpcPreffix: _chunkYDCKNVYRcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
     ...options,
-    handler: async (c, next) => {
-      const { path } = c.req;
+    handler: async (req, reply, done) => {
+      const { url } = req;
+      const pathname = _optionalChain([url, 'optionalAccess', _3 => _3.split, 'call', _4 => _4("?"), 'access', _5 => _5[0]]);
       const { rpcPreffix } = options;
-      if (!_optionalChain([path, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${rpcPreffix}/`)])) {
-        await next();
+      if (!_optionalChain([pathname, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
+        done();
         return;
       }
-      const functionName = path.replace(`/${rpcPreffix}/`, "");
+      const functionName = pathname.replace(`/${rpcPreffix}/`, "");
       const serverFunction = _chunkYDCKNVYRcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
-        c.json({ error: `Function "${functionName}" not found` }, 404);
+        reply.status(404).send({
+          error: `Function "${functionName}" not found`
+        });
         return;
       }
-      const args = await c.req.json();
+      let args;
+      try {
+        args = await req.body || [];
+      } catch (e) {
+        args = [];
+      }
       const result = await serverFunction.fn(...args);
-      c.json({ data: result }, 200);
+      reply.status(200).send({ data: result });
     }
   });
 };

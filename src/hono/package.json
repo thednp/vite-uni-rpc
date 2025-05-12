@@ -1,0 +1,9 @@
+{
+  "name": "hono-adapter",
+  "type": "module",
+  "main": "index.ts",
+  "types": "types.d.ts",
+  "dependencies": {
+    "hono": "^4.7.9"
+  }
+}

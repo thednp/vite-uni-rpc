@@ -1,72 +1,86 @@
-// vite-mini-rpc/src/types.d.ts
-import type { ExpressMiddlewareFn, ExpressMiddlewareHooks } from "./express";
-import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono";
-import type { FastifyMiddlewareFn, FastifyMiddlewareHooks } from "./fastify";
+import { RequestHandler } from 'express';
+import { Context, Next, MiddlewareHandler } from 'hono';
+import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
 
-export interface FrameworkHooks {
+type ExpressMiddlewareFn = <
+  A extends RpcPluginOptions$1["adapter"] = "express",
+>(
+  initialOptions: Partial<MiddlewareOptions<A>>,
+) => RequestHandler;
+
+interface ExpressMiddlewareHooks {
+  handler: (
+    req: IncomingMessage | ExpressRequest,
+    res: ServerResponse | ExpressResponse,
+    next: Connect.NextFunction | NextFunction,
+  ) => Promise<void>;
+  onError: (
+    error: unknown,
+    req: IncomingMessage | ExpressRequest,
+    res: ServerResponse | ExpressResponse,
+  ) => Promise<void>;
+  onRequest: (
+    req: IncomingMessage | ExpressRequest,
+  ) => Promise<void>;
+  onResponse: (
+    res: ServerResponse | ExpressResponse,
+  ) => Promise<void>;
+}
+
+interface HonoMiddlewareHooks {
+  handler: (c: Context, next: Next) => Promise<void>;
+  onRequest: (c: Context) => Promise<void>;
+  onResponse: (c: Context) => Promise<void>;
+  onError: (error: unknown, c: Context) => Promise<void>;
+}
+
+type HonoMiddlewareFn = <A extends RpcPluginOptions["adapter"] = "hono">(
+  initialOptions: Partial<MiddlewareOptions<A>>,
+) => MiddlewareHandler;
+
+type FastifyMiddlewareFn = <
+  A extends RpcPluginOptions["adapter"] = "fastify",
+>(
+  initialOptions?: Partial<MiddlewareOptions<A>>,
+) => (
+  req: FastifyRequest,
+  reply: FastifyReply,
+  done: HookHandlerDoneFunction,
+) => Promise<void>;
+
+interface FastifyMiddlewareHooks {
+  handler: (
+    req: FastifyRequest,
+    res: FastifyReply,
+    done: HookHandlerDoneFunction,
+  ) => Promise<void>;
+  onError: (
+    error: unknown,
+    req: FastifyRequest,
+    res: FastifyReply,
+  ) => Promise<void>;
+  onRequest: (
+    req: FastifyRequest,
+  ) => Promise<void>;
+  onResponse: (
+    res: FastifyReply,
+  ) => Promise<void>;
+}
+
+// vite-mini-rpc/src/types.d.ts
+
+
+interface FrameworkHooks {
   express: ExpressMiddlewareHooks;
   hono: HonoMiddlewareHooks;
   fastify: FastifyMiddlewareHooks;
 }
 
-export interface FrameworkMiddlewareFn {
-  express: ExpressMiddlewareFn;
-  hono: HonoMiddlewareFn;
-  fastify: FastifyMiddlewareFn;
-}
-
-export interface ServerFunctionOptions {
-  ttl: number;
-  invalidateKeys: string | RegExp | RegExp[] | string[];
-  // contentType: string; // TO DO
-}
-
 // primitives and their compositions
-export type JsonPrimitive = string | number | boolean | null | undefined;
-export type JsonArray = JsonValue[];
-export type JsonObject = { [key: string]: JsonValue | JsonArray | File };
-export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
-
-// Date strings are common in APIs
-export type ISODateString = string; // for dates in ISO format
-
-// Special types that might be useful
-export type Base64String = string; // for binary data encoded as base64
-export type URLString = string; // for URLs
-export type EmailString = string; // for email addresses
-
-export type RPCValue =
-  | JsonValue
-  | Date // will be serialized as ISOString
-  | Uint8Array // will be serialized as base64
-  | File // for file uploads
-  | Blob // for binary data
-  | FormData // for form submissions
-  | URLSearchParams; // for query parameters
-
-export type Arguments =
-  | RPCValue
-  | Array<JsonPrimitive | JsonPrimitive[] | JsonObject | JsonObject[]>;
-
-export type ServerFnEntry<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> = (...args: TArgs) => Promise<TResult>;
-
-export interface ServerFunction<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> {
-  name: string;
-  fn: ServerFnEntry<TArgs, TResult>;
-  options?: ServerFunctionOptions;
-}
-
-export interface CacheEntry<T> {
-  data?: T;
-  timestamp: number;
-  promise?: Promise<T>;
-}
+type JsonPrimitive = string | number | boolean | null | undefined;
+type JsonArray = JsonValue[];
+type JsonObject = { [key: string]: JsonValue | JsonArray | File };
+type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
 /**
  * ### vite-mini-rpc
@@ -74,7 +88,7 @@ export interface CacheEntry<T> {
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
  */
-export interface RpcPluginOptions {
+interface RpcPluginOptions$1 {
   // RPC Middleware Options
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -163,28 +177,8 @@ export interface RpcPluginOptions {
   onResponse?: MiddlewareOptions["onResponse"];
 }
 
-/**
- * Options for the token used by CSRF middleware
- */
-export type TokenOptions = {
-  expires: string;
-  HttpOnly: boolean | "true";
-  Secure: boolean | "true";
-  SameSite: string | "Strict";
-  Path: string;
-};
-
-export type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
-  /**
-   * number of hours till expiry
-   * @default 24
-   */
-  expires: number;
-  rpcPreffix?: string;
-};
-
-export interface MiddlewareOptions<
-  A extends RpcPluginOptions["adapter"] = "express",
+interface MiddlewareOptions<
+  A extends RpcPluginOptions$1["adapter"] = "express",
 > {
   /**
    * Path pattern to match for middleware execution.
@@ -303,3 +297,5 @@ export interface MiddlewareOptions<
    */
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
+
+export type { ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, RpcPluginOptions$1 as R };

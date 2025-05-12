@@ -1,0 +1,10 @@
+{
+  "name": "fastify-adapter",
+  "type": "module",
+  "main": "index.ts",
+  "types": "types.d.ts",
+  "dependencies": {
+    "fastify": "^5.3.2"
+  },
+  "devDependencies": {}
+}

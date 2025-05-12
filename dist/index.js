@@ -2,7 +2,7 @@ import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
-} from "./chunk-JKZP7UJS.js";
+} from "./chunk-Z66NX36T.js";
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
@@ -98,18 +98,13 @@ async function rpcPlugin(devOptions = {}) {
     },
     async configureServer(server) {
       viteServer = server;
-      const { cors, csrf, adapter, ...rest } = options;
+      const { adapter, ...rest } = options;
       const adaptersMap = {
         express: "vite-mini-rpc/express",
+        fastify: "vite-mini-rpc/fastify",
         hono: "vite-mini-rpc/hono"
       };
-      const { createCors, createCSRF, createRPCMiddleware } = await import(adaptersMap[adapter]);
-      if (cors) {
-        server.middlewares.use(createCors(cors));
-      }
-      if (csrf) {
-        server.middlewares.use(createCSRF(csrf));
-      }
+      const { createRPCMiddleware } = await import(adaptersMap[adapter]);
       server.middlewares.use(createRPCMiddleware(rest));
     }
   };

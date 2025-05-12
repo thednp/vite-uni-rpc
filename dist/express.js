@@ -1,46 +1,18 @@
 import {
-  getCookie,
-  getCookies,
-  setSecureCookie
-} from "./chunk-KFVYA5E5.js";
-import {
-  defaultCSRFOptions,
-  defaultCorsOptions,
   defaultMiddlewareOptions,
   defaultRPCOptions,
-  readBody,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-JKZP7UJS.js";
-
-// src/express/createCSRF.ts
-import { createHash } from "node:crypto";
-var createCSRF = (initialOptions = {}) => {
-  const options = { ...defaultCSRFOptions, ...initialOptions };
-  return (req, res, next) => {
-    const cookies = getCookies(req);
-    if (!cookies["X-CSRF-Token"]) {
-      const csrfToken = createHash("sha256").update(Date.now().toString()).digest("hex");
-      setSecureCookie(res, "X-CSRF-Token", csrfToken, {
-        ...options,
-        expires: new Date(Date.now() + options.expires * 60 * 60 * 1e3).toUTCString()
-      });
-    }
-    next?.();
-  };
-};
-
-// src/express/createCors.ts
-import cors from "cors";
-var createCors = (initialOptions = {}) => {
-  const options = { ...defaultCorsOptions, ...initialOptions };
-  return cors(options);
-};
-
-// src/express/createMid.ts
-import process from "node:process";
+} from "./chunk-Z66NX36T.js";
 
 // src/express/helpers.ts
+var readBody = (req) => {
+  return new Promise((resolve) => {
+    let body = "";
+    req.on("data", (chunk) => body += chunk);
+    req.on("end", () => resolve(body));
+  });
+};
 var isExpressRequest = (req) => {
   return "originalUrl" in req;
 };
@@ -48,72 +20,59 @@ var isExpressResponse = (res) => {
   return "json" in res && "send" in res;
 };
 var getRequestDetails = (request) => {
-  const nodeRequest = request.raw || request.req || request;
-  const url = request.originalUrl || request.url || nodeRequest.url;
+  const url = isExpressRequest(request) ? request.originalUrl : request.url;
   return {
-    nodeRequest,
     url,
-    headers: nodeRequest.headers,
-    method: nodeRequest.method
+    headers: request.headers,
+    method: request.method
   };
 };
 var getResponseDetails = (response) => {
-  const nodeResponse = response.raw || response.res || response;
-  const isResponseSent = response.headersSent || response.writableEnded || nodeResponse.writableEnded;
+  const isResponseSent = response.headersSent || response.writableEnded;
   const setHeader = (name, value) => {
-    if (response.header) {
+    if (isExpressResponse(response)) {
       response.header(name, value);
-    } else if (response.setHeader) {
-      response.setHeader(name, value);
     } else {
-      nodeResponse.setHeader(name, value);
+      response.setHeader(name, value);
     }
   };
   const getHeader = (name) => {
-    if (response.getHeader) {
+    if (isExpressResponse(response)) {
       return response.getHeader(name);
     }
-    return nodeResponse.getHeader(name);
+    return response.getHeader(name);
   };
   const setStatusCode = (code) => {
-    if (response.status) {
+    if (isExpressResponse(response)) {
       response.status(code);
     } else {
-      nodeResponse.statusCode = code;
+      response.statusCode = code;
     }
   };
-  const send = (output) => {
-    if (response.send) {
+  const sendResponse = (code, output) => {
+    setStatusCode(code);
+    if (isExpressResponse(response)) {
       response.send(JSON.stringify(output));
     } else {
-      nodeResponse.end(JSON.stringify(output));
+      response.end(JSON.stringify(output));
     }
-  };
-  const sendResponse = (code, output, contentType) => {
-    setStatusCode(code);
-    if (contentType) {
-      setHeader("Content-Type", contentType);
-    }
-    send(output);
   };
   return {
-    nodeResponse,
     isResponseSent,
     setHeader,
     getHeader,
-    statusCode: nodeResponse.statusCode,
+    statusCode: response.statusCode,
     setStatusCode,
     sendResponse
   };
 };
 
-// src/express/createMid.ts
+// src/express/createMiddleware.ts
 var createMiddleware = (initialOptions = {}) => {
   const {
     rpcPreffix,
     path,
     headers,
-    rateLimit,
     handler,
     onRequest,
     onResponse,
@@ -122,9 +81,8 @@ var createMiddleware = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions
   };
-  const rateLimitStore = rateLimit ? /* @__PURE__ */ new Map() : null;
   return async (req, res, next) => {
-    const { url, nodeRequest } = getRequestDetails(req);
+    const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
     if (serverFunctionsMap.size === 0) {
       await scanForServerFiles();
@@ -147,27 +105,6 @@ var createMiddleware = (initialOptions = {}) => {
         Object.entries(headers).forEach(([key, value]) => {
           setHeader(key, value);
         });
-      }
-      if (rateLimit && rateLimitStore) {
-        const clientIp = nodeRequest.socket.remoteAddress || "unknown";
-        const now = Date.now();
-        const clientState = rateLimitStore.get(clientIp) || {
-          count: 0,
-          resetTime: now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs)
-        };
-        if (now > clientState.resetTime) {
-          clientState.count = 0;
-          clientState.resetTime = now + (rateLimit.windowMs || defaultRPCOptions.rateLimit.windowMs);
-        }
-        if (clientState.count >= (rateLimit.max || defaultRPCOptions.rateLimit.max)) {
-          if (onResponse) {
-            await onResponse(res);
-          }
-          sendResponse(429, { error: "Too Many Requests" });
-          return;
-        }
-        clientState.count++;
-        rateLimitStore.set(clientIp, clientState);
       }
       if (handler) {
         await handler(req, res, next);
@@ -193,26 +130,18 @@ var createMiddleware = (initialOptions = {}) => {
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
     ...defaultMiddlewareOptions,
-    // RPC middleware needs to have an RPC preffix
+    // RPC middleware needs to have the RPC preffix
     rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
     ...options,
     handler: async (req, res, next) => {
-      const { url, nodeRequest } = getRequestDetails(req);
+      const { url } = getRequestDetails(req);
       const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
-      if (!url?.startsWith(`/${rpcPreffix}/`)) {
+      if (!url?.startsWith(`/${rpcPreffix}`)) {
         return next?.();
-      }
-      const csrfToken = getCookie(req, "X-CSRF-Token");
-      if (!csrfToken) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("RPC middleware requires CSRF middleware");
-        }
-        sendResponse(403, { error: "Unauthorized" });
-        return;
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
@@ -223,25 +152,19 @@ var createRPCMiddleware = (initialOptions = {}) => {
         );
         return;
       }
-      const body = await readBody(nodeRequest);
+      const body = await readBody(req);
       const args = JSON.parse(body || "[]");
       const result = await serverFunction.fn(...args);
       sendResponse(200, { data: result });
-    },
-    onError: (error, _req, res) => {
-      const { sendResponse } = getResponseDetails(res);
-      console.error("RPC error:", error);
-      sendResponse(500, { error: "Internal Server Error" });
     }
   });
 };
 export {
-  createCSRF,
-  createCors,
   createMiddleware,
   createRPCMiddleware,
   getRequestDetails,
   getResponseDetails,
   isExpressRequest,
-  isExpressResponse
+  isExpressResponse,
+  readBody
 };

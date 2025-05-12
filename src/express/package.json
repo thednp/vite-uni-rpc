@@ -1,0 +1,12 @@
+{
+  "name": "express-adapter",
+  "type": "module",
+  "main": "index.ts",
+  "types": "types.d.ts",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1"
+  }
+}

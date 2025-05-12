@@ -2,13 +2,10 @@ import type { ConfigEnv, Plugin, ResolvedConfig, ViteDevServer } from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
 import { getClientModules, scanForServerFiles } from "./utils";
 import { defaultRPCOptions } from "./options";
-// import { createCors } from "./createCors";
-// import { createCSRF } from "./createCSRF";
-// import { createRPCMiddleware } from "./createMid";
 import type { RpcPluginOptions } from "./types";
-import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -127,25 +124,16 @@ async function rpcPlugin(
 
     async configureServer(server) {
       viteServer = server;
-      const { cors, csrf, adapter, ...rest } = options;
+      const { adapter, ...rest } = options;
       // const ext =
-      const adaptersMap = {
+      const adaptersMap: Record<RpcPluginOptions["adapter"], string> = {
         express: "vite-mini-rpc/express",
+        fastify: "vite-mini-rpc/fastify",
         hono: "vite-mini-rpc/hono",
       };
-      const { createCors, createCSRF, createRPCMiddleware } = await import(
+      const { createRPCMiddleware } = await import(
         adaptersMap[adapter]
       );
-
-      // First register CORS middleware
-      if (cors) {
-        server.middlewares.use(createCors(cors));
-      }
-
-      // Then register CSRF token middleware
-      if (csrf) {
-        server.middlewares.use(createCSRF(csrf));
-      }
 
       // Lastly, handle RPC calls
       server.middlewares.use(createRPCMiddleware(rest));

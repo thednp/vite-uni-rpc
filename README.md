@@ -8,7 +8,6 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 - System wide configuration via `rpc.config.ts` file
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
-- Built-in security with configurable and optional CORS and CSRF protection
 - Flexible middleware system with hooks support
 - Rate limiting support
 - Framework agnostic

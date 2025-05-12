@@ -1,0 +1,22 @@
+lockfileVersion: "9.0"
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      hono:
+        specifier: ^4.7.9
+        version: 4.7.9
+
+packages:
+  hono@4.7.9:
+    resolution: {
+      integrity: sha512-/EsCoR5h7N4yu01TDu9GMCCJa6ZLk5ZJIWFFGNawAXmd1Tp53+Wir4xm0D2X19bbykWUlzQG0+BvPAji6p9E8Q==,
+    }
+    engines: { node: ">=16.9.0" }
+
+snapshots:
+  hono@4.7.9: {}

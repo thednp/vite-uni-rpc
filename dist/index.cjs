@@ -2,7 +2,7 @@
 
 
 
-var _chunkAJLVM5DQcjs = require('./chunk-AJLVM5DQ.cjs');
+var _chunkYDCKNVYRcjs = require('./chunk-YDCKNVYR.cjs');
 
 // src/index.ts
 var _vite = require('vite');
@@ -13,7 +13,7 @@ var _path = require('path');
 var __filename = _url.fileURLToPath.call(void 0, import.meta.url);
 var __dirname = _path.dirname.call(void 0, __filename);
 var defineConfig = (uniConfig) => {
-  return _vite.mergeConfig.call(void 0, _chunkAJLVM5DQcjs.defaultRPCOptions, uniConfig);
+  return _vite.mergeConfig.call(void 0, _chunkYDCKNVYRcjs.defaultRPCOptions, uniConfig);
 };
 async function loadRPCConfig(configFile) {
   try {
@@ -34,7 +34,7 @@ async function loadRPCConfig(configFile) {
         console.warn(
           `\u2139\uFE0F  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`
         );
-        return _chunkAJLVM5DQcjs.defaultRPCOptions;
+        return _chunkYDCKNVYRcjs.defaultRPCOptions;
       }
       const result = await _vite.loadConfigFromFile.call(void 0, env, configFile);
       if (result) {
@@ -42,11 +42,11 @@ async function loadRPCConfig(configFile) {
           `\u2705  Succesfully loaded RPC config from your "${configFile}" file!`
         );
         return _vite.mergeConfig.call(void 0, 
-          _chunkAJLVM5DQcjs.defaultRPCOptions,
+          _chunkYDCKNVYRcjs.defaultRPCOptions,
           result.config
         );
       }
-      return _chunkAJLVM5DQcjs.defaultRPCOptions;
+      return _chunkYDCKNVYRcjs.defaultRPCOptions;
     }
     for (const file of defaultConfigFiles) {
       if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, __dirname, file))) {
@@ -56,16 +56,16 @@ async function loadRPCConfig(configFile) {
       if (result) {
         console.log(`\u2705  Succesfully loaded RPC config from "${file}" file!`);
         return _vite.mergeConfig.call(void 0, 
-          _chunkAJLVM5DQcjs.defaultRPCOptions,
+          _chunkYDCKNVYRcjs.defaultRPCOptions,
           result.config
         );
       }
     }
     console.warn("\u2139\uFE0F  No RPC config found, loading the defaults..");
-    return _chunkAJLVM5DQcjs.defaultRPCOptions;
+    return _chunkYDCKNVYRcjs.defaultRPCOptions;
   } catch (error) {
     console.warn("\u26A0\uFE0F  Failed to load RPC config:", error);
-    return _chunkAJLVM5DQcjs.defaultRPCOptions;
+    return _chunkYDCKNVYRcjs.defaultRPCOptions;
   }
 }
 async function rpcPlugin(devOptions = {}) {
@@ -81,13 +81,13 @@ async function rpcPlugin(devOptions = {}) {
       config = resolvedConfig;
     },
     async buildStart() {
-      await _chunkAJLVM5DQcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunkYDCKNVYRcjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
         return null;
       }
-      const result = await _vite.transformWithEsbuild.call(void 0, _chunkAJLVM5DQcjs.getClientModules.call(void 0, options), id, {
+      const result = await _vite.transformWithEsbuild.call(void 0, _chunkYDCKNVYRcjs.getClientModules.call(void 0, options), id, {
         loader: "js",
         target: "es2020"
       });
@@ -98,18 +98,13 @@ async function rpcPlugin(devOptions = {}) {
     },
     async configureServer(server) {
       viteServer = server;
-      const { cors, csrf, adapter, ...rest } = options;
+      const { adapter, ...rest } = options;
       const adaptersMap = {
         express: "vite-mini-rpc/express",
+        fastify: "vite-mini-rpc/fastify",
         hono: "vite-mini-rpc/hono"
       };
-      const { createCors, createCSRF, createRPCMiddleware } = await Promise.resolve().then(() => _interopRequireWildcard(require(adaptersMap[adapter])));
-      if (cors) {
-        server.middlewares.use(createCors(cors));
-      }
-      if (csrf) {
-        server.middlewares.use(createCSRF(csrf));
-      }
+      const { createRPCMiddleware } = await Promise.resolve().then(() => _interopRequireWildcard(require(adaptersMap[adapter])));
       server.middlewares.use(createRPCMiddleware(rest));
     }
   };

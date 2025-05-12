@@ -1,10 +1,20 @@
-// vite-mini-rpc/src/utils.ts
+// vite-mini-rpc/src/express/helpers.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { FrameworkRequest, FrameworkResponse, JsonValue } from "../types";
+import type { JsonValue } from "../types";
+
+export const readBody = (
+  req: ExpressRequest | IncomingMessage,
+): Promise<string> => {
+  return new Promise((resolve) => {
+    let body = "";
+    req.on("data", (chunk: string) => body += chunk);
+    req.on("end", () => resolve(body));
+  });
+};
 
 export const isExpressRequest = (
   req: IncomingMessage | ExpressRequest,
@@ -18,81 +28,65 @@ export const isExpressResponse = (
   return "json" in res && "send" in res;
 };
 
-export const getRequestDetails = (request: FrameworkRequest) => {
-  const nodeRequest: IncomingMessage =
-    (request.raw || request.req || request) as IncomingMessage;
-
-  const url = request.originalUrl ||
-    request.url ||
-    nodeRequest.url;
+export const getRequestDetails = (
+  request: ExpressRequest | IncomingMessage,
+) => {
+  const url = isExpressRequest(request) ? request.originalUrl : request.url;
 
   return {
-    nodeRequest,
     url,
-    headers: nodeRequest.headers,
-    method: nodeRequest.method,
+    headers: request.headers,
+    method: request.method,
   };
 };
 
-export const getResponseDetails = (response: FrameworkResponse) => {
-  const nodeResponse: ServerResponse =
-    (response.raw || response.res || response) as ServerResponse;
-
+export const getResponseDetails = (
+  response: ExpressResponse | ServerResponse,
+) => {
   const isResponseSent = response.headersSent ||
-    response.writableEnded ||
-    nodeResponse.writableEnded;
+    response.writableEnded;
 
   const setHeader = (name: string, value: string) => {
-    if (response.header) {
+    if (isExpressResponse(response)) {
       response.header(name, value);
-    } else if (response.setHeader) {
-      response.setHeader(name, value);
     } else {
-      nodeResponse.setHeader(name, value);
+      response.setHeader(name, value);
     }
   };
 
   const getHeader = (name: string) => {
-    if (response.getHeader) {
+    if (isExpressResponse(response)) {
       return response.getHeader(name);
     }
-    return nodeResponse.getHeader(name);
+    return response.getHeader(name);
   };
 
   const setStatusCode = (code: number) => {
-    if (response.status) {
+    if (isExpressResponse(response)) {
       response.status(code);
     } else {
-      nodeResponse.statusCode = code;
-    }
-  };
-
-  const send = (output: Record<string, string | unknown>) => {
-    if (response.send) {
-      response.send(JSON.stringify(output));
-    } else {
-      nodeResponse.end(JSON.stringify(output));
+      response.statusCode = code;
     }
   };
 
   const sendResponse = (
     code: number,
     output: Record<string, JsonValue>,
-    contentType?: string,
   ) => {
     setStatusCode(code);
-    if (contentType) {
-      setHeader("Content-Type", contentType);
+
+    if (isExpressResponse(response)) {
+      response.send(JSON.stringify(output));
+    } else {
+      response.end(JSON.stringify(output));
     }
-    send(output);
   };
 
   return {
-    nodeResponse,
     isResponseSent,
     setHeader,
     getHeader,
-    statusCode: nodeResponse.statusCode,
+    statusCode: response.statusCode,
     setStatusCode,
     sendResponse,
   };
