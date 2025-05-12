@@ -163,26 +163,6 @@ export interface RpcPluginOptions {
   onResponse?: MiddlewareOptions["onResponse"];
 }
 
-/**
- * Options for the token used by CSRF middleware
- */
-export type TokenOptions = {
-  expires: string;
-  HttpOnly: boolean | "true";
-  Secure: boolean | "true";
-  SameSite: string | "Strict";
-  Path: string;
-};
-
-export type CSRFMiddlewareOptions = Omit<TokenOptions, "expires"> & {
-  /**
-   * number of hours till expiry
-   * @default 24
-   */
-  expires: number;
-  rpcPreffix?: string;
-};
-
 export interface MiddlewareOptions<
   A extends RpcPluginOptions["adapter"] = "express",
 > {
@@ -211,6 +191,20 @@ export interface MiddlewareOptions<
   rpcPreffix?: string | false;
 
   /**
+   * Custom headers to be set for middleware responses.
+   * Use this to add specific headers to all responses handled by this middleware.
+   *
+   * @example
+   * ```ts
+   * headers: {
+   *   'X-Custom-Header': 'custom-value',
+   *   'Cache-Control': 'no-cache'
+   * }
+   * ```
+   */
+  headers?: Record<string, string>;
+
+  /**
    * Async handler for request processing.
    * Core middleware function that processes incoming requests.
    *
@@ -228,20 +222,6 @@ export interface MiddlewareOptions<
    * }
    */
   handler?: FrameworkHooks[A]["handler"];
-
-  /**
-   * Custom headers to be set for middleware responses.
-   * Use this to add specific headers to all responses handled by this middleware.
-   *
-   * @example
-   * ```ts
-   * headers: {
-   *   'X-Custom-Header': 'custom-value',
-   *   'Cache-Control': 'no-cache'
-   * }
-   * ```
-   */
-  headers?: Record<string, string>;
 
   /**
    * Custom error handling hook for RPC middleware errors.

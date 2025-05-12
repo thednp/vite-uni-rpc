@@ -8,8 +8,7 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 - System wide configuration via `rpc.config.ts` file
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
-- Flexible middleware system with hooks support
-- Rate limiting support
+- Flexible middleware system with hooks support and adapters for `express`, `fastify` and `hono`
 - Framework agnostic
 - TypeScript support
 
@@ -44,7 +43,7 @@ bun add vite-mini-rpc@latest
 // vite.config.ts
 import { defineConfig } from 'vite';
 import rpc from 'vite-mini-rpc';
-import { isExpressResponse, sendResponse } from "vite-mini-rpc/server";
+import { getRequestDetails, getResponseDetails } from "vite-mini-rpc/express";
 
 export default defineConfig({
   plugins: [
@@ -52,40 +51,19 @@ export default defineConfig({
       // RPC Options
       rpcPreffix: '_myApi', // default is "__rpc"
       adapter: "express", // default is express
-      // Rate Limiting
-      rateLimit: {
-        max: 1000, // default is 100
-        windowMs: 5 * 60 * 1000 // 5 minutes
-      },
-      // Security Middlewares
-      cors: {
-        origin: true, // for production sites use 'https://your-site.com' 
-        credentials: true,
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Set-Cookie', 'Content-Type', 'X-CSRF-Token']
-      },
-      csrf: {
-        expires: 24,
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Strict',
-        path: '/'
-      },
       // Optional Hooks
       onRequest: async (req) => {
         console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
       },
       onResponse: async (res) => {
-        // handle differently depending on platform
-        if (isExpressResponse(res)) {
-          res.set('X-Response-Time', Date.now());
-        } else {
-          res.setHeader('X-Response-Time', Date.now());
-        }
+        // handle differently depending on platform express/connect
+        const { setHeader } = getResponseDetails(res);
+        setHeader('X-Response-Time', Date.now());
       },
-      onError: (error, req, res) => {
-        console.error(`Error processing ${req.url}:`, error);
+      onError: async (error, req, res) => {
         // handle differently depending on environment or other conditions
+        const { sendResponse } = getResponseDetails(res);
+        console.error(`Error processing ${req.url}:`, error);
         sendResponse(res, { error: 'Internal Server Error' }, 500);
       }
     }),
@@ -103,10 +81,11 @@ import { defineConfig } from "vite-mini-rpc";
 
 export default defineConfig({
   rpcPreffix: "_myApi",
+  adapter: "express",
   // ...other options
 })
 ```
-In your express, hono, etc, use the `loadRPCConfig` to connect middlewares:
+In your express, hono, fastify, use the `loadRPCConfig` to connect middlewares:
 
 ```js
 // server.ts
@@ -119,14 +98,16 @@ if (process.env.NODE_ENV === "development") {
   // kickstart your vite dev server middleware mode
 } else {
   const { loadRPCConfig } = await import("vite-mini-rpc");
-  const { cors, csrf, adapter, ...rest } = await loadRPCConfig();
   // use config to create your middleware to your adapter specification
+  const { adapter, ...rest } = await loadRPCConfig();
+  const { createRPCMiddleware } = await import("vite-mini-rpc/express");
+  app.use(createRPCMiddleware(rest));
 }
 
 // ... register your express routes, SSR and start the server
 app.listen(port, () => {
   console.log(
-    `Server started at http://localhost:${port}`,
+    `Server started at http://localhost:${process.env.PORT}`,
   );
 });
 ```
@@ -209,7 +190,7 @@ Create a `root/src/api/index.ts` file to export all necessary functions:
 ```ts
 export * from "./server";
 ```
-Import from `index.ts` anything and anywhere you need.
+Import from `index.ts` via `import { sayHi } from "./src/api"` anything and anywhere you need.
 
 
 ### Middleware System
@@ -225,7 +206,7 @@ While you can do all that by hand every single time, it's nice to have them all 
 Create a simple middleware:
 ```ts
 // src/server/middleware.ts
-import { createMiddleware, isExpressRequest } from "vite-mini-rpc/server";
+import { createMiddleware, isExpressRequest } from "vite-mini-rpc/express";
 
 const simpleMiddleware = createMiddleware({
   // Match specific paths
@@ -235,11 +216,6 @@ const simpleMiddleware = createMiddleware({
     'X-Custom-Header': 'value',
     'Cache-Control': 'no-cache'
   },
-  // Rate limiting
-  rateLimit: {
-    max: 100,
-    windowMs: 5 * 60 * 1000 // 5 minutes
-  },
   // Request handler
   handler: async (req, res, next) => {
     // alternatively you can filter the requests by url
@@ -248,7 +224,7 @@ const simpleMiddleware = createMiddleware({
     // handle to your taste, for instance you may like to
     // save the current theme in a user session and call next()
 
-    // to make your middleware compatible with express/hono
+    // to make your middleware compatible with express/connect
     // you may have to distinguish from vite/express
     if (typeof next === "function") {
       next();
@@ -325,46 +301,19 @@ app.use("*all", async (req, res) => {
 
 #### Middleware Options
 ```ts
-export interface MiddlewareOptions {
+export interface MiddlewareOptions<A extends ("express" | "fastify" | "hono")> {
   /**
    * Path pattern to match for middleware execution.
    * Accepts string or RegExp to filter requests based on URL path.
    *
    * @example
-   * ```ts
    * // String path
    * path: "/api/v1"
    *
    * // RegExp pattern
    * path: /^\/api\/v[0-9]+/
-   * ```
    */
   path?: string | RegExp;
-
-  /**
-   * Async handler for request processing.
-   * Core middleware function that processes incoming requests.
-   *
-   * @param req - The incoming request object
-   * @param res - The server response object
-   * @param next - Function to pass control to the next middleware
-   *
-   * @example
-   * ```ts
-   * handler: async (req, res, next) => {
-   *   // Process request
-   *   const data = await processRequest(req);
-   *
-   *   // Send response
-   *   sendResponse(res, { data }, 200);
-   * }
-   * ```
-   */
-  handler?: (
-    req: IncomingMessage | Request,
-    res: ServerResponse | Response,
-    next: Connect.NextFunction,
-  ) => unknown;
 
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -375,7 +324,7 @@ export interface MiddlewareOptions {
    * // Results in endpoints like: /api/rpc/myFunction
    * rpcPreffix: "api/rpc"
    */
-  rpcPreffix?: string;
+  rpcPreffix?: string | false;
 
   /**
    * Custom headers to be set for middleware responses.
@@ -392,18 +341,24 @@ export interface MiddlewareOptions {
   headers?: Record<string, string>;
 
   /**
-   * Option to disable by setting `false` or customize RPC rate limiting.
-   * Protects your RPC endpoints from abuse by limiting request frequency.
-   * @default
-   * ```
-   * { max: 100, windowMs: 5 * 60 * 1000 }
-   * // translates to 100 requests for each 5 minutes
-   * ```
+   * Async handler for request processing.
+   * Core middleware function that processes incoming requests.
+   *
+   * @param req - The incoming request object
+   * @param res - The server response object
+   * @param next - Function to pass control to the next middleware
+   *
+   * @example
+   * // applies to express
+   * handler: async (req, res, next) => {
+   *   // Process request
+   *   const data = await processRequest(req);
+   *
+   *   // Send response
+   *   sendResponse(res, { data }, 200);
+   * }
    */
-  rateLimit?: {
-    windowMs: number;
-    max: number;
-  } | false;
+  handler?: FrameworkHooks[A]["handler"];
 
   /**
    * Custom error handling hook for RPC middleware errors.
@@ -415,6 +370,7 @@ export interface MiddlewareOptions {
    *
    * @example
    * ```ts
+   * // applies to express
    * onError: (error, req, res) => {
    *   console.error(`[${new Date().toISOString()}] Error:`, error);
    *   // Custom error handling logic
@@ -422,7 +378,7 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onError?: (error: Error, req: IncomingMessage, res: ServerResponse) => void;
+  onError?: FrameworkHooks[A]["onError"];
 
   /**
    * Hook executed before processing each RPC request.
@@ -433,6 +389,7 @@ export interface MiddlewareOptions {
    *
    * @example
    * ```ts
+   * // applies to express
    * onRequest: async (req) => {
    *   // Log incoming requests
    *   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -443,7 +400,7 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onRequest?: (req: Request | IncomingMessage) => void | Promise<void>;
+  onRequest?: FrameworkHooks[A]["onRequest"];
 
   /**
    * Hook executed before sending each RPC response.
@@ -463,7 +420,7 @@ export interface MiddlewareOptions {
    * }
    * ```
    */
-  onResponse?: (res: Response | ServerResponse) => void | Promise<void>;
+  onResponse?: FrameworkHooks[A]["onResponse"];
 }
 ```
 
