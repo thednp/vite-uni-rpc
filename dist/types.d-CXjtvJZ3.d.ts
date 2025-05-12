@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { Connect } from 'vite';
 import { Context, Next, MiddlewareHandler } from 'hono';
 import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
 
@@ -6,7 +7,7 @@ type ExpressMiddlewareFn = <
   A extends RpcPluginOptions$1["adapter"] = "express",
 >(
   initialOptions: Partial<MiddlewareOptions<A>>,
-) => RequestHandler;
+) => RequestHandler | Connect.NextHandleFunction;
 
 interface ExpressMiddlewareHooks {
   handler: (
@@ -238,6 +239,20 @@ interface MiddlewareOptions<
   rpcPreffix?: string | false;
 
   /**
+   * Custom headers to be set for middleware responses.
+   * Use this to add specific headers to all responses handled by this middleware.
+   *
+   * @example
+   * ```ts
+   * headers: {
+   *   'X-Custom-Header': 'custom-value',
+   *   'Cache-Control': 'no-cache'
+   * }
+   * ```
+   */
+  headers?: Record<string, string>;
+
+  /**
    * Async handler for request processing.
    * Core middleware function that processes incoming requests.
    *
@@ -255,20 +270,6 @@ interface MiddlewareOptions<
    * }
    */
   handler?: FrameworkHooks[A]["handler"];
-
-  /**
-   * Custom headers to be set for middleware responses.
-   * Use this to add specific headers to all responses handled by this middleware.
-   *
-   * @example
-   * ```ts
-   * headers: {
-   *   'X-Custom-Header': 'custom-value',
-   *   'Cache-Control': 'no-cache'
-   * }
-   * ```
-   */
-  headers?: Record<string, string>;
 
   /**
    * Custom error handling hook for RPC middleware errors.

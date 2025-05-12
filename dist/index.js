@@ -1,4 +1,7 @@
 import {
+  createRPCMiddleware
+} from "./chunk-6CV5CEXR.js";
+import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
@@ -6,9 +9,9 @@ import {
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
+import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
-import { resolve } from "node:path";
 var defineConfig = (uniConfig) => {
   return mergeConfig(defaultRPCOptions, uniConfig);
 };
@@ -94,16 +97,12 @@ async function rpcPlugin(devOptions = {}) {
         map: null
       };
     },
-    async configureServer(server) {
+    configureServer(server) {
       viteServer = server;
-      const { adapter, ...rest } = options;
-      const adaptersMap = {
-        express: "vite-mini-rpc/express",
-        fastify: "vite-mini-rpc/fastify",
-        hono: "vite-mini-rpc/hono"
-      };
-      const { createRPCMiddleware } = await import(adaptersMap[adapter]);
-      server.middlewares.use(createRPCMiddleware(rest));
+      const { adapter: _adapter, ...rest } = options;
+      server.middlewares.use(
+        createRPCMiddleware(rest)
+      );
     }
   };
 }

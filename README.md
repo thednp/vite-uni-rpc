@@ -138,7 +138,7 @@ import { createServerFunction } from "vite-mini-rpc/server";
 
 export const sayHi = createServerFunction(
   "say-hi", // cache-key
-  (name: string) => {
+  async (name: string) => {
     // the async function to be executed on the server side
     // can do database or file operations, etc
     return `Hello ${name}!`;
@@ -173,7 +173,6 @@ const handleResponse = async (response) => {
 }
 
 export const sayHi = async (...args) => {
-  // const requestToken = await getToken();
   const response = await fetch('/_myApi/say-hi', {
     method: 'POST',
     headers: {
@@ -185,7 +184,7 @@ export const sayHi = async (...args) => {
 }
 ```
 
-Create a `root/src/api/index.ts` file to export all necessary functions:
+Now create a `root/src/api/index.ts` file to export all necessary functions:
 
 ```ts
 export * from "./server";

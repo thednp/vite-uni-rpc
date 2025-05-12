@@ -1,11 +1,18 @@
-import type { ConfigEnv, Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import type {
+  ConfigEnv,
+  Connect,
+  Plugin,
+  ResolvedConfig,
+  ViteDevServer,
+} from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
+import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
 import { getClientModules, scanForServerFiles } from "./utils";
+import { createRPCMiddleware } from "./express/createMiddleware";
 import { defaultRPCOptions } from "./options";
 import type { RpcPluginOptions } from "./types";
-import { resolve } from "node:path";
 
 /**
  * Utility to define `vite-mini-rpc` configuration file similar to vite.
@@ -119,21 +126,13 @@ async function rpcPlugin(
       };
     },
 
-    async configureServer(server) {
+    configureServer(server) {
       viteServer = server;
-      const { adapter, ...rest } = options;
-      // const ext =
-      const adaptersMap: Record<RpcPluginOptions["adapter"], string> = {
-        express: "vite-mini-rpc/express",
-        fastify: "vite-mini-rpc/fastify",
-        hono: "vite-mini-rpc/hono",
-      };
-      const { createRPCMiddleware } = await import(
-        adaptersMap[adapter]
+      const { adapter: _adapter, ...rest } = options;
+      // in dev mode we always use express/connect adapter
+      server.middlewares.use(
+        createRPCMiddleware(rest) as Connect.NextHandleFunction,
       );
-
-      // Lastly, handle RPC calls
-      server.middlewares.use(createRPCMiddleware(rest));
     },
   };
 }

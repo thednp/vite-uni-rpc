@@ -1,4 +1,7 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+var _chunkIMHT3MAAcjs = require('./chunk-IMHT3MAA.cjs');
+
 
 
 
@@ -6,9 +9,9 @@ var _chunkI745QCC6cjs = require('./chunk-I745QCC6.cjs');
 
 // src/index.ts
 var _vite = require('vite');
+var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var _fs = require('fs');
-var _path = require('path');
 var defineConfig = (uniConfig) => {
   return _vite.mergeConfig.call(void 0, _chunkI745QCC6cjs.defaultRPCOptions, uniConfig);
 };
@@ -94,16 +97,12 @@ async function rpcPlugin(devOptions = {}) {
         map: null
       };
     },
-    async configureServer(server) {
+    configureServer(server) {
       viteServer = server;
-      const { adapter, ...rest } = options;
-      const adaptersMap = {
-        express: "vite-mini-rpc/express",
-        fastify: "vite-mini-rpc/fastify",
-        hono: "vite-mini-rpc/hono"
-      };
-      const { createRPCMiddleware } = await Promise.resolve().then(() => _interopRequireWildcard(require(adaptersMap[adapter])));
-      server.middlewares.use(createRPCMiddleware(rest));
+      const { adapter: _adapter, ...rest } = options;
+      server.middlewares.use(
+        _chunkIMHT3MAAcjs.createRPCMiddleware.call(void 0, rest)
+      );
     }
   };
 }

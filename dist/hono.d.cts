@@ -1,5 +1,6 @@
-import { H as HonoMiddlewareFn } from './types.d-CLxFDzAq.cjs';
+import { H as HonoMiddlewareFn } from './types.d-CXjtvJZ3.cjs';
 import 'express';
+import 'vite';
 import 'hono';
 import 'fastify';
 
