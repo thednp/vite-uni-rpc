@@ -1,15 +1,11 @@
 import type { ConfigEnv, Plugin, ResolvedConfig, ViteDevServer } from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 import { getClientModules, scanForServerFiles } from "./utils";
 import { defaultRPCOptions } from "./options";
 import type { RpcPluginOptions } from "./types";
-import { dirname, resolve } from "node:path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { resolve } from "node:path";
 
 /**
  * Utility to define `vite-mini-rpc` configuration file similar to vite.
@@ -25,8 +21,9 @@ const defineConfig = (uniConfig: Partial<RpcPluginOptions>) => {
  */
 async function loadRPCConfig(configFile?: string) {
   try {
-    const env: ConfigEnv = {
+    const env: ConfigEnv & { root: string } = {
       command: "serve",
+      root: process.cwd(),
       mode: process.env.NODE_ENV || "development",
     };
     const defaultConfigFiles = [
@@ -40,7 +37,7 @@ async function loadRPCConfig(configFile?: string) {
 
     // If specific config file provided
     if (configFile) {
-      if (!existsSync(resolve(__dirname, configFile))) {
+      if (!existsSync(resolve(env.root, configFile))) {
         console.warn(
           `ℹ️  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`,
         );
@@ -62,7 +59,7 @@ async function loadRPCConfig(configFile?: string) {
 
     // Try default config files
     for (const file of defaultConfigFiles) {
-      if (!existsSync(resolve(__dirname, file))) {
+      if (!existsSync(resolve(env.root, file))) {
         continue;
       }
       const result = await loadConfigFromFile(env, file);

@@ -7,11 +7,8 @@ var _chunkI745QCC6cjs = require('./chunk-I745QCC6.cjs');
 // src/index.ts
 var _vite = require('vite');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
-var _url = require('url');
 var _fs = require('fs');
 var _path = require('path');
-var __filename = _url.fileURLToPath.call(void 0, import.meta.url);
-var __dirname = _path.dirname.call(void 0, __filename);
 var defineConfig = (uniConfig) => {
   return _vite.mergeConfig.call(void 0, _chunkI745QCC6cjs.defaultRPCOptions, uniConfig);
 };
@@ -19,6 +16,7 @@ async function loadRPCConfig(configFile) {
   try {
     const env = {
       command: "serve",
+      root: _process2.default.cwd(),
       mode: _process2.default.env.NODE_ENV || "development"
     };
     const defaultConfigFiles = [
@@ -30,7 +28,7 @@ async function loadRPCConfig(configFile) {
       ".rpcrc.js"
     ];
     if (configFile) {
-      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, __dirname, configFile))) {
+      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, env.root, configFile))) {
         console.warn(
           `\u2139\uFE0F  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`
         );
@@ -49,7 +47,7 @@ async function loadRPCConfig(configFile) {
       return _chunkI745QCC6cjs.defaultRPCOptions;
     }
     for (const file of defaultConfigFiles) {
-      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, __dirname, file))) {
+      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, env.root, file))) {
         continue;
       }
       const result = await _vite.loadConfigFromFile.call(void 0, env, file);

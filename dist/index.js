@@ -7,11 +7,8 @@ import {
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = dirname(__filename);
+import { resolve } from "node:path";
 var defineConfig = (uniConfig) => {
   return mergeConfig(defaultRPCOptions, uniConfig);
 };
@@ -19,6 +16,7 @@ async function loadRPCConfig(configFile) {
   try {
     const env = {
       command: "serve",
+      root: process.cwd(),
       mode: process.env.NODE_ENV || "development"
     };
     const defaultConfigFiles = [
@@ -30,7 +28,7 @@ async function loadRPCConfig(configFile) {
       ".rpcrc.js"
     ];
     if (configFile) {
-      if (!existsSync(resolve(__dirname, configFile))) {
+      if (!existsSync(resolve(env.root, configFile))) {
         console.warn(
           `\u2139\uFE0F  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`
         );
@@ -49,7 +47,7 @@ async function loadRPCConfig(configFile) {
       return defaultRPCOptions;
     }
     for (const file of defaultConfigFiles) {
-      if (!existsSync(resolve(__dirname, file))) {
+      if (!existsSync(resolve(env.root, file))) {
         continue;
       }
       const result = await loadConfigFromFile(env, file);
