@@ -13,7 +13,7 @@ export default defineConfig({
     ops.legalComments = "inline";
   },
   format: ['esm', 'cjs'],
-  external: ['vite', "hono", "fastify", "express"],
+  external: ['vite', "hono", "fastify", "fastify-plugin", "express"],
   dts: true,
   splitting: true,
   clean: true,
