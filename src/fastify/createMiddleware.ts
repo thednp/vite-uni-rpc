@@ -24,6 +24,15 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
     ...initialOptions,
   };
 
+  // Check for configuration conflict
+  if (path && rpcPreffix) {
+    throw new Error(
+      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
+        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. " +
+        "Skipping middleware registration..",
+    );
+  }
+
   return async (
     req: FastifyRequest,
     reply: FastifyReply,
@@ -132,14 +141,7 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
         return;
       }
 
-      let args: Arguments[];
-      try {
-        // In Fastify, req.body is already parsed if the appropriate content-type parser is set
-        args = (await req.body) as Arguments[] || [];
-      } catch {
-        args = [];
-      }
-
+      const args = req.body as Arguments[];
       const result = await serverFunction.fn(...args) as JsonValue;
       reply.status(200).send({ data: result });
     },

@@ -9,21 +9,13 @@ const port = process.env.PORT || 5173;
 const base = process.env.BASE || "/";
 const root = process.env.ROOT || process.cwd();
 
-const development = {
-  logger: true
-};
-
-const production = {
-  logger: false
-};
-
 // Cached production assets
 const templateHtml = isProduction
   ? await fs.readFile("./dist/client/index.html", "utf-8")
   : "";
 
 // Create Fastify server
-const app = Fastify(isProduction ? production : development);
+const app = Fastify({ logger: false });
 
 // Add Vite or respective production middlewares
 /** @type {import('vite').ViteDevServer | undefined} */
@@ -36,55 +28,37 @@ if (!isProduction) {
     base,
     root,
   });
-  app.addHook("onRequest", async (request, reply) => {
+  app.addHook("onRequest", async(request, reply) => {
     const next = () => new Promise((resolve) => {
       vite.middlewares(request.raw, reply.raw, resolve);
     });
     await next();
   })
-  // Fastify-vite provides better integration, but for direct compatibility, we wrap Vite middlewares
-  // app.register(async (instance) => {
-  //   instance.addHook("onRequest", (req, reply, done) => {
-  //     const expressReq = req.raw; // Fastify's raw request is compatible with Express middleware
-  //     const expressRes = reply.raw;
-  //     expressRes.status = (code) => {
-  //       reply.status(code);
-  //       return expressRes;
-  //     };
-  //     expressRes.set = (key, value) => {
-  //       reply.header(key, value);
-  //       return expressRes;
-  //     };
-  //     expressRes.send = (body) => {
-  //       reply.send(body);
-  //     };
-  //     vite.middlewares(expressReq, expressRes, done);
-  //   });
-  // });
-  // await app.register(FastifyVite, {
-  //   root: import.meta.dirname, // where to look for vite.config.js
-  //   dev: process.argv.includes('--dev'),
-  //   spa: true
-  // })
 } else {
-  const fastifyCompress = import("@fastify/compress");
-  const fastifyStatic = import("@fastify/static");
   // Load RPC configuration
   const { loadRPCConfig } = await import("vite-mini-rpc");
   const { createRPCMiddleware } = await import("vite-mini-rpc/fastify");
-  const { adapter, ...options } = loadRPCConfig();
+  const { adapter, ...options } = await loadRPCConfig();
+  // console.log({createRPCMiddleware})
+  const rpcMiddeware = createRPCMiddleware(options);
   
   // Register RPC middleware
-  await app.register(async (instance) => {
-    instance.addHook("preHandler", createRPCMiddleware(options));
-  });
+  // await app.register((instance) => {
+  //   instance.addHook("preHandler", rpcMiddeware);
+  //   // instance.addHook("onRequest", rpcMiddeware);
+  // });
+  app.addHook("preHandler", async (request, reply) => {
+    const next = () => new Promise(resolve => {
+      rpcMiddeware(request, reply, resolve);
+    })
+    await next()
+  })
 
   // Register other middleware
-  await app.register(fastifyCompress); // Compression
-  await app.register(fastifyStatic, {
-    root: new URL("./dist/client", import.meta.url).pathname,
-    prefix: base,
-    extensions: [], // Matches sirv's behavior
+  await app.register(import("@fastify/compress")); // Compression
+  await app.register(import('@fastify/static'), {
+    root: root + '/dist/client/assets',
+    prefix: '/assets/',
   });
 }
 

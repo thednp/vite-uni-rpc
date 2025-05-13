@@ -22,7 +22,7 @@ importers:
         version: 5.3.2
       vite-mini-rpc:
         specifier: git+https://github.com/thednp/rpc.git
-        version: git+https://github.com/thednp/rpc.git#52ef5f7c0a1e654b0ee7c0c5d1d819fcd367cf1c(vite@6.3.5(@types/node@22.15.17))
+        version: git+https://github.com/thednp/rpc.git#d7d18668e57d55f014e5e8f41bd3587f12558a9f(vite@6.3.5(@types/node@22.15.17))
     devDependencies:
       '@types/node':
         specifier: ^22.15.17
@@ -754,8 +754,8 @@ packages:
   secure-json-parse@4.0.0:
     resolution: {integrity: sha512-dxtLJO6sc35jWidmLxo7ij+Eg48PM/kleBsxpC8QJE0qJICe+KawkDQmvCMZUr9u7WKVHgMW6vy3fQ7zMiFZMA==}
 
-  semver@7.7.1:
-    resolution: {integrity: sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==}
+  semver@7.7.2:
+    resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -850,8 +850,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  vite-mini-rpc@git+https://github.com/thednp/rpc.git#52ef5f7c0a1e654b0ee7c0c5d1d819fcd367cf1c:
-    resolution: {commit: 52ef5f7c0a1e654b0ee7c0c5d1d819fcd367cf1c, repo: https://github.com/thednp/rpc.git, type: git}
+  vite-mini-rpc@git+https://github.com/thednp/rpc.git#d7d18668e57d55f014e5e8f41bd3587f12558a9f:
+    resolution: {commit: d7d18668e57d55f014e5e8f41bd3587f12558a9f, repo: https://github.com/thednp/rpc.git, type: git}
     version: 0.0.1
     peerDependencies:
       vite: ^6.3.5
@@ -1324,7 +1324,7 @@ snapshots:
       process-warning: 5.0.0
       rfdc: 1.4.1
       secure-json-parse: 4.0.0
-      semver: 7.7.1
+      semver: 7.7.2
       toad-cache: 3.7.0
 
   fastq@1.19.1:
@@ -1600,7 +1600,7 @@ snapshots:
 
   secure-json-parse@4.0.0: {}
 
-  semver@7.7.1: {}
+  semver@7.7.2: {}
 
   set-cookie-parser@2.7.1: {}
 
@@ -1680,7 +1680,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-mini-rpc@git+https://github.com/thednp/rpc.git#52ef5f7c0a1e654b0ee7c0c5d1d819fcd367cf1c(vite@6.3.5(@types/node@22.15.17)):
+  vite-mini-rpc@git+https://github.com/thednp/rpc.git#d7d18668e57d55f014e5e8f41bd3587f12558a9f(vite@6.3.5(@types/node@22.15.17)):
     dependencies:
       vite: 6.3.5(@types/node@22.15.17)
 

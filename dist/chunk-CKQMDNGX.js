@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-LQUDPDUK.js";
+} from "./chunk-ZVEBQAB5.js";
 
 // src/express/helpers.ts
 var readBody = (req) => {
@@ -81,6 +81,11 @@ var createMiddleware = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions
   };
+  if (path && rpcPreffix) {
+    throw new Error(
+      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."
+    );
+  }
   return async (req, res, next) => {
     const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);

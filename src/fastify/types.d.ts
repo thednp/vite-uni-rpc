@@ -33,3 +33,8 @@ export interface FastifyMiddlewareHooks {
     res: FastifyReply,
   ) => Promise<void>;
 }
+
+// Define the plugin function
+export type RpcFastifyPluginOptions = MiddlewareOptions<"fastify"> & {
+  isRPC: boolean;
+};

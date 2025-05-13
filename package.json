@@ -56,7 +56,7 @@
     "lint:ts": "deno lint src",
     "fix:ts": "deno lint src --fix",
     "check:ts": "tsc -noEmit",
-    "up:examples": "pnpm update -r \"./examples/*\"",
+    "up:examples": "pnpm update -r \"examples\"",
     "up:root": "pnpm update -r \".\"",
     "upd": "pnpm up:root && pnpm up:examples",
     "prepublishOnly": "pnpm upd && pnpm lint && pnpm check:ts && pnpm format && pnpm build",

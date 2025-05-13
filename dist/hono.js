@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-LQUDPDUK.js";
+} from "./chunk-ZVEBQAB5.js";
 
 // src/hono/createMiddleware.ts
 var createMiddleware = (initialOptions = {}) => {
@@ -19,6 +19,11 @@ var createMiddleware = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions
   };
+  if (path && rpcPreffix) {
+    throw new Error(
+      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."
+    );
+  }
   return async (c, next) => {
     const { path: pathname } = c.req;
     if (serverFunctionsMap.size === 0) {

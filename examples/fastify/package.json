@@ -8,7 +8,8 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
-    "preview": "cross-env NODE_ENV=production node server"
+    "preview": "pnpm build && pnpm start",
+    "start": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
     "@fastify/compress": "^8.0.1",

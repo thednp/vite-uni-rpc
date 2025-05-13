@@ -7,14 +7,14 @@
 
 
 
-var _chunkI745QCC6cjs = require('./chunk-I745QCC6.cjs');
+var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
 
 // src/cache.ts
 var ServerCache = class {
   constructor() {
-    _chunkI745QCC6cjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
+    _chunkFIWPANLAcjs.__publicField.call(void 0, this, "cache", /* @__PURE__ */ new Map());
   }
-  async get(key, ttl = _chunkI745QCC6cjs.defaultServerFnOptions.ttl, fetcher) {
+  async get(key, ttl = _chunkFIWPANLAcjs.defaultServerFnOptions.ttl, fetcher) {
     const entry = this.cache.get(key);
     const now = Date.now();
     if (_optionalChain([entry, 'optionalAccess', _ => _.promise])) return entry.promise;
@@ -56,7 +56,7 @@ var serverCache = new ServerCache();
 
 // src/createFn.ts
 function createServerFunction(name, fn, initialOptions = {}) {
-  const options = { ..._chunkI745QCC6cjs.defaultServerFnOptions, ...initialOptions };
+  const options = { ..._chunkFIWPANLAcjs.defaultServerFnOptions, ...initialOptions };
   const wrappedFunction = async (...args) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
@@ -69,7 +69,7 @@ function createServerFunction(name, fn, initialOptions = {}) {
     }
     return result;
   };
-  _chunkI745QCC6cjs.serverFunctionsMap.set(name, {
+  _chunkFIWPANLAcjs.serverFunctionsMap.set(name, {
     name,
     fn: wrappedFunction,
     options
@@ -87,4 +87,4 @@ function createServerFunction(name, fn, initialOptions = {}) {
 
 
 
-exports.ServerCache = ServerCache; exports.createServerFunction = createServerFunction; exports.defaultMiddlewareOptions = _chunkI745QCC6cjs.defaultMiddlewareOptions; exports.defaultRPCOptions = _chunkI745QCC6cjs.defaultRPCOptions; exports.defaultServerFnOptions = _chunkI745QCC6cjs.defaultServerFnOptions; exports.functionMappings = _chunkI745QCC6cjs.functionMappings; exports.getClientModules = _chunkI745QCC6cjs.getClientModules; exports.scanForServerFiles = _chunkI745QCC6cjs.scanForServerFiles; exports.serverCache = serverCache; exports.serverFunctionsMap = _chunkI745QCC6cjs.serverFunctionsMap;
+exports.ServerCache = ServerCache; exports.createServerFunction = createServerFunction; exports.defaultMiddlewareOptions = _chunkFIWPANLAcjs.defaultMiddlewareOptions; exports.defaultRPCOptions = _chunkFIWPANLAcjs.defaultRPCOptions; exports.defaultServerFnOptions = _chunkFIWPANLAcjs.defaultServerFnOptions; exports.functionMappings = _chunkFIWPANLAcjs.functionMappings; exports.getClientModules = _chunkFIWPANLAcjs.getClientModules; exports.scanForServerFiles = _chunkFIWPANLAcjs.scanForServerFiles; exports.serverCache = serverCache; exports.serverFunctionsMap = _chunkFIWPANLAcjs.serverFunctionsMap;

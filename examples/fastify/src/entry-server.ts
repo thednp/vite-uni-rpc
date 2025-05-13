@@ -10,6 +10,7 @@ export async function render(_url: string) {
       <p class="read-the-docs">
         Example using <code>vite-mini-rpc</code> with <code>fastify</code>
       </p>
+      <p>Refresh page after 5s</p>
     </div>
   `
   return { html }

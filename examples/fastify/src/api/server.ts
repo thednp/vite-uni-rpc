@@ -5,5 +5,6 @@ export const sayHi = createServerFunction(
   async (name: string) => {
     await new Promise(res => setTimeout(res, 1500));
     return `Hello ${name}!`;
-  }
+  },
+  { ttl: 5000 }
 );

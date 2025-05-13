@@ -1,10 +1,12 @@
 import fs from 'node:fs/promises'
 import express from 'express'
+import { resolve } from 'node:path'
 
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
 const port = process.env.PORT || 5173
 const base = process.env.BASE || '/'
+const root = process.env.ROOT || process.cwd()
 
 // Cached production assets
 const templateHtml = isProduction
@@ -23,6 +25,7 @@ if (!isProduction) {
     server: { middlewareMode: true },
     appType: 'custom',
     base,
+    root,
   })
   app.use(vite.middlewares)
 } else {
@@ -31,7 +34,7 @@ if (!isProduction) {
   // load RPC configuration
   const { loadRPCConfig } = await import("vite-mini-rpc");
   const { createRPCMiddleware } = await import("vite-mini-rpc/express");
-  const { adapter, ...options } = loadRPCConfig();
+  const { adapter, ...options } = await loadRPCConfig();
   app.use(createRPCMiddleware(options));
 
   // other middleware
@@ -58,7 +61,7 @@ app.use('*all', async (req, res) => {
       render = (await import('./dist/server/entry-server.js')).render
     }
 
-    const rendered = await render(url)
+    const rendered = render(url)
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')

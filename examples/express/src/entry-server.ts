@@ -1,16 +1,7 @@
-import { sayHi } from "./api"
+import { App } from "./App";
+// import { renderPreloadLinks } from "./util/util";
 
-export async function render(_url: string) {
-  const greeting = await sayHi("John Doe");
-  console.log(`SSR greeting "${greeting}"`);
-
-  const html = `
-    <div>
-      <h1>Hello World!</h1>
-      <p class="read-the-docs">
-        Example using <code>vite-mini-rpc</code> with <code>express</code>
-      </p>
-    </div>
-  `
+export function render(_url: string) {
+  const html = App();
   return { html }
 }

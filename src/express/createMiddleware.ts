@@ -29,6 +29,15 @@ export const createMiddleware: ExpressMiddlewareFn = (
     ...initialOptions,
   };
 
+  // Check for configuration conflict
+  if (path && rpcPreffix) {
+    throw new Error(
+      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
+        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. " +
+        "Skipping middleware registration..",
+    );
+  }
+
   return async (
     req: IncomingMessage | ExpressRequest,
     res: ServerResponse | ExpressResponse,
