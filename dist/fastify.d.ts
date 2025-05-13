@@ -1,4 +1,4 @@
-import { F as FastifyMiddlewareFn } from './types.d-CXjtvJZ3.js';
+import { F as FastifyMiddlewareFn } from './types.d-Bh9XLQsK.js';
 import 'express';
 import 'vite';
 import 'hono';

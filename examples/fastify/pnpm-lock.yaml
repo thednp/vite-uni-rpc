@@ -22,7 +22,7 @@ importers:
         version: 5.3.2
       vite-mini-rpc:
         specifier: git+https://github.com/thednp/rpc.git
-        version: git+https://github.com/thednp/rpc.git#f4f77dd4915b097f5d0ea41f434b8a8da583df19(vite@6.3.5(@types/node@22.15.17))
+        version: git+https://github.com/thednp/rpc.git#46c0c6fc90cbe933eb27554f3179b615d5874ef4(vite@6.3.5(@types/node@22.15.17))
     devDependencies:
       '@types/node':
         specifier: ^22.15.17
@@ -850,8 +850,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  vite-mini-rpc@git+https://github.com/thednp/rpc.git#f4f77dd4915b097f5d0ea41f434b8a8da583df19:
-    resolution: {commit: f4f77dd4915b097f5d0ea41f434b8a8da583df19, repo: https://github.com/thednp/rpc.git, type: git}
+  vite-mini-rpc@git+https://github.com/thednp/rpc.git#46c0c6fc90cbe933eb27554f3179b615d5874ef4:
+    resolution: {commit: 46c0c6fc90cbe933eb27554f3179b615d5874ef4, repo: https://github.com/thednp/rpc.git, type: git}
     version: 0.0.1
     peerDependencies:
       vite: ^6.3.5
@@ -1680,7 +1680,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-mini-rpc@git+https://github.com/thednp/rpc.git#f4f77dd4915b097f5d0ea41f434b8a8da583df19(vite@6.3.5(@types/node@22.15.17)):
+  vite-mini-rpc@git+https://github.com/thednp/rpc.git#46c0c6fc90cbe933eb27554f3179b615d5874ef4(vite@6.3.5(@types/node@22.15.17)):
     dependencies:
       vite: 6.3.5(@types/node@22.15.17)
 

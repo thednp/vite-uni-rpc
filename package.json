@@ -46,6 +46,11 @@
       "require": "./dist/fastify.cjs",
       "import": "./dist/fastify.js"
     },
+    "./fastify/plugin": {
+      "types": "./dist/fastify/plugin.d.ts",
+      "require": "./dist/fastify/plugin.cjs",
+      "import": "./dist/fastify/plugin.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

@@ -332,4 +332,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b };
+export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b };

@@ -6,6 +6,7 @@ export default defineConfig({
     server: 'src/server.ts',
     express: 'src/express/index.ts',
     fastify: 'src/fastify/index.ts',
+    "fastify/plugin": 'src/fastify/plugin.ts',
     hono: 'src/hono/index.ts',
   },
   

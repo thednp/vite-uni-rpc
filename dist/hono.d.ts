@@ -1,4 +1,4 @@
-import { H as HonoMiddlewareFn } from './types.d-CXjtvJZ3.js';
+import { H as HonoMiddlewareFn } from './types.d-Bh9XLQsK.js';
 import 'express';
 import 'vite';
 import 'hono';
