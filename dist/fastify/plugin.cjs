@@ -1,27 +1,113 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+"use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
 
-var _chunkGHYXWV4Zcjs = require('../chunk-GHYXWV4Z.cjs');
-require('../chunk-I745QCC6.cjs');
+var _chunk6HNJZRKYcjs = require('../chunk-6HNJZRKY.cjs');
+
+
+
+var _chunkFIWPANLAcjs = require('../chunk-FIWPANLA.cjs');
+
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js
+var require_getPluginName = _chunkFIWPANLAcjs.__commonJS.call(void 0, {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
+    "use strict";
+    var fpStackTracePattern = /at\s{1}(?:.*\.)?plugin\s{1}.*\n\s*(.*)/;
+    var fileNamePattern = /(\w*(\.\w*)*)\..*/;
+    module.exports = function getPluginName(fn) {
+      if (fn.name.length > 0) return fn.name;
+      const stackTraceLimit = Error.stackTraceLimit;
+      Error.stackTraceLimit = 10;
+      try {
+        throw new Error("anonymous function");
+      } catch (e) {
+        Error.stackTraceLimit = stackTraceLimit;
+        return extractPluginName(e.stack);
+      }
+    };
+    function extractPluginName(stack) {
+      const m = stack.match(fpStackTracePattern);
+      return m ? m[1].split(/[/\\]/).slice(-1)[0].match(fileNamePattern)[1] : "anonymous";
+    }
+    module.exports.extractPluginName = extractPluginName;
+  }
+});
+
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js
+var require_toCamelCase = _chunkFIWPANLAcjs.__commonJS.call(void 0, {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
+    "use strict";
+    module.exports = function toCamelCase(name) {
+      if (name[0] === "@") {
+        name = name.slice(1).replace("/", "-");
+      }
+      return name.replace(/-(.)/g, function(match, g1) {
+        return g1.toUpperCase();
+      });
+    };
+  }
+});
+
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js
+var require_plugin = _chunkFIWPANLAcjs.__commonJS.call(void 0, {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js"(exports, module) {
+    "use strict";
+    var getPluginName = require_getPluginName();
+    var toCamelCase = require_toCamelCase();
+    var count = 0;
+    function plugin(fn, options = {}) {
+      let autoName = false;
+      if (fn.default !== void 0) {
+        fn = fn.default;
+      }
+      if (typeof fn !== "function") {
+        throw new TypeError(
+          `fastify-plugin expects a function, instead got a '${typeof fn}'`
+        );
+      }
+      if (typeof options === "string") {
+        options = {
+          fastify: options
+        };
+      }
+      if (typeof options !== "object" || Array.isArray(options) || options === null) {
+        throw new TypeError("The options object should be an object");
+      }
+      if (options.fastify !== void 0 && typeof options.fastify !== "string") {
+        throw new TypeError(`fastify-plugin expects a version string, instead got '${typeof options.fastify}'`);
+      }
+      if (!options.name) {
+        autoName = true;
+        options.name = getPluginName(fn) + "-auto-" + count++;
+      }
+      fn[Symbol.for("skip-override")] = options.encapsulate !== true;
+      fn[Symbol.for("fastify.display-name")] = options.name;
+      fn[Symbol.for("plugin-meta")] = options;
+      if (!fn.default) {
+        fn.default = fn;
+      }
+      const camelCase = toCamelCase(options.name);
+      if (!autoName && !fn[camelCase]) {
+        fn[camelCase] = fn;
+      }
+      return fn;
+    }
+    module.exports = plugin;
+    module.exports.default = plugin;
+    module.exports.fastifyPlugin = plugin;
+  }
+});
 
 // src/fastify/plugin.ts
-var _fastifyplugin = require('fastify-plugin'); var _fastifyplugin2 = _interopRequireDefault(_fastifyplugin);
+var import_fastify_plugin = _chunkFIWPANLAcjs.__toESM.call(void 0, require_plugin(), 1);
 var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
-  if (initialOptions.path && initialOptions.rpcPreffix) {
-    console.warn(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration."
-    );
-    done();
-    return;
-  }
-  const middleware = _chunkGHYXWV4Zcjs.createMiddleware.call(void 0, initialOptions);
+  const middleware = _chunk6HNJZRKYcjs.createMiddleware.call(void 0, initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {
       middleware(request, reply, resolve);
     });
     await next();
   });
-  const rpcMiddleware = _chunkGHYXWV4Zcjs.createRPCMiddleware.call(void 0, initialOptions);
+  const rpcMiddleware = _chunk6HNJZRKYcjs.createRPCMiddleware.call(void 0, initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {
       rpcMiddleware(request, reply, resolve);
@@ -30,7 +116,7 @@ var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
   });
   done();
 };
-var fastifyMiniRpcPlugin = _fastifyplugin2.default.call(void 0, miniRpcPlugin, {
+var fastifyMiniRpcPlugin = (0, import_fastify_plugin.default)(miniRpcPlugin, {
   name: "vite-mini-rpc-fastify-plugin"
 });
 

@@ -10,16 +10,6 @@ const miniRpcPlugin = (
   initialOptions: Partial<MiddlewareOptions<"fastify">> = {},
   done: () => void,
 ) => {
-  // Check for configuration conflict
-  if (initialOptions.path && initialOptions.rpcPreffix) {
-    console.warn(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
-        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.",
-    );
-    done();
-    return;
-  }
-
   // Register regular middleware as preHandler hook
   const middleware = createMiddleware(initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {

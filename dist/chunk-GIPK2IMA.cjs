@@ -3,7 +3,7 @@
 
 
 
-var _chunkI745QCC6cjs = require('./chunk-I745QCC6.cjs');
+var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
 
 // src/express/helpers.ts
 var readBody = (req) => {
@@ -78,7 +78,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkI745QCC6cjs.defaultMiddlewareOptions,
+    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   if (path && rpcPreffix) {
@@ -89,8 +89,8 @@ var createMiddleware = (initialOptions = {}) => {
   return async (req, res, next) => {
     const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
-    if (_chunkI745QCC6cjs.serverFunctionsMap.size === 0) {
-      await _chunkI745QCC6cjs.scanForServerFiles.call(void 0, );
+    if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
+      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       return _optionalChain([next, 'optionalCall', _ => _()]);
@@ -134,9 +134,9 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkI745QCC6cjs.defaultMiddlewareOptions,
+    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
     // RPC middleware needs to have the RPC preffix
-    rpcPreffix: _chunkI745QCC6cjs.defaultRPCOptions.rpcPreffix,
+    rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -149,7 +149,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return _optionalChain([next, 'optionalCall', _9 => _9()]);
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkI745QCC6cjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         sendResponse(
           404,

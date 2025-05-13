@@ -3,7 +3,7 @@
 
 
 
-var _chunkI745QCC6cjs = require('./chunk-I745QCC6.cjs');
+var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
 
 // src/hono/createMiddleware.ts
 var createMiddleware = (initialOptions = {}) => {
@@ -16,7 +16,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkI745QCC6cjs.defaultMiddlewareOptions,
+    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   if (path && rpcPreffix) {
@@ -26,8 +26,8 @@ var createMiddleware = (initialOptions = {}) => {
   }
   return async (c, next) => {
     const { path: pathname } = c.req;
-    if (_chunkI745QCC6cjs.serverFunctionsMap.size === 0) {
-      await _chunkI745QCC6cjs.scanForServerFiles.call(void 0, );
+    if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
+      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       await next();
@@ -76,9 +76,9 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkI745QCC6cjs.defaultMiddlewareOptions,
+    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
     // RPC middleware needs to have an RPC preffix
-    rpcPreffix: _chunkI745QCC6cjs.defaultRPCOptions.rpcPreffix,
+    rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -91,7 +91,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return;
       }
       const functionName = path.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkI745QCC6cjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         c.json({ error: `Function "${functionName}" not found` }, 404);
         return;
