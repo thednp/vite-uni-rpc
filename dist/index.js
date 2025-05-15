@@ -1,6 +1,6 @@
 import {
   createRPCMiddleware
-} from "./chunk-L5QE64EH.js";
+} from "./chunk-K2QI654L.js";
 import {
   defaultRPCOptions,
   getClientModules,

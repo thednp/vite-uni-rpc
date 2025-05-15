@@ -1,9 +1,9 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
-
-
-
-
-var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
+import {
+  defaultMiddlewareOptions,
+  defaultRPCOptions,
+  scanForServerFiles,
+  serverFunctionsMap
+} from "./chunk-ZVEBQAB5.js";
 
 // src/express/helpers.ts
 var readBody = (req) => {
@@ -69,6 +69,7 @@ var getResponseDetails = (response) => {
 
 // src/express/createMiddleware.ts
 var middlewareCount = 0;
+var middleWareStack = /* @__PURE__ */ new Set();
 var createMiddleware = (initialOptions = {}) => {
   const {
     name: middlewareName,
@@ -80,13 +81,16 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
+    ...defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
-  if (!middlewareName) {
-    name = "rpcMiddleware" + middlewareCount;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
     middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
   }
   if (path && rpcPreffix) {
     throw new Error(
@@ -96,11 +100,11 @@ var createMiddleware = (initialOptions = {}) => {
   const middlewareHandler = async (req, res, next) => {
     const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
-    if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
-      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
+    if (serverFunctionsMap.size === 0) {
+      await scanForServerFiles();
     }
     if (!handler) {
-      return _optionalChain([next, 'optionalCall', _ => _()]);
+      return next?.();
     }
     try {
       if (onRequest) {
@@ -108,10 +112,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _2 => _2()]);
+        if (!matcher.test(url || "")) return next?.();
       }
-      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _5 => _5()]);
+      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
+        return next?.();
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -125,7 +129,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      _optionalChain([next, 'optionalCall', _6 => _6()]);
+      next?.();
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -145,9 +149,9 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
+    ...defaultMiddlewareOptions,
     // RPC middleware needs to have the RPC preffix
-    rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
+    rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -156,11 +160,11 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const { url } = getRequestDetails(req);
       const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
-      if (!_optionalChain([url, 'optionalAccess', _7 => _7.startsWith, 'call', _8 => _8(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _9 => _9()]);
+      if (!url?.startsWith(`/${rpcPreffix}`)) {
+        return next?.();
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
+      const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         sendResponse(
           404,
@@ -176,12 +180,12 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-
-
-
-
-
-
-
-
-exports.readBody = readBody; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.getRequestDetails = getRequestDetails; exports.getResponseDetails = getResponseDetails; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
+export {
+  readBody,
+  isExpressRequest,
+  isExpressResponse,
+  getRequestDetails,
+  getResponseDetails,
+  createMiddleware,
+  createRPCMiddleware
+};

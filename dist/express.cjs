@@ -6,7 +6,7 @@
 
 
 
-var _chunkBQAAUL5Ecjs = require('./chunk-BQAAUL5E.cjs');
+var _chunkEYV77UJEcjs = require('./chunk-EYV77UJE.cjs');
 require('./chunk-FIWPANLA.cjs');
 
 
@@ -16,4 +16,4 @@ require('./chunk-FIWPANLA.cjs');
 
 
 
-exports.createMiddleware = _chunkBQAAUL5Ecjs.createMiddleware; exports.createRPCMiddleware = _chunkBQAAUL5Ecjs.createRPCMiddleware; exports.getRequestDetails = _chunkBQAAUL5Ecjs.getRequestDetails; exports.getResponseDetails = _chunkBQAAUL5Ecjs.getResponseDetails; exports.isExpressRequest = _chunkBQAAUL5Ecjs.isExpressRequest; exports.isExpressResponse = _chunkBQAAUL5Ecjs.isExpressResponse; exports.readBody = _chunkBQAAUL5Ecjs.readBody;
+exports.createMiddleware = _chunkEYV77UJEcjs.createMiddleware; exports.createRPCMiddleware = _chunkEYV77UJEcjs.createRPCMiddleware; exports.getRequestDetails = _chunkEYV77UJEcjs.getRequestDetails; exports.getResponseDetails = _chunkEYV77UJEcjs.getResponseDetails; exports.isExpressRequest = _chunkEYV77UJEcjs.isExpressRequest; exports.isExpressResponse = _chunkEYV77UJEcjs.isExpressResponse; exports.readBody = _chunkEYV77UJEcjs.readBody;

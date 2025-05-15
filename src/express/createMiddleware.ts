@@ -14,6 +14,7 @@ import type { Arguments, JsonValue } from "../types";
 import { type ExpressMiddlewareFn } from "./types";
 
 let middlewareCount = 0;
+const middleWareStack = new Set<string>();
 
 export const createMiddleware: ExpressMiddlewareFn = (
   initialOptions = {},
@@ -33,9 +34,12 @@ export const createMiddleware: ExpressMiddlewareFn = (
   };
 
   let name = middlewareName;
-  if (!middlewareName) {
-    name = "rpcMiddleware" + middlewareCount;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
     middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
   }
 
   // Check for configuration conflict
