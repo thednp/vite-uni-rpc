@@ -36,14 +36,14 @@ if (!isProduction) {
   })
 } else {
   // Load RPC configuration
-  const { loadRPCConfig } = await import("vite-mini-rpc");
+  const { loadRPCConfig } = await import("vite-uni-rpc");
   const { adapter, ...options } = await loadRPCConfig();
   
   // Register RPC plugin
-  await app.register(import("vite-mini-rpc/fastify/plugin"), options);
+  await app.register(import("vite-uni-rpc/fastify/plugin"), options);
   
   // Register RPC middleware
-  // const { createRPCMiddleware } = await import("vite-mini-rpc/fastify");
+  // const { createRPCMiddleware } = await import("vite-uni-rpc/fastify");
   // const rpcMiddeware = createRPCMiddleware(options);
   // app.addHook("preHandler", async (request, reply) => {
   //   const next = () => new Promise(resolve => {
@@ -94,7 +94,6 @@ app.get("*", async (req, reply) => {
 });
 
 // Start Fastify server
-// await server.vite.ready();
 app.listen({ port }, (err) => {
   if (err) {
     app.log.error(err);

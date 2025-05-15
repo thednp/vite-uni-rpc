@@ -68,8 +68,10 @@ var getResponseDetails = (response) => {
 };
 
 // src/express/createMiddleware.ts
+var middlewareCount = 0;
 var createMiddleware = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -81,12 +83,17 @@ var createMiddleware = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions
   };
+  let name = middlewareName;
+  if (!middlewareName) {
+    name = "rpcMiddleware" + middlewareCount;
+    middlewareCount += 1;
+  }
   if (path && rpcPreffix) {
     throw new Error(
       "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."
     );
   }
-  return async (req, res, next) => {
+  const middlewareHandler = async (req, res, next) => {
     const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
     if (serverFunctionsMap.size === 0) {
@@ -131,6 +138,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
     }
   };
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name
+  });
+  return middlewareHandler;
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {

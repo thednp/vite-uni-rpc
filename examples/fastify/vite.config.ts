@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite';
-import rpc from 'vite-mini-rpc';
+import rpc from 'vite-uni-rpc';
 // import viteFastify from '@fastify/vite/plugin'
 
 export default defineConfig({

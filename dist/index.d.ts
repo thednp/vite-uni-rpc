@@ -1,16 +1,16 @@
 import { Plugin } from 'vite';
-import { R as RpcPluginOptions } from './types.d-Bh9XLQsK.js';
+import { R as RpcPluginOptions } from './types.d-vHtB4OYe.js';
 import 'express';
 import 'hono';
 import 'fastify';
 
 /**
- * Utility to define `vite-mini-rpc` configuration file similar to vite.
+ * Utility to define `vite-uni-rpc` configuration file similar to vite.
  * @param uniConfig a system wide RPC configuration
  */
 declare const defineConfig: (uniConfig: Partial<RpcPluginOptions>) => RpcPluginOptions;
 /**
- * Utility to load `vite-mini-rpc` configuration file system wide.
+ * Utility to load `vite-uni-rpc` configuration file system wide.
  * @param configFile an optional parameter to specify a file within your project scope
  */
 declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions>;

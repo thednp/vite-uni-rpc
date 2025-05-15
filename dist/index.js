@@ -1,6 +1,6 @@
 import {
   createRPCMiddleware
-} from "./chunk-CKQMDNGX.js";
+} from "./chunk-L5QE64EH.js";
 import {
   defaultRPCOptions,
   getClientModules,
@@ -75,7 +75,7 @@ async function rpcPlugin(devOptions = {}) {
   let config;
   let viteServer;
   return {
-    name: "vite-mini-rpc",
+    name: "vite-uni-rpc",
     enforce: "pre",
     // Plugin methods
     configResolved(resolvedConfig) {

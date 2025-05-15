@@ -1,5 +1,5 @@
-import { type RequestHandler } from "express";
-import { Connect } from "vite";
+import type { RequestHandler } from "express";
+import type { Connect } from "vite";
 import type { MiddlewareOptions, RpcPluginOptions } from "../types";
 
 export type ExpressMiddlewareFn = <

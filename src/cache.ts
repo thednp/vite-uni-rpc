@@ -1,4 +1,4 @@
-// /vite-mini-rpc/src/cache.ts
+// /vite-uni-rpc/src/cache.ts
 import { type CacheEntry } from "./types";
 import { defaultServerFnOptions } from "./options";
 

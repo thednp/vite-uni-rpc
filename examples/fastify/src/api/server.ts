@@ -1,4 +1,4 @@
-import { createServerFunction } from "vite-mini-rpc/server";
+import { createServerFunction } from "vite-uni-rpc/server";
 
 export const sayHi = createServerFunction(
   "say-hi",

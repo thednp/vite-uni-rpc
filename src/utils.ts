@@ -1,4 +1,4 @@
-// vite-mini-rpc/src/utils.ts
+// vite-uni-rpc/src/utils.ts
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";

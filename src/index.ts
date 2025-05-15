@@ -15,7 +15,7 @@ import { defaultRPCOptions } from "./options";
 import type { RpcPluginOptions } from "./types";
 
 /**
- * Utility to define `vite-mini-rpc` configuration file similar to vite.
+ * Utility to define `vite-uni-rpc` configuration file similar to vite.
  * @param uniConfig a system wide RPC configuration
  */
 const defineConfig = (uniConfig: Partial<RpcPluginOptions>) => {
@@ -23,7 +23,7 @@ const defineConfig = (uniConfig: Partial<RpcPluginOptions>) => {
 };
 
 /**
- * Utility to load `vite-mini-rpc` configuration file system wide.
+ * Utility to load `vite-uni-rpc` configuration file system wide.
  * @param configFile an optional parameter to specify a file within your project scope
  */
 async function loadRPCConfig(configFile?: string) {
@@ -96,7 +96,7 @@ async function rpcPlugin(
   let viteServer: ViteDevServer;
 
   return {
-    name: "vite-mini-rpc",
+    name: "vite-uni-rpc",
     enforce: "pre",
     // Plugin methods
     configResolved(resolvedConfig) {

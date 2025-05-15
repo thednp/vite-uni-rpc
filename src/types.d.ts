@@ -1,4 +1,4 @@
-// vite-mini-rpc/src/types.d.ts
+// vite-uni-rpc/src/types.d.ts
 import type { ExpressMiddlewareFn, ExpressMiddlewareHooks } from "./express";
 import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono";
 import type { FastifyMiddlewareFn, FastifyMiddlewareHooks } from "./fastify";
@@ -69,7 +69,7 @@ export interface CacheEntry<T> {
 }
 
 /**
- * ### vite-mini-rpc
+ * ### vite-uni-rpc
  * The plugin configuration allows for granular control of your
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
@@ -189,6 +189,12 @@ export interface MiddlewareOptions<
    * rpcPreffix: "api/rpc"
    */
   rpcPreffix?: string | false;
+
+  /**
+   * RPC middlewares would like to have a name, specifically for _express_,
+   * to help identify them within vite's stack;
+   */
+  name?: string;
 
   /**
    * Custom headers to be set for middleware responses.

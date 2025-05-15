@@ -3,6 +3,9 @@
   "type": "module",
   "main": "index.ts",
   "types": "types.d.ts",
+  "peerDependencies": {
+    "vite": "^6.3.5"
+  },
   "dependencies": {
     "fastify": "^5.3.2",
     "fastify-plugin": "^5.0.1"

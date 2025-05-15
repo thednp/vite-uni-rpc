@@ -1,4 +1,5 @@
 // src/fastify/plugin.ts
+// inspired by https://github.com/royalswe/vike-fastify-boilerplate/blob/main/server/index.ts
 import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 import type { MiddlewareOptions } from "../types";
@@ -35,7 +36,7 @@ const miniRpcPlugin = (
 
 // Export the plugin wrapped with fastify-plugin
 const fastifyMiniRpcPlugin = fp(miniRpcPlugin, {
-  name: "vite-mini-rpc-fastify-plugin",
+  name: "vite-uni-rpc-fastify-plugin",
 });
 
 export { fastifyMiniRpcPlugin as default };

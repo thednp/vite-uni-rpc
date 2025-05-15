@@ -1,14 +1,14 @@
 {
-  "name": "vite-mini-rpc",
+  "name": "vite-uni-rpc",
   "version": "0.0.1",
   "description": "⚡ A Vite plugin for creating server functions with automatic Remote Procedure Calls (RPC)",
-  "homepage": "https://github.com/thednp/vite-mini-rpc#readme",
+  "homepage": "https://github.com/thednp/vite-uni-rpc#readme",
   "bugs": {
-    "url": "https://github.com/thednp/vite-mini-rpc/issues"
+    "url": "https://github.com/thednp/vite-uni-rpc/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thednp/vite-mini-rpc.git"
+    "url": "git+https://github.com/thednp/vite-uni-rpc.git"
   },
   "license": "MIT",
   "author": "thednp",
@@ -55,27 +55,24 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "badges": "npx -p dependency-version-badge update-badge vanjs-core mini-van-plate typescript vitest vite",
+    "badges": "npx -p dependency-version-badge update-badge vitest vite",
     "format": "deno fmt src",
     "lint": "pnpm lint:ts && pnpm check:ts",
     "lint:ts": "deno lint src",
     "fix:ts": "deno lint src --fix",
     "check:ts": "tsc -noEmit",
-    "up:examples": "pnpm update -r \"examples\"",
+    "up:examples": "pnpm update -r \"./examples/*\"",
     "up:root": "pnpm update -r \".\"",
-    "upd": "pnpm up:root && pnpm up:examples",
+    "upd": "pnpm up:examples && pnpm up:root",
     "prepublishOnly": "pnpm upd && pnpm lint && pnpm check:ts && pnpm format && pnpm build",
     "build": "tsup"
-  },
-  "peerDependencies": {
-    "vite": "^6.3.5"
   },
   "dependencies": {
     "vite": "^6.3.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.18",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"

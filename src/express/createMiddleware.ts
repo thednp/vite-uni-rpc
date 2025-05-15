@@ -13,10 +13,13 @@ import { serverFunctionsMap } from "../utils";
 import type { Arguments, JsonValue } from "../types";
 import { type ExpressMiddlewareFn } from "./types";
 
+let middlewareCount = 0;
+
 export const createMiddleware: ExpressMiddlewareFn = (
   initialOptions = {},
 ) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -29,6 +32,12 @@ export const createMiddleware: ExpressMiddlewareFn = (
     ...initialOptions,
   };
 
+  let name = middlewareName;
+  if (!middlewareName) {
+    name = "rpcMiddleware" + middlewareCount;
+    middlewareCount += 1;
+  }
+
   // Check for configuration conflict
   if (path && rpcPreffix) {
     throw new Error(
@@ -38,7 +47,7 @@ export const createMiddleware: ExpressMiddlewareFn = (
     );
   }
 
-  return async (
+  const middlewareHandler = async (
     req: IncomingMessage | ExpressRequest,
     res: ServerResponse | ExpressResponse,
     next: Connect.NextFunction | NextFunction,
@@ -100,6 +109,12 @@ export const createMiddleware: ExpressMiddlewareFn = (
       }
     }
   };
+
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name,
+  });
+
+  return middlewareHandler;
 };
 
 // Create RPC middleware

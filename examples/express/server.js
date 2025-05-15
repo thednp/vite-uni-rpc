@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import express from 'express'
-import { resolve } from 'node:path'
 
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
@@ -32,8 +31,8 @@ if (!isProduction) {
   const compression = (await import('compression')).default
   const sirv = (await import('sirv')).default
   // load RPC configuration
-  const { loadRPCConfig } = await import("vite-mini-rpc");
-  const { createRPCMiddleware } = await import("vite-mini-rpc/express");
+  const { loadRPCConfig } = await import("vite-uni-rpc");
+  const { createRPCMiddleware } = await import("vite-uni-rpc/express");
   const { adapter, ...options } = await loadRPCConfig();
   app.use(createRPCMiddleware(options));
 
@@ -61,7 +60,7 @@ app.use('*all', async (req, res) => {
       render = (await import('./dist/server/entry-server.js')).render
     }
 
-    const rendered = render(url)
+    const rendered = await render(url)
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')

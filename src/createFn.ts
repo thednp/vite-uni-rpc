@@ -1,4 +1,4 @@
-// /vite-mini-rpc/src/createFn.ts
+// /vite-uni-rpc/src/createFn.ts
 
 import { serverCache } from "./cache";
 import type { Arguments, ServerFnEntry, ServerFunctionOptions } from "./types";

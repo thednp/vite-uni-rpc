@@ -1,4 +1,4 @@
-// vite-mini-rpc/src/express/helpers.ts
+// vite-uni-rpc/src/express/helpers.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type {
   Request as ExpressRequest,

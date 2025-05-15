@@ -117,7 +117,7 @@ var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
   done();
 };
 var fastifyMiniRpcPlugin = (0, import_fastify_plugin.default)(miniRpcPlugin, {
-  name: "vite-mini-rpc-fastify-plugin"
+  name: "vite-uni-rpc-fastify-plugin"
 });
 export {
   fastifyMiniRpcPlugin as default
