@@ -65,7 +65,7 @@ app.get('*', async (c, next) => {
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '');
 
-    return c.html(html, 200, { "Content-Type": "text/html" });
+    return c.html(html.trim(), 200, { "Content-Type": "text/html" });
   } catch (e) {
     vite?.ssrFixStacktrace(e);
     console.error(e.stack);

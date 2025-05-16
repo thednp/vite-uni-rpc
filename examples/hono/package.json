@@ -4,13 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev_vite": "vite",
-    "dev": "node --experimental-strip-types server",
+    "dev": "node server",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "vite build --outDir dist/client --mode=production",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server --mode=production",
     "preview": "pnpm build && pnpm start",
-    "start": "NODE_ENV=production node --experimental-strip-types server"
+    "start": "NODE_ENV=production node server"
   },
   "dependencies": {
     "@hono/node-server": "1.13.0",
