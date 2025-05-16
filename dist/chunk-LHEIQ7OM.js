@@ -95,13 +95,18 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
-          error: `Function "${functionName}" not found`
+          error: `Function "${functionName}" was not found`
         });
         return;
       }
-      const args = req.body;
-      const result = await serverFunction.fn(...args);
-      reply.status(200).send({ data: result });
+      try {
+        const args = req.body;
+        const result = await serverFunction.fn(...args);
+        reply.status(200).send({ data: result });
+      } catch (err) {
+        console.error(String(err));
+        reply.status(500).send({ error: `Internal Server Error` });
+      }
     }
   });
 };

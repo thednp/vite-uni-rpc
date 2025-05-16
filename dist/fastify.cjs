@@ -1,9 +1,9 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
 
-var _chunk6HNJZRKYcjs = require('./chunk-6HNJZRKY.cjs');
+var _chunkV62SC2HNcjs = require('./chunk-V62SC2HN.cjs');
 require('./chunk-FIWPANLA.cjs');
 
 
 
-exports.createMiddleware = _chunk6HNJZRKYcjs.createMiddleware; exports.createRPCMiddleware = _chunk6HNJZRKYcjs.createRPCMiddleware;
+exports.createMiddleware = _chunkV62SC2HNcjs.createMiddleware; exports.createRPCMiddleware = _chunkV62SC2HNcjs.createRPCMiddleware;

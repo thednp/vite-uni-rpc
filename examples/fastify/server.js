@@ -80,7 +80,6 @@ app.get("*", async (req, reply) => {
     }
 
     const rendered = await render(url);
-
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? "")
       .replace(`<!--app-html-->`, rendered.html ?? "");
@@ -88,8 +87,8 @@ app.get("*", async (req, reply) => {
     reply.status(200).header("Content-Type", "text/html").send(html);
   } catch (e) {
     vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    reply.status(500).send(e.stack);
+    console.error(e.stack);
+    reply.status(500).send("Internal Server Error");
   }
 });
 

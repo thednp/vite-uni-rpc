@@ -1,7 +1,6 @@
 import {
-  createMiddleware,
   createRPCMiddleware
-} from "../chunk-JWVGEPMW.js";
+} from "../chunk-LHEIQ7OM.js";
 import {
   __commonJS,
   __toESM
@@ -100,13 +99,6 @@ var require_plugin = __commonJS({
 // src/fastify/plugin.ts
 var import_fastify_plugin = __toESM(require_plugin(), 1);
 var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
-  const middleware = createMiddleware(initialOptions);
-  fastify.addHook("preHandler", async (request, reply) => {
-    const next = () => new Promise((resolve) => {
-      middleware(request, reply, resolve);
-    });
-    await next();
-  });
   const rpcMiddleware = createRPCMiddleware(initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {

@@ -3,7 +3,7 @@
 import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 import type { MiddlewareOptions } from "../types";
-import { createMiddleware, createRPCMiddleware } from "./createMiddleware";
+import { createRPCMiddleware } from "./createMiddleware";
 
 // Define the plugin function
 const miniRpcPlugin = (
@@ -12,14 +12,15 @@ const miniRpcPlugin = (
   done: () => void,
 ) => {
   // Register regular middleware as preHandler hook
-  const middleware = createMiddleware(initialOptions);
-  fastify.addHook("preHandler", async (request, reply) => {
-    const next = () =>
-      new Promise((resolve) => {
-        middleware(request, reply, resolve);
-      });
-    await next();
-  });
+  // Move this part to Wiki
+  // const middleware = createMiddleware(initialOptions);
+  // app.addHook("preHandler", async (request, reply) => {
+  //   const next = () =>
+  //     new Promise((resolve) => {
+  //       middleware(request, reply, resolve);
+  //     });
+  //   await next();
+  // });
 
   // Register RPC middleware as preHandler hook
   const rpcMiddleware = createRPCMiddleware(initialOptions);

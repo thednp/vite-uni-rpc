@@ -172,10 +172,15 @@ var createRPCMiddleware = (initialOptions = {}) => {
         );
         return;
       }
-      const body = await readBody(req);
-      const args = JSON.parse(body || "[]");
-      const result = await serverFunction.fn(...args);
-      sendResponse(200, { data: result });
+      try {
+        const body = await readBody(req);
+        const args = JSON.parse(body || "[]");
+        const result = await serverFunction.fn(...args);
+        sendResponse(200, { data: result });
+      } catch (err) {
+        console.error(String(err));
+        sendResponse(500, { error: "Internal Server Error" });
+      }
     }
   });
 };

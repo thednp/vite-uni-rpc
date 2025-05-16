@@ -136,14 +136,19 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
 
       if (!serverFunction) {
         reply.status(404).send({
-          error: `Function "${functionName}" not found`,
+          error: `Function "${functionName}" was not found`,
         });
         return;
       }
 
-      const args = req.body as Arguments[];
-      const result = await serverFunction.fn(...args) as JsonValue;
-      reply.status(200).send({ data: result });
+      try {
+        const args = req.body as Arguments[];
+        const result = await serverFunction.fn(...args) as JsonValue;
+        reply.status(200).send({ data: result });
+      } catch (err) {
+        console.error(String(err));
+        reply.status(500).send({ error: `Internal Server Error` });
+      }
     },
   });
 };

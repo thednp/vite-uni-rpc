@@ -6,8 +6,12 @@
 var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
 
 // src/hono/createMiddleware.ts
+var _factory = require('hono/factory');
+var middlewareCount = 0;
+var middleWareStack = /* @__PURE__ */ new Set();
 var createMiddleware = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -19,65 +23,77 @@ var createMiddleware = (initialOptions = {}) => {
     ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
+  let name = middlewareName;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
+    middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
+  }
   if (path && rpcPreffix) {
     throw new Error(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."
+      'Configuration conflict: Both "path" and "rpcPreffix" are provided. The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. Skipping middleware registration..'
     );
   }
-  return async (c, next) => {
-    const { path: pathname } = c.req;
-    if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
-      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
-    }
-    if (!handler) {
-      await next();
-      return;
-    }
-    try {
-      if (onRequest) {
-        await onRequest(c);
+  const middlewareHandler = _factory.createMiddleware.call(void 0, 
+    async (c, next) => {
+      const { path: pathname } = c.req;
+      if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
+        await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
       }
-      if (path) {
-        const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(pathname || "")) {
-          await next();
-          return;
-        }
-      }
-      if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _ => _.startsWith, 'call', _2 => _2(`/${rpcPreffix}`)])) {
+      if (!handler) {
         await next();
         return;
       }
-      if (headers) {
-        Object.entries(headers).forEach(([key, value]) => {
-          c.res.headers.set(key, value);
-        });
-      }
-      if (handler) {
-        await handler(c, next);
+      try {
+        if (onRequest) {
+          await onRequest(c);
+        }
+        if (path) {
+          const matcher = typeof path === "string" ? new RegExp(path) : path;
+          if (!matcher.test(pathname || "")) {
+            await next();
+            return;
+          }
+        }
+        if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _ => _.startsWith, 'call', _2 => _2(`/${rpcPreffix}`)])) {
+          await next();
+          return;
+        }
+        if (headers) {
+          Object.entries(headers).forEach(([key, value]) => {
+            c.header(key, value);
+          });
+        }
+        if (handler) {
+          const result = await handler(c, next);
+          if (onResponse) {
+            await onResponse(c);
+          }
+          return result;
+        }
+        await next();
+      } catch (error) {
         if (onResponse) {
           await onResponse(c);
         }
-        return;
-      }
-      next();
-    } catch (error) {
-      if (onResponse) {
-        await onResponse(c);
-      }
-      if (onError) {
-        await onError(error, c);
-      } else {
-        console.error("Middleware error:", String(error));
-        c.json({ error: "Internal Server Error" }, 500);
+        if (onError) {
+          await onError(error, c);
+        } else {
+          return c.json({ error: "Internal Server Error" }, 500);
+        }
       }
     }
-  };
+  );
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name
+  });
+  return middlewareHandler;
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
     ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
-    // RPC middleware needs to have an RPC preffix
     rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
@@ -86,23 +102,71 @@ var createRPCMiddleware = (initialOptions = {}) => {
     handler: async (c, next) => {
       const { path } = c.req;
       const { rpcPreffix } = options;
-      if (!_optionalChain([path, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${rpcPreffix}/`)])) {
+      if (!rpcPreffix || rpcPreffix.length === 0) {
+        await next();
+        return;
+      }
+      if (rpcPreffix && !path.startsWith(`/${rpcPreffix}`)) {
         await next();
         return;
       }
       const functionName = path.replace(`/${rpcPreffix}/`, "");
       const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
-        c.json({ error: `Function "${functionName}" not found` }, 404);
+        return c.json({ error: `Function "${functionName}" not found` }, 404);
+      }
+      try {
+        const body = await c.req.text();
+        const args = body ? JSON.parse(body) : [];
+        const result = await serverFunction.fn(...args);
+        return c.json({ data: result }, 200);
+      } catch (err) {
+        console.error(String(err));
+        return c.json({ error: "Internal Server Error" }, 500);
+      }
+    }
+  });
+};
+
+// src/hono/viteMiddleware.ts
+
+var viteMiddleware = (vite) => {
+  return _factory.createMiddleware.call(void 0, (c, next) => {
+    return new Promise((resolve) => {
+      if (typeof Bun === "undefined") {
+        vite.middlewares(c.env.incoming, c.env.outgoing, () => resolve(next()));
         return;
       }
-      const args = await c.req.json();
-      const result = await serverFunction.fn(...args);
-      c.json({ data: result }, 200);
-    }
+      let sent = false;
+      const headers = new Headers();
+      vite.middlewares(
+        {
+          url: new URL(c.req.path, "http://localhost").pathname,
+          method: c.req.raw.method,
+          headers: Object.fromEntries(
+            c.req.raw.headers
+          )
+        },
+        {
+          setHeader(name, value) {
+            headers.set(name, value);
+            return this;
+          },
+          end(body) {
+            sent = true;
+            resolve(
+              // @ts-expect-error - weird
+              c.body(body, c.res.status, headers)
+            );
+          }
+        },
+        () => sent || resolve(next())
+      );
+    });
   });
 };
 
 
 
-exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
+
+exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware; exports.viteMiddleware = viteMiddleware;

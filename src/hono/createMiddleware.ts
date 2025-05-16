@@ -1,14 +1,17 @@
 // src/hono/createMiddleware.ts
 import type { Context, Next } from "hono";
-import { scanForServerFiles, serverFunctionsMap } from "../utils";
-import type { Arguments, JsonValue } from "../types";
-import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
-import { type HonoMiddlewareFn } from "./types";
+import { createMiddleware as createHonoMiddleware } from "hono/factory";
+import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
+import type { Arguments, JsonValue } from "../types.d.ts";
+import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
+import type { HonoMiddlewareFn } from "./types.d.ts";
 
-export const createMiddleware: HonoMiddlewareFn = (
-  initialOptions = {},
-) => {
+let middlewareCount = 0;
+const middleWareStack = new Set<string>();
+
+export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -21,102 +24,108 @@ export const createMiddleware: HonoMiddlewareFn = (
     ...initialOptions,
   };
 
+  let name = middlewareName;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
+    middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
+  }
+
   if (path && rpcPreffix) {
     throw new Error(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
-        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. " +
+      'Configuration conflict: Both "path" and "rpcPreffix" are provided. ' +
+        'The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. ' +
         "Skipping middleware registration..",
     );
   }
 
-  return async (
-    c: Context,
-    next: Next,
-  ) => {
-    const { path: pathname } = c.req;
-    // When serving from production server, it's a good idea to
-    // scan for server files and populate the serverFunctionsMap
-    if (serverFunctionsMap.size === 0) {
-      // Let the utility use its own defaults
-      await scanForServerFiles();
-    }
-    // No need to continue when no handler provided
-    if (!handler) {
-      await next();
-      return;
-    }
-
-    try {
-      // Execute onRequest hook if provided
-      if (onRequest) {
-        await onRequest(c);
+  const middlewareHandler = createHonoMiddleware(
+    async (c: Context, next: Next) => {
+      const { path: pathname } = c.req;
+      if (serverFunctionsMap.size === 0) {
+        await scanForServerFiles();
       }
-      // Path matching
-      if (path) {
-        const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(pathname || "")) {
+
+      if (!handler) {
+        await (next());
+        return;
+      }
+
+      try {
+        if (onRequest) {
+          await onRequest(c);
+        }
+
+        if (path) {
+          const matcher = typeof path === "string" ? new RegExp(path) : path;
+          if (!matcher.test(pathname || "")) {
+            await next();
+            return;
+          }
+        }
+
+        if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
           await next();
           return;
         }
-      }
-      // rpcPreffix matching
-      if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+
+        if (headers) {
+          Object.entries(headers).forEach(([key, value]) => {
+            c.header(key, value);
+          });
+        }
+
+        if (handler) {
+          const result = await handler(c, next);
+
+          if (onResponse) {
+            await onResponse(c);
+          }
+
+          return result;
+        }
         await next();
-        return;
-      }
-
-      // Set custom headers
-      if (headers) {
-        Object.entries(headers).forEach(([key, value]) => {
-          c.res.headers.set(key, value);
-        });
-      }
-
-      // Execute handler if provided
-      if (handler) {
-        await handler(c, next);
+      } catch (error) {
         if (onResponse) {
           await onResponse(c);
         }
-        return;
+        if (onError) {
+          await (onError(error as Error, c));
+        } else {
+          return (c.json({ error: "Internal Server Error" }, 500));
+        }
       }
+    },
+  );
 
-      next();
-    } catch (error) {
-      if (onResponse) {
-        await onResponse(c);
-      }
-      if (onError) {
-        await onError(error as Error, c);
-      } else {
-        console.error("Middleware error:", String(error));
-        c.json({ error: "Internal Server Error" }, 500);
-      }
-    }
-  };
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name,
+  });
+
+  return middlewareHandler;
 };
 
-// Create RPC middleware
-export const createRPCMiddleware: HonoMiddlewareFn = (
-  initialOptions = {},
-) => {
+export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
   const options = {
     ...defaultMiddlewareOptions,
-    // RPC middleware needs to have an RPC preffix
     rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...initialOptions,
   };
 
   return createMiddleware({
     ...options,
-    handler: async (
-      c: Context,
-      next: Next,
-    ) => {
+    handler: async (c: Context, next: Next) => {
       const { path } = c.req;
       const { rpcPreffix } = options;
 
-      if (!path?.startsWith(`/${rpcPreffix}/`)) {
+      if (!rpcPreffix || rpcPreffix.length === 0) {
+        await next();
+        return;
+      }
+
+      if (rpcPreffix && !path.startsWith(`/${rpcPreffix}`)) {
         await next();
         return;
       }
@@ -125,16 +134,18 @@ export const createRPCMiddleware: HonoMiddlewareFn = (
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
-        c.json({ error: `Function "${functionName}" not found` }, 404);
-        return;
+        return c.json({ error: `Function "${functionName}" not found` }, 404);
       }
 
-      // const body = await readBody(c.req.raw as Request);
-      // const body = await c.req.json() as string;
-      // const args = JSON.parse(body || "[]") as Arguments[];
-      const args = await c.req.json() as Arguments[];
-      const result = await serverFunction.fn(...args) as JsonValue;
-      c.json({ data: result }, 200);
+      try {
+        const body = await c.req.text();
+        const args: Arguments[] = body ? JSON.parse(body) : [];
+        const result = await serverFunction.fn(...args) as JsonValue;
+        return c.json({ data: result }, 200);
+      } catch (err) {
+        console.error(String(err));
+        return c.json({ error: "Internal Server Error" }, 500);
+      }
     },
   });
 };
