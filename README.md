@@ -21,7 +21,7 @@ npm install vite-uni-rpc@latest
 
 ### Wiki
 
-Please refer to the [Wiki](/thednp/vite-uni-rpc/wiki) for guides on installation, configuration and usage.
+Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guides on installation, configuration and usage.
 
 
 ### TO DO

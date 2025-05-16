@@ -167,6 +167,12 @@ export interface MiddlewareOptions<
   A extends RpcPluginOptions["adapter"] = "express",
 > {
   /**
+   * RPC middlewares would like to have a name, specifically for _express_,
+   * to help identify them within vite's stack;
+   */
+    name?: string;
+
+  /**
    * Path pattern to match for middleware execution.
    * Accepts string or RegExp to filter requests based on URL path.
    *
@@ -189,12 +195,6 @@ export interface MiddlewareOptions<
    * rpcPreffix: "api/rpc"
    */
   rpcPreffix?: string | false;
-
-  /**
-   * RPC middlewares would like to have a name, specifically for _express_,
-   * to help identify them within vite's stack;
-   */
-  name?: string;
 
   /**
    * Custom headers to be set for middleware responses.
