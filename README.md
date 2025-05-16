@@ -24,5 +24,12 @@ npm install vite-uni-rpc@latest
 Please refer to the [Wiki](/thednp/vite-uni-rpc/wiki) for guides on installation, configuration and usage.
 
 
+### TO DO
+
+- [x] Add examples
+- [ ] Add Github tooling/workflows
+- [ ] Add tests
+
+
 ### License
 Released under [MIT](LICENSE).
