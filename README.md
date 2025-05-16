@@ -27,6 +27,7 @@ Please refer to the [Wiki](/thednp/vite-uni-rpc/wiki) for guides on installation
 ### TO DO
 
 - [x] Add examples
+- [ ] Add wiki
 - [ ] Add Github tooling/workflows
 - [ ] Add tests
 
