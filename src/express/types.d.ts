@@ -1,6 +1,8 @@
 import type { Connect } from "vite";
 import type { MiddlewareOptions, RpcPluginOptions } from "../types";
 
+export type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
+
 export type ExpressMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "express",
 >(

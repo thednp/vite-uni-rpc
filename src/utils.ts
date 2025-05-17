@@ -29,11 +29,16 @@ export const scanForServerFiles = async (
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg
     ? {
+      // always scan relative to the real root
       root: process.cwd(),
       base: process.env.BASE || "/",
       server: { middlewareMode: true },
     }
-    : initialCfg;
+    : {
+      ...initialCfg,
+      // always scan relative to the real root
+      root: process.cwd(),
+    };
 
   if (!server) {
     const { createServer } = await import("vite");
@@ -41,6 +46,7 @@ export const scanForServerFiles = async (
       server: config.server,
       appType: "custom",
       base: config.base,
+      root: config.root,
     });
   }
 
@@ -51,7 +57,6 @@ export const scanForServerFiles = async (
     "server.mts",
   ];
   const apiDir = join(config.root, "src", "api");
-
   const files = (await readdir(apiDir, { withFileTypes: true }))
     .filter((f) => svFiles.some((fn) => f.name.includes(fn)))
     .map((f) => join(apiDir, f.name));

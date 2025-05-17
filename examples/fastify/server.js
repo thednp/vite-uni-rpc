@@ -28,7 +28,7 @@ if (!isProduction) {
     base,
     root,
   });
-  app.addHook("onRequest", async(request, reply) => {
+  app.addHook("onRequest", async (request, reply) => {
     const next = () => new Promise((resolve) => {
       vite.middlewares(request.raw, reply.raw, resolve);
     });
@@ -41,16 +41,6 @@ if (!isProduction) {
   
   // Register RPC plugin
   await app.register(import("vite-uni-rpc/fastify/plugin"), options);
-  
-  // Register RPC middleware
-  // const { createRPCMiddleware } = await import("vite-uni-rpc/fastify");
-  // const rpcMiddeware = createRPCMiddleware(options);
-  // app.addHook("preHandler", async (request, reply) => {
-  //   const next = () => new Promise(resolve => {
-  //     rpcMiddeware(request, reply, resolve);
-  //   })
-  //   await next()
-  // });
 
   // Register other middleware
   await app.register(import("@fastify/compress"));

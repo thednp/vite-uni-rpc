@@ -3,7 +3,7 @@
 
 
 
-var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
+var _chunk4GHZIEGXcjs = require('./chunk-4GHZIEGX.cjs');
 
 // src/hono/createMiddleware.ts
 var _factory = require('hono/factory');
@@ -20,7 +20,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
+    ..._chunk4GHZIEGXcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -39,8 +39,8 @@ var createMiddleware = (initialOptions = {}) => {
   const middlewareHandler = _factory.createMiddleware.call(void 0, 
     async (c, next) => {
       const { path: pathname } = c.req;
-      if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
-        await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
+      if (_chunk4GHZIEGXcjs.serverFunctionsMap.size === 0) {
+        await _chunk4GHZIEGXcjs.scanForServerFiles.call(void 0, );
       }
       if (!handler) {
         await next();
@@ -93,8 +93,8 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
-    rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
+    ..._chunk4GHZIEGXcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunk4GHZIEGXcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -111,7 +111,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return;
       }
       const functionName = path.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunk4GHZIEGXcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         return c.json({ error: `Function "${functionName}" not found` }, 404);
       }
@@ -128,7 +128,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-// src/hono/viteMiddleware.ts
+// src/hono/helpers.ts
 
 var viteMiddleware = (vite) => {
   return _factory.createMiddleware.call(void 0, (c, next) => {

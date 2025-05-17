@@ -36,16 +36,22 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
+    // always scan relative to the real root
     root: process.cwd(),
     base: process.env.BASE || "/",
     server: { middlewareMode: true }
-  } : initialCfg;
+  } : {
+    ...initialCfg,
+    // always scan relative to the real root
+    root: process.cwd()
+  };
   if (!server) {
     const { createServer } = await import("vite");
     server = await createServer({
       server: config.server,
       appType: "custom",
-      base: config.base
+      base: config.base,
+      root: config.root
     });
   }
   const svFiles = [

@@ -1,4 +1,5 @@
-import { E as ExpressMiddlewareFn, J as JsonValue } from './types.d-BQsvFMi2.js';
+import { E as ExpressMiddlewareFn, J as JsonValue } from './types.d-C_r3ksoN.js';
+export { d as ExpressMiddlewareHooks, c as ExpressMiddlewareOptions } from './types.d-C_r3ksoN.js';
 import * as http from 'http';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
@@ -20,10 +21,9 @@ declare const getRequestDetails: (request: Request | IncomingMessage) => {
 declare const getResponseDetails: (response: Response | ServerResponse) => {
     isResponseSent: boolean;
     setHeader: (name: string, value: string) => void;
-    getHeader: (name: string) => string | number | string[] | undefined;
     statusCode: number;
     setStatusCode: (code: number) => void;
     sendResponse: (code: number, output: Record<string, JsonValue>) => void;
 };
 
-export { createMiddleware, createRPCMiddleware, getRequestDetails, getResponseDetails, isExpressRequest, isExpressResponse, readBody };
+export { ExpressMiddlewareFn, createMiddleware, createRPCMiddleware, getRequestDetails, getResponseDetails, isExpressRequest, isExpressResponse, readBody };

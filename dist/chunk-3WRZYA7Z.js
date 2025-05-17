@@ -3,11 +3,14 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-ZVEBQAB5.js";
+} from "./chunk-GSKE4CT4.js";
 
 // src/fastify/createMiddleware.ts
+var middlewareCount = 0;
+var middleWareStack = /* @__PURE__ */ new Set();
 var createMiddleware = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -19,6 +22,14 @@ var createMiddleware = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions
   };
+  let name = middlewareName;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
+    middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
+  }
   if (path && rpcPreffix) {
     throw new Error(
       "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."

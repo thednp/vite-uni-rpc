@@ -1,4 +1,5 @@
-import { F as FastifyMiddlewareFn } from './types.d-BQsvFMi2.cjs';
+import { F as FastifyMiddlewareFn } from './types.d-C_r3ksoN.cjs';
+export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-C_r3ksoN.cjs';
 import 'vite';
 import 'hono';
 import 'fastify';
@@ -6,4 +7,4 @@ import 'fastify';
 declare const createMiddleware: FastifyMiddlewareFn;
 declare const createRPCMiddleware: FastifyMiddlewareFn;
 
-export { createMiddleware, createRPCMiddleware };
+export { FastifyMiddlewareFn, createMiddleware, createRPCMiddleware };

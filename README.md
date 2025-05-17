@@ -12,10 +12,23 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 - Framework agnostic
 - TypeScript support
 
+
+### Examples
+
+* [SPA](https://github.com/thednp/vite-uni-rpc/tree/main/examples/spa): a simple Single Page App with a `node:http` proxy to reply to RPC calls, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/spa)
+* [Express](https://github.com/thednp/vite-uni-rpc/tree/main/examples/express): a simple Server Side Rendering app with `express` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/express)
+* [Fastify](https://github.com/thednp/vite-uni-rpc/tree/main/examples/fastify): a simple Server Side Rendering app with `fastify` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/fastify)
+* [Hono](https://github.com/thednp/vite-uni-rpc/tree/main/examples/hono): a simple Server Side Rendering app with `hono` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/hono)
+
+
 ### Installation
 
 ```bash
 npm install vite-uni-rpc@latest
+```
+
+```bash
+pnpm add vite-uni-rpc@latest
 ```
 
 
@@ -27,9 +40,11 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 ### TO DO
 
 - [x] Add examples
-- [ ] Add wiki
 - [x] Add SPA support
-- [ ] Add multipart/form-data support
+- [x] Add wiki
+- [ ] Add koa adapter
+- [ ] Test bun
+- [ ] Add `multipart/form-data` support via `contentType` option
 - [ ] Add Github tooling/workflows
 - [ ] Add tests
 

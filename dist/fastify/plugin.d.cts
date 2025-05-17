@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { M as MiddlewareOptions } from '../types.d-BQsvFMi2.cjs';
+import { M as MiddlewareOptions } from '../types.d-C_r3ksoN.cjs';
 import 'vite';
 import 'hono';
 
-declare const fastifyMiniRpcPlugin: (fastify: FastifyInstance, initialOptions: Partial<MiddlewareOptions<"fastify">> | undefined, done: () => void) => void;
+declare const fastifyRpcPlugin: (fastify: FastifyInstance, initialOptions: Partial<MiddlewareOptions<"fastify">> | undefined, done: () => void) => void;
 
-export { fastifyMiniRpcPlugin as default };
+export { fastifyRpcPlugin as default };

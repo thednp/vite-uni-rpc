@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-ZVEBQAB5.js";
+} from "./chunk-GSKE4CT4.js";
 
 // src/hono/createMiddleware.ts
 import { createMiddleware as createHonoMiddleware } from "hono/factory";
@@ -128,7 +128,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-// src/hono/viteMiddleware.ts
+// src/hono/helpers.ts
 import { createMiddleware as createMiddleware2 } from "hono/factory";
 var viteMiddleware = (vite) => {
   return createMiddleware2((c, next) => {

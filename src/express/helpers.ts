@@ -1,4 +1,4 @@
-// vite-uni-rpc/src/express/helpers.ts
+// src/express/helpers.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type {
   Request as ExpressRequest,
@@ -54,13 +54,6 @@ export const getResponseDetails = (
     }
   };
 
-  const getHeader = (name: string) => {
-    if (isExpressResponse(response)) {
-      return response.getHeader(name);
-    }
-    return response.getHeader(name);
-  };
-
   const setStatusCode = (code: number) => {
     if (isExpressResponse(response)) {
       response.status(code);
@@ -85,7 +78,6 @@ export const getResponseDetails = (
   return {
     isResponseSent,
     setHeader,
-    getHeader,
     statusCode: response.statusCode,
     setStatusCode,
     sendResponse,

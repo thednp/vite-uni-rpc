@@ -1,10 +1,10 @@
 import {
   createRPCMiddleware
-} from "../chunk-LHEIQ7OM.js";
+} from "../chunk-3WRZYA7Z.js";
 import {
   __commonJS,
   __toESM
-} from "../chunk-ZVEBQAB5.js";
+} from "../chunk-GSKE4CT4.js";
 
 // src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js
 var require_getPluginName = __commonJS({
@@ -98,7 +98,7 @@ var require_plugin = __commonJS({
 
 // src/fastify/plugin.ts
 var import_fastify_plugin = __toESM(require_plugin(), 1);
-var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
+var RpcPlugin = (fastify, initialOptions = {}, done) => {
   const rpcMiddleware = createRPCMiddleware(initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {
@@ -108,9 +108,9 @@ var miniRpcPlugin = (fastify, initialOptions = {}, done) => {
   });
   done();
 };
-var fastifyMiniRpcPlugin = (0, import_fastify_plugin.default)(miniRpcPlugin, {
-  name: "vite-uni-rpc-fastify-plugin"
+var fastifyRpcPlugin = (0, import_fastify_plugin.default)(RpcPlugin, {
+  name: "uni-rpc-fastify-plugin"
 });
 export {
-  fastifyMiniRpcPlugin as default
+  fastifyRpcPlugin as default
 };

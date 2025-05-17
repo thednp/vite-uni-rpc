@@ -9,9 +9,13 @@ import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
 import type { Arguments, JsonValue } from "../types";
 import type { FastifyMiddlewareFn } from "./types";
 
+let middlewareCount = 0;
+const middleWareStack = new Set<string>();
+
 // Define the middleware function for Fastify
 export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -23,6 +27,15 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
     ...defaultMiddlewareOptions,
     ...initialOptions,
   };
+
+  let name = middlewareName;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
+    middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
+  }
 
   // Check for configuration conflict
   if (path && rpcPreffix) {

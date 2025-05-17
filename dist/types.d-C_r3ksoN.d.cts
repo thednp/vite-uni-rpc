@@ -2,6 +2,8 @@ import { Connect } from 'vite';
 import { Context, Next, MiddlewareHandler } from 'hono';
 import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
 
+type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
+
 type ExpressMiddlewareFn = <
   A extends RpcPluginOptions$1["adapter"] = "express",
 >(
@@ -27,6 +29,8 @@ interface ExpressMiddlewareHooks {
   ) => Promise<void>;
 }
 
+type HonoMiddlewareOptions = MiddlewareOptions<"hono">;
+
 interface HonoMiddlewareHooks {
   handler: (c: Context, next: Next) => Promise<void>;
   onRequest: (c: Context) => Promise<void>;
@@ -37,6 +41,8 @@ interface HonoMiddlewareHooks {
 type HonoMiddlewareFn = <A extends RpcPluginOptions["adapter"] = "hono">(
   initialOptions: Partial<MiddlewareOptions<A>>,
 ) => MiddlewareHandler;
+
+type FastifyMiddlewareOptions = MiddlewareOptions<"fastify">;
 
 type FastifyMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "fastify",
@@ -62,6 +68,11 @@ interface FastifyMiddlewareHooks {
     res: FastifyReply,
   ) => Promise<void>;
 }
+
+// Define the plugin function
+type RpcFastifyPluginOptions = MiddlewareOptions<"fastify"> & {
+  isRPC: boolean;
+};
 
 // vite-uni-rpc/src/types.d.ts
 
@@ -333,4 +344,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b };
+export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, ExpressMiddlewareOptions as c, ExpressMiddlewareHooks as d, FastifyMiddlewareOptions as e, FastifyMiddlewareHooks as f, RpcFastifyPluginOptions as g, HonoMiddlewareOptions as h, HonoMiddlewareHooks as i };

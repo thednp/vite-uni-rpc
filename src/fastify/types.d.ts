@@ -5,6 +5,8 @@ import type {
 } from "fastify";
 import { type MiddlewareOptions } from "../types";
 
+export type FastifyMiddlewareOptions = MiddlewareOptions<"fastify">;
+
 export type FastifyMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "fastify",
 >(

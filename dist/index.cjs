@@ -1,11 +1,11 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-var _chunkZZPN4IYXcjs = require('./chunk-ZZPN4IYX.cjs');
+var _chunk6ZPI4C4Zcjs = require('./chunk-6ZPI4C4Z.cjs');
 
 
 
 
-var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
+var _chunk4GHZIEGXcjs = require('./chunk-4GHZIEGX.cjs');
 
 // src/index.ts
 var _vite = require('vite');
@@ -14,7 +14,7 @@ var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var _fs = require('fs');
 var defineConfig = (uniConfig) => {
-  return _vite.mergeConfig.call(void 0, _chunkFIWPANLAcjs.defaultRPCOptions, uniConfig);
+  return _vite.mergeConfig.call(void 0, _chunk4GHZIEGXcjs.defaultRPCOptions, uniConfig);
 };
 var RPCConfig;
 async function loadRPCConfig(configFile) {
@@ -38,8 +38,8 @@ async function loadRPCConfig(configFile) {
         console.warn(
           `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} The specified RPC config file ${_picocolors2.default.redBright(_picocolors2.default.bold(configFile))} cannot be found, loading the defaults..`
         );
-        RPCConfig = _chunkFIWPANLAcjs.defaultRPCOptions;
-        return _chunkFIWPANLAcjs.defaultRPCOptions;
+        RPCConfig = _chunk4GHZIEGXcjs.defaultRPCOptions;
+        return _chunk4GHZIEGXcjs.defaultRPCOptions;
       }
       const result = await _vite.loadConfigFromFile.call(void 0, env, configFile);
       if (result) {
@@ -48,14 +48,14 @@ async function loadRPCConfig(configFile) {
         );
         RPCConfig = _vite.mergeConfig.call(void 0, 
           {
-            ..._chunkFIWPANLAcjs.defaultRPCOptions,
+            ..._chunk4GHZIEGXcjs.defaultRPCOptions,
             configFile: configFilePath
           },
           result.config
         );
         return RPCConfig;
       }
-      RPCConfig = _chunkFIWPANLAcjs.defaultRPCOptions;
+      RPCConfig = _chunk4GHZIEGXcjs.defaultRPCOptions;
       return RPCConfig;
     }
     if (RPCConfig !== void 0) {
@@ -70,7 +70,7 @@ async function loadRPCConfig(configFile) {
       if (result) {
         RPCConfig = _vite.mergeConfig.call(void 0, 
           {
-            ..._chunkFIWPANLAcjs.defaultRPCOptions,
+            ..._chunk4GHZIEGXcjs.defaultRPCOptions,
             configFile: configFilePath
           },
           result.config
@@ -84,13 +84,13 @@ async function loadRPCConfig(configFile) {
     console.warn(
       `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} No RPC config found, loading the defaults..`
     );
-    return _chunkFIWPANLAcjs.defaultRPCOptions;
+    return _chunk4GHZIEGXcjs.defaultRPCOptions;
   } catch (error) {
     console.warn(
       `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} Failed to load RPC config:`,
       error
     );
-    return _chunkFIWPANLAcjs.defaultRPCOptions;
+    return _chunk4GHZIEGXcjs.defaultRPCOptions;
   }
 }
 async function rpcPlugin(devOptions = {}) {
@@ -106,7 +106,7 @@ async function rpcPlugin(devOptions = {}) {
       config = resolvedConfig;
     },
     async buildStart() {
-      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, config, viteServer);
+      await _chunk4GHZIEGXcjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
       if (!code.includes("createServerFunction") || // any other file is unchanged
@@ -114,7 +114,7 @@ async function rpcPlugin(devOptions = {}) {
       code.includes("createServerFunction") && typeof _process2.default === "undefined") {
         return null;
       }
-      const result = await _vite.transformWithEsbuild.call(void 0, _chunkFIWPANLAcjs.getClientModules.call(void 0, options), id, {
+      const result = await _vite.transformWithEsbuild.call(void 0, _chunk4GHZIEGXcjs.getClientModules.call(void 0, options), id, {
         loader: "js",
         target: "es2020"
       });
@@ -127,7 +127,7 @@ async function rpcPlugin(devOptions = {}) {
       viteServer = server;
       const { adapter: _adapter, ...rest } = options;
       server.middlewares.use(
-        _chunkZZPN4IYXcjs.createRPCMiddleware.call(void 0, rest)
+        _chunk6ZPI4C4Zcjs.createRPCMiddleware.call(void 0, rest)
       );
     }
   };

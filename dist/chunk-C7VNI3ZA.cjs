@@ -3,11 +3,14 @@
 
 
 
-var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
+var _chunk4GHZIEGXcjs = require('./chunk-4GHZIEGX.cjs');
 
 // src/fastify/createMiddleware.ts
+var middlewareCount = 0;
+var middleWareStack = /* @__PURE__ */ new Set();
 var createMiddleware = (initialOptions = {}) => {
   const {
+    name: middlewareName,
     rpcPreffix,
     path,
     headers,
@@ -16,9 +19,17 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
+    ..._chunk4GHZIEGXcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
+  let name = middlewareName;
+  if (!name) {
+    name = "viteRPCMiddleware-" + middlewareCount;
+    middlewareCount += 1;
+  }
+  if (middleWareStack.has(name)) {
+    throw new Error(`The middleware name "${name}" is already used.`);
+  }
   if (path && rpcPreffix) {
     throw new Error(
       "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. Skipping middleware registration.."
@@ -26,8 +37,8 @@ var createMiddleware = (initialOptions = {}) => {
   }
   return async (req, reply, done) => {
     const [pathname] = req.url.split("?");
-    if (_chunkFIWPANLAcjs.serverFunctionsMap.size === 0) {
-      await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, );
+    if (_chunk4GHZIEGXcjs.serverFunctionsMap.size === 0) {
+      await _chunk4GHZIEGXcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       done();
@@ -76,9 +87,9 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkFIWPANLAcjs.defaultMiddlewareOptions,
+    ..._chunk4GHZIEGXcjs.defaultMiddlewareOptions,
     // RPC middleware needs to have the RPC prefix
-    rpcPreffix: _chunkFIWPANLAcjs.defaultRPCOptions.rpcPreffix,
+    rpcPreffix: _chunk4GHZIEGXcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -92,7 +103,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return;
       }
       const functionName = pathname.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkFIWPANLAcjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunk4GHZIEGXcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
           error: `Function "${functionName}" was not found`

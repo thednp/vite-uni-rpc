@@ -1,3 +1,3 @@
 export * from "./createMiddleware";
-export * from "./viteMiddleware";
 export * from "./helpers";
+export type * from "./types";

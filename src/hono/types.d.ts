@@ -1,6 +1,8 @@
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { MiddlewareOptions } from "../types";
 
+export type HonoMiddlewareOptions = MiddlewareOptions<"hono">;
+
 export interface HonoMiddlewareHooks {
   handler: (c: Context, next: Next) => Promise<void>;
   onRequest: (c: Context) => Promise<void>;

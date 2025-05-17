@@ -1,4 +1,5 @@
-import { H as HonoMiddlewareFn } from './types.d-BQsvFMi2.js';
+import { H as HonoMiddlewareFn } from './types.d-C_r3ksoN.js';
+export { i as HonoMiddlewareHooks, h as HonoMiddlewareOptions } from './types.d-C_r3ksoN.js';
 import * as hono from 'hono';
 import { ViteDevServer } from 'vite';
 import { HttpBindings } from '@hono/node-server';
@@ -16,4 +17,4 @@ declare const viteMiddleware: (vite: ViteDevServer) => hono.MiddlewareHandler<{
     Bindings: HttpBindings;
 }, string, {}>;
 
-export { createMiddleware, createRPCMiddleware, viteMiddleware };
+export { HonoMiddlewareFn, createMiddleware, createRPCMiddleware, viteMiddleware };

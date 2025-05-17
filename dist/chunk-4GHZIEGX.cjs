@@ -36,16 +36,22 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   functionMappings.clear();
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
+    // always scan relative to the real root
     root: _process2.default.cwd(),
     base: _process2.default.env.BASE || "/",
     server: { middlewareMode: true }
-  } : initialCfg;
+  } : {
+    ...initialCfg,
+    // always scan relative to the real root
+    root: _process2.default.cwd()
+  };
   if (!server) {
     const { createServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("vite")));
     server = await createServer({
       server: config.server,
       appType: "custom",
-      base: config.base
+      base: config.base,
+      root: config.root
     });
   }
   const svFiles = [

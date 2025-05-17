@@ -1,4 +1,4 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-BQsvFMi2.cjs';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-C_r3ksoN.cjs';
 import { ResolvedConfig, ViteDevServer } from 'vite';
 import 'hono';
 import 'fastify';
