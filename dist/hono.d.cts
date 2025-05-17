@@ -1,8 +1,7 @@
-import { H as HonoMiddlewareFn } from './types.d-vHtB4OYe.cjs';
+import { H as HonoMiddlewareFn } from './types.d-BQsvFMi2.cjs';
 import * as hono from 'hono';
 import { ViteDevServer } from 'vite';
 import { HttpBindings } from '@hono/node-server';
-import 'express';
 import 'fastify';
 
 declare const createMiddleware: HonoMiddlewareFn;

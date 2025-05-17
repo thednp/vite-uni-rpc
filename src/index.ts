@@ -6,6 +6,7 @@ import type {
   ViteDevServer,
 } from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
+import colors from "picocolors";
 import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
@@ -21,6 +22,8 @@ import type { RpcPluginOptions } from "./types";
 const defineConfig = (uniConfig: Partial<RpcPluginOptions>) => {
   return mergeConfig(defaultRPCOptions, uniConfig) as RpcPluginOptions;
 };
+
+let RPCConfig: RpcPluginOptions;
 
 /**
  * Utility to load `vite-uni-rpc` configuration file system wide.
@@ -44,45 +47,76 @@ async function loadRPCConfig(configFile?: string) {
 
     // If specific config file provided
     if (configFile) {
-      if (!existsSync(resolve(env.root, configFile))) {
+      const configFilePath = resolve(env.root, configFile);
+      if (!existsSync(configFilePath)) {
         console.warn(
-          `ℹ️  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`,
+          `  ${colors.redBright("⚠︎")} The specified RPC config file ${
+            colors.redBright(colors.bold(configFile))
+          } cannot be found, loading the defaults..`,
         );
+        RPCConfig = defaultRPCOptions;
         return defaultRPCOptions as RpcPluginOptions;
       }
+
       const result = await loadConfigFromFile(env, configFile);
       if (result) {
         console.log(
-          `✅  Succesfully loaded RPC config from your "${configFile}" file!`,
+          `  ${colors.yellow("⚡︎")} Succesfully loaded your ${
+            colors.green(colors.bold(configFile))
+          } file!`,
         );
-
-        return mergeConfig(
-          defaultRPCOptions,
+        RPCConfig = mergeConfig(
+          {
+            ...defaultRPCOptions,
+            configFile: configFilePath,
+          },
           result.config,
         ) as RpcPluginOptions;
+
+        return RPCConfig;
       }
-      return defaultRPCOptions as RpcPluginOptions;
+      RPCConfig = defaultRPCOptions;
+      return RPCConfig;
+    }
+
+    if (RPCConfig !== undefined) {
+      return RPCConfig;
     }
 
     // Try default config files
     for (const file of defaultConfigFiles) {
-      if (!existsSync(resolve(env.root, file))) {
+      const configFilePath = resolve(env.root, file);
+      if (!existsSync(configFilePath)) {
         continue;
       }
       const result = await loadConfigFromFile(env, file);
       if (result) {
-        console.log(`✅  Succesfully loaded RPC config from "${file}" file!`);
-        return mergeConfig(
-          defaultRPCOptions,
+        RPCConfig = mergeConfig(
+          {
+            ...defaultRPCOptions,
+            configFile: configFilePath,
+          },
           result.config,
         ) as RpcPluginOptions;
+        console.log(
+          `  ${colors.yellow("⚡︎")} Succesfully loaded ${
+            colors.green(colors.bold(file))
+          } file`,
+        );
+
+        return RPCConfig;
       }
     }
     // Last call load defaults no matter what
-    console.warn("ℹ️  No RPC config found, loading the defaults..");
+    console.warn(
+      `  ${colors.yellow("⚡︎")} No RPC config found, loading the defaults..`,
+    );
     return defaultRPCOptions as RpcPluginOptions;
   } catch (error) {
-    console.warn("⚠️  Failed to load RPC config:", error);
+    console.warn(
+      `  ${colors.redBright("⚠︎")} Failed to load RPC config:`,
+      error,
+    );
     return defaultRPCOptions as RpcPluginOptions;
   }
 }
@@ -109,8 +143,10 @@ async function rpcPlugin(
     async transform(code: string, id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
       if (
-        !code.includes("createServerFunction") ||
-        ops?.ssr
+        !code.includes("createServerFunction") || // any other file is unchanged
+        ops?.ssr || // file loaded on server remains unchanged
+        (code.includes("createServerFunction") &&
+          typeof process === "undefined") // file loaded in client IS CHANGED
       ) {
         return null;
       }

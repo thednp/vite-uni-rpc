@@ -9,12 +9,14 @@ import {
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
+import colors from "picocolors";
 import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
 var defineConfig = (uniConfig) => {
   return mergeConfig(defaultRPCOptions, uniConfig);
 };
+var RPCConfig;
 async function loadRPCConfig(configFile) {
   try {
     const env = {
@@ -31,41 +33,63 @@ async function loadRPCConfig(configFile) {
       ".rpcrc.js"
     ];
     if (configFile) {
-      if (!existsSync(resolve(env.root, configFile))) {
+      const configFilePath = resolve(env.root, configFile);
+      if (!existsSync(configFilePath)) {
         console.warn(
-          `\u2139\uFE0F  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`
+          `  ${colors.redBright("\u26A0\uFE0E")} The specified RPC config file ${colors.redBright(colors.bold(configFile))} cannot be found, loading the defaults..`
         );
+        RPCConfig = defaultRPCOptions;
         return defaultRPCOptions;
       }
       const result = await loadConfigFromFile(env, configFile);
       if (result) {
         console.log(
-          `\u2705  Succesfully loaded RPC config from your "${configFile}" file!`
+          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded your ${colors.green(colors.bold(configFile))} file!`
         );
-        return mergeConfig(
-          defaultRPCOptions,
+        RPCConfig = mergeConfig(
+          {
+            ...defaultRPCOptions,
+            configFile: configFilePath
+          },
           result.config
         );
+        return RPCConfig;
       }
-      return defaultRPCOptions;
+      RPCConfig = defaultRPCOptions;
+      return RPCConfig;
+    }
+    if (RPCConfig !== void 0) {
+      return RPCConfig;
     }
     for (const file of defaultConfigFiles) {
-      if (!existsSync(resolve(env.root, file))) {
+      const configFilePath = resolve(env.root, file);
+      if (!existsSync(configFilePath)) {
         continue;
       }
       const result = await loadConfigFromFile(env, file);
       if (result) {
-        console.log(`\u2705  Succesfully loaded RPC config from "${file}" file!`);
-        return mergeConfig(
-          defaultRPCOptions,
+        RPCConfig = mergeConfig(
+          {
+            ...defaultRPCOptions,
+            configFile: configFilePath
+          },
           result.config
         );
+        console.log(
+          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded ${colors.green(colors.bold(file))} file`
+        );
+        return RPCConfig;
       }
     }
-    console.warn("\u2139\uFE0F  No RPC config found, loading the defaults..");
+    console.warn(
+      `  ${colors.yellow("\u26A1\uFE0E")} No RPC config found, loading the defaults..`
+    );
     return defaultRPCOptions;
   } catch (error) {
-    console.warn("\u26A0\uFE0F  Failed to load RPC config:", error);
+    console.warn(
+      `  ${colors.redBright("\u26A0\uFE0E")} Failed to load RPC config:`,
+      error
+    );
     return defaultRPCOptions;
   }
 }
@@ -85,7 +109,9 @@ async function rpcPlugin(devOptions = {}) {
       await scanForServerFiles(config, viteServer);
     },
     async transform(code, id, ops) {
-      if (!code.includes("createServerFunction") || ops?.ssr) {
+      if (!code.includes("createServerFunction") || // any other file is unchanged
+      ops?.ssr || // file loaded on server remains unchanged
+      code.includes("createServerFunction") && typeof process === "undefined") {
         return null;
       }
       const result = await transformWithEsbuild(getClientModules(options), id, {

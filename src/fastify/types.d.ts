@@ -9,11 +9,7 @@ export type FastifyMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "fastify",
 >(
   initialOptions?: Partial<MiddlewareOptions<A>>,
-) => (
-  req: FastifyRequest,
-  reply: FastifyReply,
-  done: HookHandlerDoneFunction,
-) => Promise<void>;
+) => FastifyMiddlewareHooks["handler"];
 
 export interface FastifyMiddlewareHooks {
   handler: (

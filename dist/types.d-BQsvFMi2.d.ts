@@ -1,4 +1,3 @@
-import { RequestHandler } from 'express';
 import { Connect } from 'vite';
 import { Context, Next, MiddlewareHandler } from 'hono';
 import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
@@ -7,7 +6,7 @@ type ExpressMiddlewareFn = <
   A extends RpcPluginOptions$1["adapter"] = "express",
 >(
   initialOptions: Partial<MiddlewareOptions<A>>,
-) => RequestHandler | Connect.NextHandleFunction;
+) => ExpressMiddlewareHooks["handler"];
 
 interface ExpressMiddlewareHooks {
   handler: (
@@ -43,11 +42,7 @@ type FastifyMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "fastify",
 >(
   initialOptions?: Partial<MiddlewareOptions<A>>,
-) => (
-  req: FastifyRequest,
-  reply: FastifyReply,
-  done: HookHandlerDoneFunction,
-) => Promise<void>;
+) => FastifyMiddlewareHooks["handler"];
 
 interface FastifyMiddlewareHooks {
   handler: (
@@ -215,6 +210,12 @@ interface MiddlewareOptions<
   A extends RpcPluginOptions$1["adapter"] = "express",
 > {
   /**
+   * RPC middlewares would like to have a name, specifically for _express_,
+   * to help identify them within vite's stack;
+   */
+  name?: string;
+
+  /**
    * Path pattern to match for middleware execution.
    * Accepts string or RegExp to filter requests based on URL path.
    *
@@ -237,12 +238,6 @@ interface MiddlewareOptions<
    * rpcPreffix: "api/rpc"
    */
   rpcPreffix?: string | false;
-
-  /**
-   * RPC middlewares would like to have a name, specifically for _express_,
-   * to help identify them within vite's stack;
-   */
-  name?: string;
 
   /**
    * Custom headers to be set for middleware responses.

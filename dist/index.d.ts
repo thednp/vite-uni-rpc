@@ -1,6 +1,5 @@
 import { Plugin } from 'vite';
-import { R as RpcPluginOptions } from './types.d-vHtB4OYe.js';
-import 'express';
+import { R as RpcPluginOptions } from './types.d-BQsvFMi2.js';
 import 'hono';
 import 'fastify';
 

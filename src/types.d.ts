@@ -170,7 +170,7 @@ export interface MiddlewareOptions<
    * RPC middlewares would like to have a name, specifically for _express_,
    * to help identify them within vite's stack;
    */
-    name?: string;
+  name?: string;
 
   /**
    * Path pattern to match for middleware execution.

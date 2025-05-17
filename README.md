@@ -28,8 +28,15 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 
 - [x] Add examples
 - [ ] Add wiki
+- [x] Add SPA support
+- [ ] Add multipart/form-data support
 - [ ] Add Github tooling/workflows
 - [ ] Add tests
+
+
+### Credits
+
+This project is inspired by [vite-dev-rpc](https://github.com/antfu/vite-dev-rpc).
 
 
 ### License

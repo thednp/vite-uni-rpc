@@ -1,4 +1,3 @@
-import type { RequestHandler } from "express";
 import type { Connect } from "vite";
 import type { MiddlewareOptions, RpcPluginOptions } from "../types";
 
@@ -6,7 +5,7 @@ export type ExpressMiddlewareFn = <
   A extends RpcPluginOptions["adapter"] = "express",
 >(
   initialOptions: Partial<MiddlewareOptions<A>>,
-) => RequestHandler | Connect.NextHandleFunction;
+) => ExpressMiddlewareHooks["handler"];
 
 export interface ExpressMiddlewareHooks {
   handler: (

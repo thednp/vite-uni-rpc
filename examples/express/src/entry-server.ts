@@ -8,7 +8,7 @@ export async function render(_url: string) {
     <div>
       <h1>Hello World!</h1>
       <p class="read-the-docs">
-        Example using <code>vite-uni-rpc</code> with <code>express</code>
+        SSR Example using <code>vite-uni-rpc</code> with <code>express</code>
       </p>
       <p>Refresh page after 5s</p>
     </div>

@@ -9,12 +9,14 @@ var _chunkFIWPANLAcjs = require('./chunk-FIWPANLA.cjs');
 
 // src/index.ts
 var _vite = require('vite');
+var _picocolors = require('picocolors'); var _picocolors2 = _interopRequireDefault(_picocolors);
 var _path = require('path');
 var _process = require('process'); var _process2 = _interopRequireDefault(_process);
 var _fs = require('fs');
 var defineConfig = (uniConfig) => {
   return _vite.mergeConfig.call(void 0, _chunkFIWPANLAcjs.defaultRPCOptions, uniConfig);
 };
+var RPCConfig;
 async function loadRPCConfig(configFile) {
   try {
     const env = {
@@ -31,41 +33,63 @@ async function loadRPCConfig(configFile) {
       ".rpcrc.js"
     ];
     if (configFile) {
-      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, env.root, configFile))) {
+      const configFilePath = _path.resolve.call(void 0, env.root, configFile);
+      if (!_fs.existsSync.call(void 0, configFilePath)) {
         console.warn(
-          `\u2139\uFE0F  The specified RPC config file "${configFile}" cannot be found, loading the defaults..`
+          `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} The specified RPC config file ${_picocolors2.default.redBright(_picocolors2.default.bold(configFile))} cannot be found, loading the defaults..`
         );
+        RPCConfig = _chunkFIWPANLAcjs.defaultRPCOptions;
         return _chunkFIWPANLAcjs.defaultRPCOptions;
       }
       const result = await _vite.loadConfigFromFile.call(void 0, env, configFile);
       if (result) {
         console.log(
-          `\u2705  Succesfully loaded RPC config from your "${configFile}" file!`
+          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded your ${_picocolors2.default.green(_picocolors2.default.bold(configFile))} file!`
         );
-        return _vite.mergeConfig.call(void 0, 
-          _chunkFIWPANLAcjs.defaultRPCOptions,
+        RPCConfig = _vite.mergeConfig.call(void 0, 
+          {
+            ..._chunkFIWPANLAcjs.defaultRPCOptions,
+            configFile: configFilePath
+          },
           result.config
         );
+        return RPCConfig;
       }
-      return _chunkFIWPANLAcjs.defaultRPCOptions;
+      RPCConfig = _chunkFIWPANLAcjs.defaultRPCOptions;
+      return RPCConfig;
+    }
+    if (RPCConfig !== void 0) {
+      return RPCConfig;
     }
     for (const file of defaultConfigFiles) {
-      if (!_fs.existsSync.call(void 0, _path.resolve.call(void 0, env.root, file))) {
+      const configFilePath = _path.resolve.call(void 0, env.root, file);
+      if (!_fs.existsSync.call(void 0, configFilePath)) {
         continue;
       }
       const result = await _vite.loadConfigFromFile.call(void 0, env, file);
       if (result) {
-        console.log(`\u2705  Succesfully loaded RPC config from "${file}" file!`);
-        return _vite.mergeConfig.call(void 0, 
-          _chunkFIWPANLAcjs.defaultRPCOptions,
+        RPCConfig = _vite.mergeConfig.call(void 0, 
+          {
+            ..._chunkFIWPANLAcjs.defaultRPCOptions,
+            configFile: configFilePath
+          },
           result.config
         );
+        console.log(
+          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded ${_picocolors2.default.green(_picocolors2.default.bold(file))} file`
+        );
+        return RPCConfig;
       }
     }
-    console.warn("\u2139\uFE0F  No RPC config found, loading the defaults..");
+    console.warn(
+      `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} No RPC config found, loading the defaults..`
+    );
     return _chunkFIWPANLAcjs.defaultRPCOptions;
   } catch (error) {
-    console.warn("\u26A0\uFE0F  Failed to load RPC config:", error);
+    console.warn(
+      `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} Failed to load RPC config:`,
+      error
+    );
     return _chunkFIWPANLAcjs.defaultRPCOptions;
   }
 }
@@ -85,7 +109,9 @@ async function rpcPlugin(devOptions = {}) {
       await _chunkFIWPANLAcjs.scanForServerFiles.call(void 0, config, viteServer);
     },
     async transform(code, id, ops) {
-      if (!code.includes("createServerFunction") || _optionalChain([ops, 'optionalAccess', _ => _.ssr])) {
+      if (!code.includes("createServerFunction") || // any other file is unchanged
+      _optionalChain([ops, 'optionalAccess', _ => _.ssr]) || // file loaded on server remains unchanged
+      code.includes("createServerFunction") && typeof _process2.default === "undefined") {
         return null;
       }
       const result = await _vite.transformWithEsbuild.call(void 0, _chunkFIWPANLAcjs.getClientModules.call(void 0, options), id, {
