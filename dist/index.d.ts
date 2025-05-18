@@ -1,6 +1,6 @@
 import * as rollup from 'rollup';
 import { ResolvedConfig, ViteDevServer } from 'vite';
-import { R as RpcPluginOptions } from './types.d-BHfEgPGZ.js';
+import { R as RpcPluginOptions } from './types.d-D07nEVWw.js';
 import 'hono';
 import 'fastify';
 

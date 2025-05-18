@@ -58,8 +58,15 @@ export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 //   | Blob // for binary data
 //   | URLSearchParams; // for query parameters
 
-export type ServerFnEntry<TResult = never> = (
-  ...args: JsonArray
+export type ServerFnArgs = [first?: JsonObject | JsonPrimitive, ...JsonArray];
+
+export type ServerFnEntry<
+  TArgs extends ServerFnArgs = ServerFnArgs,
+  TResult = never,
+> = (
+  // first?: JsonObject | JsonPrimitive,
+  // ...args?: JsonArray
+  ...args: TArgs
 ) => Promise<TResult>;
 
 export interface ServerFunction {

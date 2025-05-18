@@ -129,8 +129,10 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
 
       try {
         const body = await readBody(c);
-        const args = Array.isArray(body.data) ? body.data : [body.data];
-        const result = await serverFunction.fn(...args) as JsonValue;
+        const [first, ...args] = Array.isArray(body.data)
+          ? [undefined, ...body.data]
+          : [body.data];
+        const result = await serverFunction.fn(first, ...args) as JsonValue;
         return c.json({ data: result }, 200);
       } catch (err) {
         console.error(String(err));

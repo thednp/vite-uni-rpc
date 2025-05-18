@@ -120,8 +120,15 @@ type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 //   | Blob // for binary data
 //   | URLSearchParams; // for query parameters
 
-type ServerFnEntry<TResult = never> = (
-  ...args: JsonArray
+type ServerFnArgs = [first?: JsonObject | JsonPrimitive, ...JsonArray];
+
+type ServerFnEntry<
+  TArgs extends ServerFnArgs = ServerFnArgs,
+  TResult = never,
+> = (
+  // first?: JsonObject | JsonPrimitive,
+  // ...args?: JsonArray
+  ...args: TArgs
 ) => Promise<TResult>;
 
 interface ServerFunction {
@@ -352,4 +359,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonArray as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, JsonValue as c, ExpressMiddlewareOptions as d, ExpressMiddlewareHooks as e, FastifyMiddlewareOptions as f, FastifyMiddlewareHooks as g, RpcFastifyPluginOptions as h, HonoMiddlewareOptions as i, HonoMiddlewareHooks as j };
+export type { BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonObject as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFnArgs as a, ServerFunctionOptions as b, JsonPrimitive as c, JsonValue as d, ServerFunction as e, ExpressMiddlewareOptions as f, ExpressMiddlewareHooks as g, FastifyMiddlewareOptions as h, FastifyMiddlewareHooks as i, RpcFastifyPluginOptions as j, HonoMiddlewareOptions as k, HonoMiddlewareHooks as l };

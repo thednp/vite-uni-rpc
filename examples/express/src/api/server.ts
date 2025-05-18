@@ -2,14 +2,14 @@ import { createServerFunction } from "vite-uni-rpc/server";
 
 export const sayHi = createServerFunction(
   "say-hi",
-  async (name: string) => {
+  async (name) => {
     await new Promise(res => setTimeout(res, 1500));
     return `Hello ${name}!`;
   },
   { ttl: 5000 }
 );
 
-export const add = createServerFunction<FormData>(
+export const add = createServerFunction(
   "add-numbers",
   async (formData) => {
     // const formData = args[0] as FormData;
@@ -24,6 +24,5 @@ export const add = createServerFunction<FormData>(
   },
   {
     ttl: 1,
-    contentType: "multipart/form-data"
   }
 );

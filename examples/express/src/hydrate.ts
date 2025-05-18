@@ -12,7 +12,7 @@ export const setupForm = async (target: HTMLFormElement) => {
     e.preventDefault();
     const formData = new FormData(target);
     console.log("setupForm.formData", formData);
-    const result = await add(formData);
+    const result = await add(JSON.stringify(Object.fromEntries(formData.entries())));
     console.log("setupForm.result", result)
   })
 

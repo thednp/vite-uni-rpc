@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { M as MiddlewareOptions } from '../types.d-BHfEgPGZ.js';
+import { M as MiddlewareOptions } from '../types.d-D07nEVWw.js';
 import 'vite';
 import 'hono';
 
