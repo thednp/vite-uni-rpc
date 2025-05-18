@@ -15,12 +15,12 @@
     "@hono/node-server": "1.14.1",
     "formidable": "^3.5.4",
     "hono": "^4.7.10",
-    "vite-uni-rpc": "github:thednp/vite-uni-rpc"
+    "vite-uni-rpc": "github:thednp/vite-uni-rpc",
+    "vite": "^6.3.5"
   },
   "devDependencies": {
     "@hono/vite-dev-server": "^0.19.0",
     "@types/node": "^22.15.18",
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "typescript": "~5.8.3"
   }
 }

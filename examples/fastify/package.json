@@ -17,11 +17,11 @@
     "@fastify/vite": "^8.1.3",
     "fastify": "^5.3.3",
     "formidable": "^3.5.4",
-    "vite-uni-rpc": "github:thednp/vite-uni-rpc"
+    "vite-uni-rpc": "github:thednp/vite-uni-rpc",
+    "vite": "^6.3.5"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "typescript": "~5.8.3"
   }
 }

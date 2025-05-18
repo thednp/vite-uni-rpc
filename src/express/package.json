@@ -3,12 +3,12 @@
   "type": "module",
   "main": "index.ts",
   "types": "types.d.ts",
+  "peerDependencies": {
+    "vite": "^6.3.5"
+  },
   "dependencies": {
     "express": "^5.1.0",
     "formidable": "^3.5.4"
-  },
-  "peerDependencies": {
-    "vite": "^6.3.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.2",
