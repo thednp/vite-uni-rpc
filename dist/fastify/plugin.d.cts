@@ -1,8 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { M as MiddlewareOptions } from '../types.d-BTEF26oe.cjs';
+import { M as MiddlewareOptions } from '../types.d-BHfEgPGZ.cjs';
 import 'vite';
 import 'hono';
-import 'node:buffer';
 
 declare const fastifyRpcPlugin: (fastify: FastifyInstance, initialOptions: Partial<MiddlewareOptions<"fastify">> | undefined, done: () => void) => void;
 

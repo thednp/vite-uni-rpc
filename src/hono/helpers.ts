@@ -2,11 +2,9 @@
 import { type ViteDevServer } from "vite";
 import { type HttpBindings } from "@hono/node-server";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { Buffer } from "node:buffer";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import formidable from "formidable";
 import type { BodyResult } from "../types";
 
 /**
@@ -57,29 +55,6 @@ export const viteMiddleware = (vite: ViteDevServer) => {
 
 export const readBody = async (c: Context): Promise<BodyResult> => {
   const contentType = c.req.header("content-type")?.toLowerCase() || "";
-
-  if (contentType.includes("multipart/form-data")) {
-    const form = formidable({ multiples: true });
-    return new Promise((resolve, reject) => {
-      form.parse(c.env.incoming, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({
-          contentType: "multipart/form-data",
-          fields,
-          files,
-        });
-      });
-    });
-  }
-
-  // For other content types, we can use the native Request methods
-  if (contentType.includes("octet-stream")) {
-    const buffer = await c.req.arrayBuffer();
-    return {
-      contentType: "application/octet-stream",
-      data: Buffer.from(buffer),
-    };
-  }
 
   if (contentType.includes("json")) {
     const data = await c.req.json();

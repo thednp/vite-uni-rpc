@@ -8,8 +8,7 @@
   },
   "dependencies": {
     "fastify": "^5.3.3",
-    "fastify-plugin": "^5.0.1",
-    "formidable": "^3.5.4"
+    "fastify-plugin": "^5.0.1"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5"

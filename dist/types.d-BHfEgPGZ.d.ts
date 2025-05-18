@@ -1,7 +1,6 @@
 import { Connect } from 'vite';
 import { Context, Next, MiddlewareHandler } from 'hono';
 import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
-import { Buffer } from 'node:buffer';
 
 type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
 
@@ -85,20 +84,12 @@ interface FrameworkHooks {
 }
 
 type ContentType =
-  | "multipart/form-data"
   | "application/json"
-  | "text/plain"
-  | "application/octet-stream";
+  | "text/plain";
 
 type BodyResult =
-  | {
-    contentType: "multipart/form-data";
-    fields: Record<string, unknown>;
-    files: Record<string, unknown>;
-  }
-  | { contentType: "application/json"; data: Arguments | Arguments[] }
-  | { contentType: "text/plain"; data: string }
-  | { contentType: "application/octet-stream"; data: Buffer };
+  | { contentType: "application/json"; data: JsonValue }
+  | { contentType: "text/plain"; data: string };
 
 interface ServerFunctionOptions {
   ttl: number;
@@ -108,34 +99,34 @@ interface ServerFunctionOptions {
 
 // primitives and their compositions
 type JsonPrimitive = string | number | boolean | null | undefined;
+type JsonObject = { [key: string]: JsonValue | JsonArray };
 type JsonArray = JsonValue[];
-type JsonObject = { [key: string]: JsonValue | JsonArray | File };
-type JsonValue = JsonPrimitive | JsonArray | JsonObject; // for email addresses
+type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
-type RPCValue =
-  | JsonValue
-  | Date // will be serialized as ISOString
-  | Uint8Array // will be serialized as base64
-  | File // for file uploads
-  | Blob // for binary data
-  | FormData // for form submissions
-  | URLSearchParams; // for query parameters
+// Keep these as a refference
+// Date strings are common in APIs
+// export type ISODateString = string; // for dates in ISO format
 
-type Arguments =
-  | RPCValue
-  | Array<JsonPrimitive | JsonPrimitive[] | JsonObject | JsonObject[]>;
+// Special types that might be useful
+// export type Base64String = string; // for binary data encoded as base64
+// export type URLString = string; // for URLs
+// export type EmailString = string; // for email addresses
 
-type ServerFnEntry<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> = (...args: TArgs) => Promise<TResult>;
+// export type RPCValue =
+//   | JsonValue
+//   | Date // will be serialized as ISOString
+//   | Uint8Array // will be serialized as base64
+//   | File // for file uploads
+//   | Blob // for binary data
+//   | URLSearchParams; // for query parameters
 
-interface ServerFunction<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> {
+type ServerFnEntry<TResult = never> = (
+  ...args: JsonArray
+) => Promise<TResult>;
+
+interface ServerFunction {
   name: string;
-  fn: ServerFnEntry<TArgs, TResult>;
+  fn: ServerFnEntry;
   options?: ServerFunctionOptions;
 }
 
@@ -361,4 +352,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { Arguments as A, BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, ExpressMiddlewareOptions as c, ExpressMiddlewareHooks as d, FastifyMiddlewareOptions as e, FastifyMiddlewareHooks as f, RpcFastifyPluginOptions as g, HonoMiddlewareOptions as h, HonoMiddlewareHooks as i };
+export type { BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonArray as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, JsonValue as c, ExpressMiddlewareOptions as d, ExpressMiddlewareHooks as e, FastifyMiddlewareOptions as f, FastifyMiddlewareHooks as g, RpcFastifyPluginOptions as h, HonoMiddlewareOptions as i, HonoMiddlewareHooks as j };

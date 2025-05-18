@@ -45,7 +45,7 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 - [x] Add SPA support
 - [x] Add wiki
 - [x] Test bun
-- [x] Add `contentType` option to `createServerFunction`, currently supporting: `multipart/form-data`, `application/json`, `text/plain`, `application/octet-stream`;
+- [x] Add `contentType` option to `createServerFunction`, currently supporting: `application/json`, `text/plain`;
 - [ ] Add koa adapter
 - [ ] Add Github tooling/workflows
 - [ ] Add tests

@@ -3,26 +3,12 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-VWR63TAD.js";
+} from "./chunk-CDDXHG4W.js";
 
 // src/fastify/helpers.ts
-import { Buffer } from "buffer";
-import formidable from "formidable";
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
     const contentType = req.headers["content-type"]?.toLowerCase() || "";
-    if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
-      form.parse(req.raw, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({
-          contentType: "multipart/form-data",
-          fields,
-          files
-        });
-      });
-      return;
-    }
     if (contentType.includes("json")) {
       resolve({
         contentType: "application/json",
@@ -31,22 +17,10 @@ var readBody = (req) => {
       return;
     }
     let body = "";
-    const chunks = [];
     req.raw.on("data", (chunk) => {
-      if (contentType.includes("octet-stream")) {
-        chunks.push(chunk);
-      } else {
-        body += chunk.toString();
-      }
+      body += chunk.toString();
     });
     req.raw.on("end", () => {
-      if (contentType.includes("octet-stream")) {
-        resolve({
-          contentType: "application/octet-stream",
-          data: Buffer.concat(chunks)
-        });
-        return;
-      }
       resolve({ contentType: "text/plain", data: body });
     });
     req.raw.on("error", reject);
@@ -142,14 +116,14 @@ var createRPCMiddleware = (initialOptions = {}) => {
   return createMiddleware({
     ...options,
     handler: async (req, reply, done) => {
-      const { url } = req;
-      const pathname = url?.split("?")[0];
+      const reqUrl = new URL(req.url, "http://localhost");
+      const url = reqUrl.pathname;
       const { rpcPreffix } = options;
-      if (!pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (!url?.startsWith(`/${rpcPreffix}`)) {
         done();
         return;
       }
-      const functionName = pathname.replace(`/${rpcPreffix}/`, "");
+      const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
@@ -159,20 +133,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(req);
-        let args;
-        switch (body.contentType) {
-          case "application/json":
-            args = Array.isArray(body.data) ? body.data : [body.data];
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args);
         reply.status(200).send({ data: result });
       } catch (err) {

@@ -1,4 +1,4 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __create = Object.create;
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -27,9 +27,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/utils.ts
-var _promises = require('fs/promises');
-var _path = require('path');
-var _process = require('process'); var _process2 = _interopRequireDefault(_process);
+import { readdir } from "fs/promises";
+import { join } from "path";
+import process from "process";
 var serverFunctionsMap = /* @__PURE__ */ new Map();
 var functionMappings = /* @__PURE__ */ new Map();
 var scanForServerFiles = async (initialCfg, devServer) => {
@@ -37,16 +37,16 @@ var scanForServerFiles = async (initialCfg, devServer) => {
   let server = devServer;
   const config = !initialCfg && !devServer || !initialCfg ? {
     // always scan relative to the real root
-    root: _process2.default.cwd(),
-    base: _process2.default.env.BASE || "/",
+    root: process.cwd(),
+    base: process.env.BASE || "/",
     server: { middlewareMode: true }
   } : {
     ...initialCfg,
     // always scan relative to the real root
-    root: _process2.default.cwd()
+    root: process.cwd()
   };
   if (!server) {
-    const { createServer } = await Promise.resolve().then(() => _interopRequireWildcard(require("vite")));
+    const { createServer } = await import("vite");
     server = await createServer({
       server: config.server,
       appType: "custom",
@@ -60,8 +60,8 @@ var scanForServerFiles = async (initialCfg, devServer) => {
     "server.mjs",
     "server.mts"
   ];
-  const apiDir = _path.join.call(void 0, config.root, "src", "api");
-  const files = (await _promises.readdir.call(void 0, apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => _path.join.call(void 0, apiDir, f.name));
+  const apiDir = join(config.root, "src", "api");
+  const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => join(apiDir, f.name));
   for (const file of files) {
     try {
       const moduleExports = await server.ssrLoadModule(
@@ -93,29 +93,8 @@ var scanForServerFiles = async (initialCfg, devServer) => {
 var getModule = (fnName, fnEntry, options) => {
   let bodyHandling;
   switch (options.contentType) {
-    case "multipart/form-data":
-      bodyHandling = `
-    if (args.length !== 1 || !(args[0] instanceof FormData)) {
-      throw new Error('For "multipart/form-data" contentType, you must provide exactly one argument, which must be a FormData object.');
-    }
-    const body = args[0];
-    const headers = {};`;
-      break;
-    case "application/octet-stream":
-      bodyHandling = `
-    if (args.length !== 1 || !(args[0] instanceof Buffer || args[0] instanceof Uint8Array)) {
-      throw new Error('For "application/octet-stream" contentType, you must provide exactly one argument, which must be a Buffer or Uint8Array.');
-    }
-    const body = args[0];
-    const headers = {
-      'Content-Type': 'application/octet-stream'
-    };`;
-      break;
     case "text/plain":
       bodyHandling = `
-    if (args.length !== 1 || typeof args[0] !== 'string') {
-      throw new Error('For "text/plain" contentType, you must provide exactly one string argument.');
-    }
     const body = args[0];
     const headers = {
       'Content-Type': 'text/plain'
@@ -152,7 +131,7 @@ return result.data;
 ${Array.from(functionMappings.entries()).map(
     ([registeredName, exportName]) => getModule(registeredName, exportName, {
       ...initialOptions,
-      ..._optionalChain([serverFunctionsMap, 'access', _ => _.get, 'call', _2 => _2(registeredName), 'optionalAccess', _3 => _3.options]) || {}
+      ...serverFunctionsMap.get(registeredName)?.options || {}
     })
   ).join("\n")}
 `.trim();
@@ -184,15 +163,15 @@ var defaultMiddlewareOptions = {
   onResponse: void 0
 };
 
-
-
-
-
-
-
-
-
-
-
-
-exports.__commonJS = __commonJS; exports.__toESM = __toESM; exports.__publicField = __publicField; exports.serverFunctionsMap = serverFunctionsMap; exports.functionMappings = functionMappings; exports.scanForServerFiles = scanForServerFiles; exports.getClientModules = getClientModules; exports.defaultServerFnOptions = defaultServerFnOptions; exports.defaultRPCOptions = defaultRPCOptions; exports.defaultMiddlewareOptions = defaultMiddlewareOptions;
+export {
+  __commonJS,
+  __toESM,
+  __publicField,
+  serverFunctionsMap,
+  functionMappings,
+  scanForServerFiles,
+  getClientModules,
+  defaultServerFnOptions,
+  defaultRPCOptions,
+  defaultMiddlewareOptions
+};

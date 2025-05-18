@@ -1,11 +1,10 @@
-import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-BTEF26oe.cjs';
-export { i as HonoMiddlewareHooks, h as HonoMiddlewareOptions } from './types.d-BTEF26oe.cjs';
+import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-BHfEgPGZ.cjs';
+export { j as HonoMiddlewareHooks, i as HonoMiddlewareOptions } from './types.d-BHfEgPGZ.cjs';
 import * as hono from 'hono';
 import { Context } from 'hono';
 import { ViteDevServer } from 'vite';
 import { HttpBindings } from '@hono/node-server';
 import 'fastify';
-import 'node:buffer';
 
 declare const createMiddleware: HonoMiddlewareFn;
 declare const createRPCMiddleware: HonoMiddlewareFn;

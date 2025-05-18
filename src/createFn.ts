@@ -1,20 +1,19 @@
 // /vite-uni-rpc/src/createFn.ts
 
 import { serverCache } from "./cache";
-import type { Arguments, ServerFnEntry, ServerFunctionOptions } from "./types";
+import type { JsonArray, ServerFnEntry, ServerFunctionOptions } from "./types";
 import { serverFunctionsMap } from "./utils";
 import { defaultServerFnOptions } from "./options";
 
 export function createServerFunction<
-  TArgs extends Arguments[] = Arguments[],
   TResult = unknown,
 >(
   name: string,
-  fn: ServerFnEntry<TArgs, TResult>,
+  fn: ServerFnEntry<TResult>,
   initialOptions: Partial<ServerFunctionOptions> = {},
-): ServerFnEntry<TArgs, TResult> {
+) {
   const options = { ...defaultServerFnOptions, ...initialOptions };
-  const wrappedFunction = async (...args: TArgs) => {
+  const wrappedFunction = async (...args: JsonArray[]) => {
     const cacheKey = `${name}:${JSON.stringify(args)}`;
     const result = await serverCache.get(
       cacheKey,
@@ -32,7 +31,7 @@ export function createServerFunction<
   // registerServerFunction(name, wrappedFunction, options);
   serverFunctionsMap.set(name, {
     name,
-    fn: wrappedFunction as ServerFnEntry<Arguments[], unknown>,
+    fn: wrappedFunction as ServerFnEntry,
     options,
   });
 

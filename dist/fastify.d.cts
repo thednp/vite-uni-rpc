@@ -1,9 +1,8 @@
-import { F as FastifyMiddlewareFn, B as BodyResult } from './types.d-BTEF26oe.cjs';
-export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-BTEF26oe.cjs';
+import { F as FastifyMiddlewareFn, B as BodyResult } from './types.d-BHfEgPGZ.cjs';
+export { g as FastifyMiddlewareHooks, f as FastifyMiddlewareOptions, h as RpcFastifyPluginOptions } from './types.d-BHfEgPGZ.cjs';
 import { FastifyRequest } from 'fastify';
 import 'vite';
 import 'hono';
-import 'node:buffer';
 
 declare const createMiddleware: FastifyMiddlewareFn;
 declare const createRPCMiddleware: FastifyMiddlewareFn;

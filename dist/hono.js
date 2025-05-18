@@ -3,15 +3,13 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-VWR63TAD.js";
+} from "./chunk-CDDXHG4W.js";
 
 // src/hono/createMiddleware.ts
 import { createMiddleware as createHonoMiddleware } from "hono/factory";
 
 // src/hono/helpers.ts
-import { Buffer } from "buffer";
 import { createMiddleware } from "hono/factory";
-import formidable from "formidable";
 var viteMiddleware = (vite) => {
   return createMiddleware((c, next) => {
     return new Promise((resolve) => {
@@ -49,26 +47,6 @@ var viteMiddleware = (vite) => {
 };
 var readBody = async (c) => {
   const contentType = c.req.header("content-type")?.toLowerCase() || "";
-  if (contentType.includes("multipart/form-data")) {
-    const form = formidable({ multiples: true });
-    return new Promise((resolve, reject) => {
-      form.parse(c.env.incoming, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({
-          contentType: "multipart/form-data",
-          fields,
-          files
-        });
-      });
-    });
-  }
-  if (contentType.includes("octet-stream")) {
-    const buffer = await c.req.arrayBuffer();
-    return {
-      contentType: "application/octet-stream",
-      data: Buffer.from(buffer)
-    };
-  }
   if (contentType.includes("json")) {
     const data = await c.req.json();
     return {
@@ -183,20 +161,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(c);
-        let args;
-        switch (body.contentType) {
-          case "application/json":
-            args = body.data;
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args);
         return c.json({ data: result }, 200);
       } catch (err) {

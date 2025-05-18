@@ -10,8 +10,8 @@ import { scanForServerFiles } from "../utils";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
 import { getRequestDetails, getResponseDetails, readBody } from "./helpers";
 import { serverFunctionsMap } from "../utils";
-import type { Arguments, JsonValue } from "../types";
-import { type ExpressMiddlewareFn } from "./types";
+import type { JsonValue } from "../types";
+import type { ExpressMiddlewareFn } from "./types";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();
@@ -150,22 +150,7 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
 
       try {
         const body = await readBody(req);
-        let args: Arguments[];
-
-        switch (body.contentType) {
-          case "application/json":
-            args = body.data as Arguments[];
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files] as Arguments[];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
-
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args) as JsonValue;
         sendResponse(200, { data: result });
       } catch (err) {

@@ -1,11 +1,9 @@
 // src/express/helpers.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { Buffer } from "node:buffer";
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import formidable from "formidable";
 import type { BodyResult, JsonValue } from "../types";
 
 export const readBody = (
@@ -14,35 +12,12 @@ export const readBody = (
   return new Promise((resolve, reject) => {
     const contentType = req.headers["content-type"]?.toLowerCase() || "";
 
-    if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
-      form.parse(req, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({ contentType: "multipart/form-data", fields, files });
-      });
-      return;
-    }
-
     let body = "";
-    const chunks: Buffer[] = [];
-
     req.on("data", (chunk) => {
-      if (contentType.includes("octet-stream")) {
-        chunks.push(chunk);
-      } else {
-        body += chunk.toString();
-      }
+      body += chunk.toString();
     });
 
     req.on("end", () => {
-      if (contentType.includes("octet-stream")) {
-        resolve({
-          contentType: "application/octet-stream",
-          data: Buffer.concat(chunks),
-        });
-        return;
-      }
-
       if (contentType.includes("json")) {
         try {
           resolve({ contentType: "application/json", data: JSON.parse(body) });
@@ -74,7 +49,8 @@ export const isExpressResponse = (
 export const getRequestDetails = (
   request: ExpressRequest | IncomingMessage,
 ) => {
-  const rawUrl = (isExpressRequest(request) ? request.originalUrl : request.url) as string;
+  const rawUrl =
+    (isExpressRequest(request) ? request.originalUrl : request.url) as string;
   const url = new URL(rawUrl, "http://localhost");
 
   return {

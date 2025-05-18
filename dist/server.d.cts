@@ -1,10 +1,9 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-BTEF26oe.cjs';
+import { S as ServerFnEntry, a as ServerFunctionOptions, J as JsonArray, b as ServerFunction, R as RpcPluginOptions } from './types.d-BHfEgPGZ.cjs';
 import { ResolvedConfig, ViteDevServer } from 'vite';
 import 'hono';
 import 'fastify';
-import 'node:buffer';
 
-declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): ServerFnEntry<TArgs, TResult>;
+declare function createServerFunction<TResult = unknown>(name: string, fn: ServerFnEntry<TResult>, initialOptions?: Partial<ServerFunctionOptions>): (...args: JsonArray[]) => Promise<TResult>;
 
 declare class ServerCache {
     private cache;
@@ -13,7 +12,7 @@ declare class ServerCache {
 }
 declare const serverCache: ServerCache;
 
-declare const serverFunctionsMap: Map<string, ServerFunction<Arguments[], unknown>>;
+declare const serverFunctionsMap: Map<string, ServerFunction>;
 declare const functionMappings: Map<string, string>;
 type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
     server?: Partial<ResolvedConfig["server"]>;

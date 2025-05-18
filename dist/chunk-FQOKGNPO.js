@@ -3,39 +3,17 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-VWR63TAD.js";
+} from "./chunk-CDDXHG4W.js";
 
 // src/express/helpers.ts
-import { Buffer } from "buffer";
-import formidable from "formidable";
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
     const contentType = req.headers["content-type"]?.toLowerCase() || "";
-    if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
-      form.parse(req, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({ contentType: "multipart/form-data", fields, files });
-      });
-      return;
-    }
     let body = "";
-    const chunks = [];
     req.on("data", (chunk) => {
-      if (contentType.includes("octet-stream")) {
-        chunks.push(chunk);
-      } else {
-        body += chunk.toString();
-      }
+      body += chunk.toString();
     });
     req.on("end", () => {
-      if (contentType.includes("octet-stream")) {
-        resolve({
-          contentType: "application/octet-stream",
-          data: Buffer.concat(chunks)
-        });
-        return;
-      }
       if (contentType.includes("json")) {
         try {
           resolve({ contentType: "application/json", data: JSON.parse(body) });
@@ -200,20 +178,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(req);
-        let args;
-        switch (body.contentType) {
-          case "application/json":
-            args = body.data;
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args);
         sendResponse(200, { data: result });
       } catch (err) {

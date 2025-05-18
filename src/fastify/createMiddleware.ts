@@ -6,7 +6,7 @@ import type {
 } from "fastify";
 import { scanForServerFiles, serverFunctionsMap } from "../utils";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
-import type { Arguments, JsonValue } from "../types";
+import type { JsonValue } from "../types";
 import type { FastifyMiddlewareFn } from "./types";
 import { readBody } from "./helpers";
 
@@ -131,16 +131,16 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
       reply: FastifyReply,
       done: HookHandlerDoneFunction,
     ) => {
-      const { url } = req;
-      const pathname = url?.split("?")[0];
+      const reqUrl = new URL(req.url, "http://localhost");
+      const url = reqUrl.pathname;
       const { rpcPreffix } = options;
 
-      if (!pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (!url?.startsWith(`/${rpcPreffix}`)) {
         done();
         return;
       }
 
-      const functionName = pathname.replace(`/${rpcPreffix}/`, "");
+      const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
@@ -152,24 +152,7 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
 
       try {
         const body = await readBody(req);
-        let args: Arguments[];
-
-        switch (body.contentType) {
-          case "application/json":
-            args = Array.isArray(body.data)
-              ? body.data
-              : [body.data] as Arguments[];
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files] as Arguments[];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
-
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args) as JsonValue;
         reply.status(200).send({ data: result });
       } catch (err) {

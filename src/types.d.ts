@@ -2,7 +2,6 @@
 import type { ExpressMiddlewareFn, ExpressMiddlewareHooks } from "./express";
 import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono";
 import type { FastifyMiddlewareFn, FastifyMiddlewareHooks } from "./fastify";
-import type { Buffer } from "node:buffer";
 
 export interface FrameworkHooks {
   express: ExpressMiddlewareHooks;
@@ -16,21 +15,19 @@ export interface FrameworkMiddlewareFn {
   fastify: FastifyMiddlewareFn;
 }
 
-export type ContentType =
+export type SupportableContentType =
   | "multipart/form-data"
   | "application/json"
   | "text/plain"
   | "application/octet-stream";
 
+export type ContentType =
+  | "application/json"
+  | "text/plain";
+
 export type BodyResult =
-  | {
-    contentType: "multipart/form-data";
-    fields: Record<string, unknown>;
-    files: Record<string, unknown>;
-  }
-  | { contentType: "application/json"; data: Arguments | Arguments[] }
-  | { contentType: "text/plain"; data: string }
-  | { contentType: "application/octet-stream"; data: Buffer };
+  | { contentType: "application/json"; data: JsonValue }
+  | { contentType: "text/plain"; data: string };
 
 export interface ServerFunctionOptions {
   ttl: number;
@@ -40,42 +37,34 @@ export interface ServerFunctionOptions {
 
 // primitives and their compositions
 export type JsonPrimitive = string | number | boolean | null | undefined;
+export type JsonObject = { [key: string]: JsonValue | JsonArray };
 export type JsonArray = JsonValue[];
-export type JsonObject = { [key: string]: JsonValue | JsonArray | File };
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
+// Keep these as a refference
 // Date strings are common in APIs
-export type ISODateString = string; // for dates in ISO format
+// export type ISODateString = string; // for dates in ISO format
 
 // Special types that might be useful
-export type Base64String = string; // for binary data encoded as base64
-export type URLString = string; // for URLs
-export type EmailString = string; // for email addresses
+// export type Base64String = string; // for binary data encoded as base64
+// export type URLString = string; // for URLs
+// export type EmailString = string; // for email addresses
 
-export type RPCValue =
-  | JsonValue
-  | Date // will be serialized as ISOString
-  | Uint8Array // will be serialized as base64
-  | File // for file uploads
-  | Blob // for binary data
-  | FormData // for form submissions
-  | URLSearchParams; // for query parameters
+// export type RPCValue =
+//   | JsonValue
+//   | Date // will be serialized as ISOString
+//   | Uint8Array // will be serialized as base64
+//   | File // for file uploads
+//   | Blob // for binary data
+//   | URLSearchParams; // for query parameters
 
-export type Arguments =
-  | RPCValue
-  | Array<JsonPrimitive | JsonPrimitive[] | JsonObject | JsonObject[]>;
+export type ServerFnEntry<TResult = never> = (
+  ...args: JsonArray
+) => Promise<TResult>;
 
-export type ServerFnEntry<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> = (...args: TArgs) => Promise<TResult>;
-
-export interface ServerFunction<
-  TArgs extends Arguments[] = Arguments[],
-  TResult = unknown,
-> {
+export interface ServerFunction {
   name: string;
-  fn: ServerFnEntry<TArgs, TResult>;
+  fn: ServerFnEntry;
   options?: ServerFunctionOptions;
 }
 

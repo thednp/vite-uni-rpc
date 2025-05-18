@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.1",
-    "hono": "^4.7.10",
-    "formidable": "^3.5.4"
+    "hono": "^4.7.10"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5"

@@ -2,7 +2,7 @@
 import type { Context, Next } from "hono";
 import { createMiddleware as createHonoMiddleware } from "hono/factory";
 import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
-import type { Arguments, JsonValue } from "../types.d.ts";
+import type { JsonValue } from "../types.d.ts";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
 import type { HonoMiddlewareFn } from "./types.d.ts";
 import { readBody } from "./helpers.ts";
@@ -129,22 +129,7 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
 
       try {
         const body = await readBody(c);
-        let args: Arguments[];
-
-        switch (body.contentType) {
-          case "application/json":
-            args = body.data as Arguments[];
-            break;
-          case "multipart/form-data":
-            args = [body.fields, body.files] as Arguments[];
-            break;
-          case "application/octet-stream":
-            args = [body.data];
-            break;
-          default:
-            args = [body.data];
-        }
-
+        const args = Array.isArray(body.data) ? body.data : [body.data];
         const result = await serverFunction.fn(...args) as JsonValue;
         return c.json({ data: result }, 200);
       } catch (err) {

@@ -1,12 +1,11 @@
-import { E as ExpressMiddlewareFn, B as BodyResult, J as JsonValue } from './types.d-BTEF26oe.cjs';
-export { d as ExpressMiddlewareHooks, c as ExpressMiddlewareOptions } from './types.d-BTEF26oe.cjs';
+import { E as ExpressMiddlewareFn, B as BodyResult, c as JsonValue } from './types.d-BHfEgPGZ.cjs';
+export { e as ExpressMiddlewareHooks, d as ExpressMiddlewareOptions } from './types.d-BHfEgPGZ.cjs';
 import * as http from 'http';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
 import 'vite';
 import 'hono';
 import 'fastify';
-import 'node:buffer';
 
 declare const createMiddleware: ExpressMiddlewareFn;
 declare const createRPCMiddleware: ExpressMiddlewareFn;

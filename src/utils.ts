@@ -4,7 +4,6 @@ import { join } from "node:path";
 import process from "node:process";
 import type { ResolvedConfig, ViteDevServer } from "vite";
 import type {
-  Arguments,
   RpcPluginOptions,
   ServerFnEntry,
   ServerFunction,
@@ -13,7 +12,7 @@ import type {
 
 export const serverFunctionsMap = new Map<
   string,
-  ServerFunction<Arguments[], unknown>
+  ServerFunction
 >();
 
 export const functionMappings = new Map<string, string>();
@@ -112,29 +111,8 @@ const getModule = (
 ) => {
   let bodyHandling;
   switch (options.contentType) {
-    case "multipart/form-data":
-      bodyHandling = `
-    if (args.length !== 1 || !(args[0] instanceof FormData)) {
-      throw new Error('For "multipart/form-data" contentType, you must provide exactly one argument, which must be a FormData object.');
-    }
-    const body = args[0];
-    const headers = {};`;
-      break;
-    case "application/octet-stream":
-      bodyHandling = `
-    if (args.length !== 1 || !(args[0] instanceof Buffer || args[0] instanceof Uint8Array)) {
-      throw new Error('For "application/octet-stream" contentType, you must provide exactly one argument, which must be a Buffer or Uint8Array.');
-    }
-    const body = args[0];
-    const headers = {
-      'Content-Type': 'application/octet-stream'
-    };`;
-      break;
     case "text/plain":
       bodyHandling = `
-    if (args.length !== 1 || typeof args[0] !== 'string') {
-      throw new Error('For "text/plain" contentType, you must provide exactly one string argument.');
-    }
     const body = args[0];
     const headers = {
       'Content-Type': 'text/plain'

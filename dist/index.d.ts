@@ -1,9 +1,8 @@
 import * as rollup from 'rollup';
 import { ResolvedConfig, ViteDevServer } from 'vite';
-import { R as RpcPluginOptions } from './types.d-BTEF26oe.js';
+import { R as RpcPluginOptions } from './types.d-BHfEgPGZ.js';
 import 'hono';
 import 'fastify';
-import 'node:buffer';
 
 /**
  * Utility to define `vite-uni-rpc` configuration file similar to vite.

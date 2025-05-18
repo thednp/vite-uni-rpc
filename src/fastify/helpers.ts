@@ -1,53 +1,25 @@
 // vite-uni-rpc/src/fastify/helpers.ts
-import { FastifyRequest } from "fastify";
-import { Buffer } from "node:buffer";
-import formidable from "formidable";
-import { Arguments, BodyResult } from "../types";
+import type { FastifyRequest } from "fastify";
+import type { BodyResult, JsonValue } from "../types";
 
 export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
   return new Promise((resolve, reject) => {
     const contentType = req.headers["content-type"]?.toLowerCase() || "";
 
-    if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
-      form.parse(req.raw, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({
-          contentType: "multipart/form-data",
-          fields,
-          files,
-        });
-      });
-      return;
-    }
     if (contentType.includes("json")) {
       resolve({
         contentType: "application/json",
-        data: req.body as Arguments | Arguments[],
+        data: req.body as JsonValue,
       });
       return;
     }
 
     let body = "";
-    const chunks: Buffer[] = [];
-
     req.raw.on("data", (chunk) => {
-      if (contentType.includes("octet-stream")) {
-        chunks.push(chunk);
-      } else {
-        body += chunk.toString();
-      }
+      body += chunk.toString();
     });
 
     req.raw.on("end", () => {
-      if (contentType.includes("octet-stream")) {
-        resolve({
-          contentType: "application/octet-stream",
-          data: Buffer.concat(chunks),
-        });
-        return;
-      }
-
       resolve({ contentType: "text/plain", data: body });
     });
 
