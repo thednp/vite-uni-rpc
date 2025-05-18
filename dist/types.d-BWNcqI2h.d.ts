@@ -120,14 +120,12 @@ type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 //   | Blob // for binary data
 //   | URLSearchParams; // for query parameters
 
-type ServerFnArgs = [first?: JsonObject | JsonPrimitive, ...JsonArray];
+type ServerFnArgs = [JsonObject | JsonPrimitive, ...JsonArray];
 
 type ServerFnEntry<
-  TArgs extends ServerFnArgs = ServerFnArgs,
+  TArgs extends ServerFnArgs = JsonArray,
   TResult = never,
 > = (
-  // first?: JsonObject | JsonPrimitive,
-  // ...args?: JsonArray
   ...args: TArgs
 ) => Promise<TResult>;
 

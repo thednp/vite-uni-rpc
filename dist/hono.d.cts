@@ -1,5 +1,5 @@
-import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-D07nEVWw.cjs';
-export { l as HonoMiddlewareHooks, k as HonoMiddlewareOptions } from './types.d-D07nEVWw.cjs';
+import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-BWNcqI2h.cjs';
+export { l as HonoMiddlewareHooks, k as HonoMiddlewareOptions } from './types.d-BWNcqI2h.cjs';
 import * as hono from 'hono';
 import { Context } from 'hono';
 import { ViteDevServer } from 'vite';

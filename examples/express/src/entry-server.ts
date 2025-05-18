@@ -19,6 +19,7 @@ export async function render(_url: string) {
         <label for="b">B</label>
         <input id="b" name="b" type="number" placeholder="Value B" />
         <button type="submit">Add</button>
+        <output>0</output>
       </form>
     </div>
   `

@@ -6,7 +6,7 @@ import {
   isExpressRequest,
   isExpressResponse,
   readBody
-} from "./chunk-FAVOV5YC.js";
+} from "./chunk-JKPX4BKT.js";
 import "./chunk-CDDXHG4W.js";
 export {
   createMiddleware,

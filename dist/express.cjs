@@ -6,7 +6,7 @@
 
 
 
-var _chunk6H2EDBVDcjs = require('./chunk-6H2EDBVD.cjs');
+var _chunk2VXOMJPKcjs = require('./chunk-2VXOMJPK.cjs');
 require('./chunk-2P4UAVG6.cjs');
 
 
@@ -16,4 +16,4 @@ require('./chunk-2P4UAVG6.cjs');
 
 
 
-exports.createMiddleware = _chunk6H2EDBVDcjs.createMiddleware; exports.createRPCMiddleware = _chunk6H2EDBVDcjs.createRPCMiddleware; exports.getRequestDetails = _chunk6H2EDBVDcjs.getRequestDetails; exports.getResponseDetails = _chunk6H2EDBVDcjs.getResponseDetails; exports.isExpressRequest = _chunk6H2EDBVDcjs.isExpressRequest; exports.isExpressResponse = _chunk6H2EDBVDcjs.isExpressResponse; exports.readBody = _chunk6H2EDBVDcjs.readBody;
+exports.createMiddleware = _chunk2VXOMJPKcjs.createMiddleware; exports.createRPCMiddleware = _chunk2VXOMJPKcjs.createRPCMiddleware; exports.getRequestDetails = _chunk2VXOMJPKcjs.getRequestDetails; exports.getResponseDetails = _chunk2VXOMJPKcjs.getResponseDetails; exports.isExpressRequest = _chunk2VXOMJPKcjs.isExpressRequest; exports.isExpressResponse = _chunk2VXOMJPKcjs.isExpressResponse; exports.readBody = _chunk2VXOMJPKcjs.readBody;
