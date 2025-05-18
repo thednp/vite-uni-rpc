@@ -122,7 +122,7 @@ async function loadRPCConfig(configFile?: string) {
 
 function rpcPlugin(
   devOptions: Partial<RpcPluginOptions> = {},
-): PluginOption {
+) {
   let options: RpcPluginOptions;
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
@@ -169,7 +169,7 @@ function rpcPlugin(
         createRPCMiddleware(rest),
       );
     },
-  };
+  } satisfies PluginOption;
 }
 
 export { rpcPlugin as default };

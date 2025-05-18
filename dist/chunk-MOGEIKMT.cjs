@@ -3,7 +3,7 @@
 
 
 
-var _chunkMTFPKUGWcjs = require('./chunk-MTFPKUGW.cjs');
+var _chunkU3JW6AGWcjs = require('./chunk-U3JW6AGW.cjs');
 
 // src/fastify/helpers.ts
 var _buffer = require('buffer');
@@ -47,13 +47,6 @@ var readBody = (req) => {
         });
         return;
       }
-      if (contentType.includes("urlencoded")) {
-        resolve({
-          contentType: "application/x-www-form-urlencoded",
-          data: Object.fromEntries(new URLSearchParams(body))
-        });
-        return;
-      }
       resolve({ contentType: "text/plain", data: body });
     });
     req.raw.on("error", reject);
@@ -74,7 +67,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -85,10 +78,11 @@ var createMiddleware = (initialOptions = {}) => {
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
-  return async (req, reply, done) => {
-    const [pathname] = req.url.split("?");
-    if (_chunkMTFPKUGWcjs.serverFunctionsMap.size === 0) {
-      await _chunkMTFPKUGWcjs.scanForServerFiles.call(void 0, );
+  const middlewareHandler = async (req, reply, done) => {
+    const reqUrl = new URL(req.url, "http://localhost");
+    const url = reqUrl.pathname;
+    if (_chunkU3JW6AGWcjs.serverFunctionsMap.size === 0) {
+      await _chunkU3JW6AGWcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       done();
@@ -100,12 +94,12 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(pathname || "")) {
+        if (!matcher.test(url || "")) {
           done();
           return;
         }
       }
-      if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(`/${rpcPreffix}`)])) {
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(`/${rpcPreffix}`)])) {
         done();
         return;
       }
@@ -134,11 +128,15 @@ var createMiddleware = (initialOptions = {}) => {
       }
     }
   };
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name
+  });
+  return middlewareHandler;
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
-    rpcPreffix: _chunkMTFPKUGWcjs.defaultRPCOptions.rpcPreffix,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunkU3JW6AGWcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -152,7 +150,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return;
       }
       const functionName = pathname.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkMTFPKUGWcjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkU3JW6AGWcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
           error: `Function "${functionName}" was not found`
@@ -168,9 +166,6 @@ var createRPCMiddleware = (initialOptions = {}) => {
             break;
           case "multipart/form-data":
             args = [body.fields, body.files];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

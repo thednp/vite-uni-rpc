@@ -1,11 +1,11 @@
 import {
   createRPCMiddleware
-} from "./chunk-UY45ICCN.js";
+} from "./chunk-D6RAEWBR.js";
 import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
-} from "./chunk-EUSB4D3V.js";
+} from "./chunk-VWR63TAD.js";
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";

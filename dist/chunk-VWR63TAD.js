@@ -111,16 +111,6 @@ var getModule = (fnName, fnEntry, options) => {
       'Content-Type': 'application/octet-stream'
     };`;
       break;
-    case "application/x-www-form-urlencoded":
-      bodyHandling = `
-    if (args.length !== 1 || typeof args[0] !== 'object') {
-      throw new Error('For "application/x-www-form-urlencoded" contentType, you must provide exactly one object argument.');
-    }
-    const body = new URLSearchParams(args[0]).toString();
-    const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    };`;
-      break;
     case "text/plain":
       bodyHandling = `
     if (args.length !== 1 || typeof args[0] !== 'string') {

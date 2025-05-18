@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-EUSB4D3V.js";
+} from "./chunk-VWR63TAD.js";
 
 // src/fastify/helpers.ts
 import { Buffer } from "buffer";
@@ -47,13 +47,6 @@ var readBody = (req) => {
         });
         return;
       }
-      if (contentType.includes("urlencoded")) {
-        resolve({
-          contentType: "application/x-www-form-urlencoded",
-          data: Object.fromEntries(new URLSearchParams(body))
-        });
-        return;
-      }
       resolve({ contentType: "text/plain", data: body });
     });
     req.raw.on("error", reject);
@@ -85,8 +78,9 @@ var createMiddleware = (initialOptions = {}) => {
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
-  return async (req, reply, done) => {
-    const [pathname] = req.url.split("?");
+  const middlewareHandler = async (req, reply, done) => {
+    const reqUrl = new URL(req.url, "http://localhost");
+    const url = reqUrl.pathname;
     if (serverFunctionsMap.size === 0) {
       await scanForServerFiles();
     }
@@ -100,12 +94,12 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(pathname || "")) {
+        if (!matcher.test(url || "")) {
           done();
           return;
         }
       }
-      if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
         done();
         return;
       }
@@ -134,6 +128,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
     }
   };
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name
+  });
+  return middlewareHandler;
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
@@ -168,9 +166,6 @@ var createRPCMiddleware = (initialOptions = {}) => {
             break;
           case "multipart/form-data":
             args = [body.fields, body.files];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

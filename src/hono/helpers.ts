@@ -89,15 +89,6 @@ export const readBody = async (c: Context): Promise<BodyResult> => {
     };
   }
 
-  if (contentType.includes("urlencoded")) {
-    const formData = await c.req.formData();
-    const data = Object.fromEntries(formData);
-    return {
-      contentType: "application/x-www-form-urlencoded",
-      data,
-    };
-  }
-
   const text = await c.req.text();
   return { contentType: "text/plain", data: text };
 };

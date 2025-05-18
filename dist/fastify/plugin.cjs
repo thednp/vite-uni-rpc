@@ -1,13 +1,13 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
-var _chunkPM4EU37Ecjs = require('../chunk-PM4EU37E.cjs');
+var _chunkMOGEIKMTcjs = require('../chunk-MOGEIKMT.cjs');
 
 
 
-var _chunkMTFPKUGWcjs = require('../chunk-MTFPKUGW.cjs');
+var _chunkU3JW6AGWcjs = require('../chunk-U3JW6AGW.cjs');
 
 // src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js
-var require_getPluginName = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
+var require_getPluginName = _chunkU3JW6AGWcjs.__commonJS.call(void 0, {
   "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
     "use strict";
     var fpStackTracePattern = /at\s{1}(?:.*\.)?plugin\s{1}.*\n\s*(.*)/;
@@ -32,7 +32,7 @@ var require_getPluginName = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
 });
 
 // src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js
-var require_toCamelCase = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
+var require_toCamelCase = _chunkU3JW6AGWcjs.__commonJS.call(void 0, {
   "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
     "use strict";
     module.exports = function toCamelCase(name) {
@@ -47,7 +47,7 @@ var require_toCamelCase = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
 });
 
 // src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js
-var require_plugin = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
+var require_plugin = _chunkU3JW6AGWcjs.__commonJS.call(void 0, {
   "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js"(exports, module) {
     "use strict";
     var getPluginName = require_getPluginName();
@@ -97,9 +97,9 @@ var require_plugin = _chunkMTFPKUGWcjs.__commonJS.call(void 0, {
 });
 
 // src/fastify/plugin.ts
-var import_fastify_plugin = _chunkMTFPKUGWcjs.__toESM.call(void 0, require_plugin(), 1);
+var import_fastify_plugin = _chunkU3JW6AGWcjs.__toESM.call(void 0, require_plugin(), 1);
 var RpcPlugin = (fastify, initialOptions = {}, done) => {
-  const rpcMiddleware = _chunkPM4EU37Ecjs.createRPCMiddleware.call(void 0, initialOptions);
+  const rpcMiddleware = _chunkMOGEIKMTcjs.createRPCMiddleware.call(void 0, initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {
       rpcMiddleware(request, reply, resolve);

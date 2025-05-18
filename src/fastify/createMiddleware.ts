@@ -38,13 +38,13 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
 
-  return async (
+  const middlewareHandler = async (
     req: FastifyRequest,
     reply: FastifyReply,
     done: HookHandlerDoneFunction,
   ) => {
-    // const { url } = req;
-    const [pathname] = req.url.split("?"); // Extract pathname without query params
+    const reqUrl = new URL(req.url, "http://localhost");
+    const url = reqUrl.pathname;
 
     // When serving from production server, scan for server files and populate the serverFunctionsMap
     if (serverFunctionsMap.size === 0) {
@@ -66,14 +66,14 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
       // Path matching
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(pathname || "")) {
+        if (!matcher.test(url || "")) {
           done();
           return;
         }
       }
 
       // rpcPreffix matching
-      if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
         done();
         return;
       }
@@ -107,6 +107,12 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
       }
     }
   };
+
+  Object.defineProperty(middlewareHandler, "name", {
+    value: name,
+  });
+
+  return middlewareHandler;
 };
 
 export const createRPCMiddleware: FastifyMiddlewareFn = (
@@ -156,9 +162,6 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
             break;
           case "multipart/form-data":
             args = [body.fields, body.files] as Arguments[];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

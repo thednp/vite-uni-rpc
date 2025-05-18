@@ -3,7 +3,7 @@
 
 
 
-var _chunkMTFPKUGWcjs = require('./chunk-MTFPKUGW.cjs');
+var _chunkU3JW6AGWcjs = require('./chunk-U3JW6AGW.cjs');
 
 // src/hono/createMiddleware.ts
 var _factory = require('hono/factory');
@@ -76,14 +76,6 @@ var readBody = async (c) => {
       data
     };
   }
-  if (contentType.includes("urlencoded")) {
-    const formData = await c.req.formData();
-    const data = Object.fromEntries(formData);
-    return {
-      contentType: "application/x-www-form-urlencoded",
-      data
-    };
-  }
   const text = await c.req.text();
   return { contentType: "text/plain", data: text };
 };
@@ -102,7 +94,7 @@ var createMiddleware2 = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -113,16 +105,12 @@ var createMiddleware2 = (initialOptions = {}) => {
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
-  if (path && rpcPreffix) {
-    throw new Error(
-      'Configuration conflict: Both "path" and "rpcPreffix" are provided. The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. Skipping middleware registration..'
-    );
-  }
   const middlewareHandler = _factory.createMiddleware.call(void 0, 
     async (c, next) => {
-      const { path: pathname } = c.req;
-      if (_chunkMTFPKUGWcjs.serverFunctionsMap.size === 0) {
-        await _chunkMTFPKUGWcjs.scanForServerFiles.call(void 0, );
+      const reqUrl = new URL(c.req.path, "http://localhost");
+      const url = reqUrl.pathname;
+      if (_chunkU3JW6AGWcjs.serverFunctionsMap.size === 0) {
+        await _chunkU3JW6AGWcjs.scanForServerFiles.call(void 0, );
       }
       if (!handler) {
         await next();
@@ -134,12 +122,12 @@ var createMiddleware2 = (initialOptions = {}) => {
         }
         if (path) {
           const matcher = typeof path === "string" ? new RegExp(path) : path;
-          if (!matcher.test(pathname || "")) {
+          if (!matcher.test(url || "")) {
             await next();
             return;
           }
         }
-        if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
+        if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _6 => _6.startsWith, 'call', _7 => _7(`/${rpcPreffix}`)])) {
           await next();
           return;
         }
@@ -175,8 +163,8 @@ var createMiddleware2 = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
-    rpcPreffix: _chunkMTFPKUGWcjs.defaultRPCOptions.rpcPreffix,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunkU3JW6AGWcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware2({
@@ -189,7 +177,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         return;
       }
       const functionName = path.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = _chunkMTFPKUGWcjs.serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkU3JW6AGWcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         return c.json({ error: `Function "${functionName}" not found` }, 404);
       }
@@ -202,9 +190,6 @@ var createRPCMiddleware = (initialOptions = {}) => {
             break;
           case "multipart/form-data":
             args = [body.fields, body.files];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

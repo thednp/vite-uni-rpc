@@ -52,12 +52,6 @@ export const readBody = (
         return;
       }
 
-      if (contentType.includes("urlencoded")) {
-        const data = Object.fromEntries(new URLSearchParams(body));
-        resolve({ contentType: "application/x-www-form-urlencoded", data });
-        return;
-      }
-
       resolve({ contentType: "text/plain", data: body });
     });
 
@@ -80,10 +74,13 @@ export const isExpressResponse = (
 export const getRequestDetails = (
   request: ExpressRequest | IncomingMessage,
 ) => {
-  const url = isExpressRequest(request) ? request.originalUrl : request.url;
+  const rawUrl = (isExpressRequest(request) ? request.originalUrl : request.url) as string;
+  const url = new URL(rawUrl, "http://localhost");
 
   return {
-    url,
+    url: url.pathname,
+    search: url.search,
+    searchParams: url.searchParams,
     headers: request.headers,
     method: request.method,
   };

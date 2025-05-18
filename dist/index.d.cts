@@ -1,5 +1,6 @@
-import { PluginOption } from 'vite';
-import { R as RpcPluginOptions } from './types.d-CFin5vbM.cjs';
+import * as rollup from 'rollup';
+import { ResolvedConfig, ViteDevServer } from 'vite';
+import { R as RpcPluginOptions } from './types.d-BTEF26oe.cjs';
 import 'hono';
 import 'fastify';
 import 'node:buffer';
@@ -14,6 +15,18 @@ declare const defineConfig: (uniConfig: Partial<RpcPluginOptions>) => RpcPluginO
  * @param configFile an optional parameter to specify a file within your project scope
  */
 declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions>;
-declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): PluginOption;
+declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): {
+    name: string;
+    enforce: "pre";
+    configResolved(this: void, resolvedConfig: ResolvedConfig): Promise<void>;
+    buildStart(this: rollup.PluginContext): Promise<void>;
+    transform(this: rollup.TransformPluginContext, code: string, id: string, ops?: {
+        ssr?: boolean;
+    }): Promise<{
+        code: string;
+        map: null;
+    } | null>;
+    configureServer(this: void, server: ViteDevServer): void;
+};
 
 export { RpcPluginOptions, rpcPlugin as default, defineConfig, loadRPCConfig };

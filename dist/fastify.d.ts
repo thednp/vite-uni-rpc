@@ -1,5 +1,5 @@
-import { F as FastifyMiddlewareFn, B as BodyResult } from './types.d-CFin5vbM.js';
-export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-CFin5vbM.js';
+import { F as FastifyMiddlewareFn, B as BodyResult } from './types.d-BTEF26oe.js';
+export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-BTEF26oe.js';
 import { FastifyRequest } from 'fastify';
 import 'vite';
 import 'hono';

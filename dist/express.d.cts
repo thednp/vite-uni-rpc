@@ -1,5 +1,5 @@
-import { E as ExpressMiddlewareFn, B as BodyResult, J as JsonValue } from './types.d-CFin5vbM.cjs';
-export { d as ExpressMiddlewareHooks, c as ExpressMiddlewareOptions } from './types.d-CFin5vbM.cjs';
+import { E as ExpressMiddlewareFn, B as BodyResult, J as JsonValue } from './types.d-BTEF26oe.cjs';
+export { d as ExpressMiddlewareHooks, c as ExpressMiddlewareOptions } from './types.d-BTEF26oe.cjs';
 import * as http from 'http';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
@@ -15,7 +15,9 @@ declare const readBody: (req: Request | IncomingMessage) => Promise<BodyResult>;
 declare const isExpressRequest: (req: IncomingMessage | Request) => req is Request;
 declare const isExpressResponse: (res: ServerResponse | Response) => res is Response;
 declare const getRequestDetails: (request: Request | IncomingMessage) => {
-    url: string | undefined;
+    url: string;
+    search: string;
+    searchParams: URLSearchParams;
     headers: http.IncomingHttpHeaders;
     method: string | undefined;
 };

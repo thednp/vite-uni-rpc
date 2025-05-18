@@ -48,14 +48,6 @@ export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
         return;
       }
 
-      if (contentType.includes("urlencoded")) {
-        resolve({
-          contentType: "application/x-www-form-urlencoded",
-          data: Object.fromEntries(new URLSearchParams(body)),
-        });
-        return;
-      }
-
       resolve({ contentType: "text/plain", data: body });
     });
 

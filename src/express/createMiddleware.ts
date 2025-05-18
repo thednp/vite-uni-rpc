@@ -159,9 +159,6 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
           case "multipart/form-data":
             args = [body.fields, body.files] as Arguments[];
             break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
-            break;
           case "application/octet-stream":
             args = [body.data];
             break;

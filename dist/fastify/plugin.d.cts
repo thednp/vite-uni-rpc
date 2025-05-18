@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { M as MiddlewareOptions } from '../types.d-CFin5vbM.cjs';
+import { M as MiddlewareOptions } from '../types.d-BTEF26oe.cjs';
 import 'vite';
 import 'hono';
 import 'node:buffer';

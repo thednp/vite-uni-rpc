@@ -3,7 +3,7 @@ import {
   defaultRPCOptions,
   scanForServerFiles,
   serverFunctionsMap
-} from "./chunk-EUSB4D3V.js";
+} from "./chunk-VWR63TAD.js";
 
 // src/hono/createMiddleware.ts
 import { createMiddleware as createHonoMiddleware } from "hono/factory";
@@ -76,14 +76,6 @@ var readBody = async (c) => {
       data
     };
   }
-  if (contentType.includes("urlencoded")) {
-    const formData = await c.req.formData();
-    const data = Object.fromEntries(formData);
-    return {
-      contentType: "application/x-www-form-urlencoded",
-      data
-    };
-  }
   const text = await c.req.text();
   return { contentType: "text/plain", data: text };
 };
@@ -113,14 +105,10 @@ var createMiddleware2 = (initialOptions = {}) => {
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
-  if (path && rpcPreffix) {
-    throw new Error(
-      'Configuration conflict: Both "path" and "rpcPreffix" are provided. The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. Skipping middleware registration..'
-    );
-  }
   const middlewareHandler = createHonoMiddleware(
     async (c, next) => {
-      const { path: pathname } = c.req;
+      const reqUrl = new URL(c.req.path, "http://localhost");
+      const url = reqUrl.pathname;
       if (serverFunctionsMap.size === 0) {
         await scanForServerFiles();
       }
@@ -134,12 +122,12 @@ var createMiddleware2 = (initialOptions = {}) => {
         }
         if (path) {
           const matcher = typeof path === "string" ? new RegExp(path) : path;
-          if (!matcher.test(pathname || "")) {
+          if (!matcher.test(url || "")) {
             await next();
             return;
           }
         }
-        if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+        if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
           await next();
           return;
         }
@@ -202,9 +190,6 @@ var createRPCMiddleware = (initialOptions = {}) => {
             break;
           case "multipart/form-data":
             args = [body.fields, body.files];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

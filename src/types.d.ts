@@ -20,8 +20,7 @@ export type ContentType =
   | "multipart/form-data"
   | "application/json"
   | "text/plain"
-  | "application/octet-stream"
-  | "application/x-www-form-urlencoded";
+  | "application/octet-stream";
 
 export type BodyResult =
   | {
@@ -31,11 +30,7 @@ export type BodyResult =
   }
   | { contentType: "application/json"; data: Arguments | Arguments[] }
   | { contentType: "text/plain"; data: string }
-  | { contentType: "application/octet-stream"; data: Buffer }
-  | {
-    contentType: "application/x-www-form-urlencoded";
-    data: Record<string, FormDataEntryValue>;
-  };
+  | { contentType: "application/octet-stream"; data: Buffer };
 
 export interface ServerFunctionOptions {
   ttl: number;

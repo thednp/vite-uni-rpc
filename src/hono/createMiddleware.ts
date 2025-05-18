@@ -34,17 +34,11 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
 
-  if (path && rpcPreffix) {
-    throw new Error(
-      'Configuration conflict: Both "path" and "rpcPreffix" are provided. ' +
-        'The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. ' +
-        "Skipping middleware registration..",
-    );
-  }
-
   const middlewareHandler = createHonoMiddleware(
     async (c: Context, next: Next) => {
-      const { path: pathname } = c.req;
+      const reqUrl = new URL(c.req.path, "http://localhost");
+      const url = reqUrl.pathname;
+
       if (serverFunctionsMap.size === 0) {
         await scanForServerFiles();
       }
@@ -61,13 +55,13 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
 
         if (path) {
           const matcher = typeof path === "string" ? new RegExp(path) : path;
-          if (!matcher.test(pathname || "")) {
+          if (!matcher.test(url || "")) {
             await next();
             return;
           }
         }
 
-        if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+        if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
           await next();
           return;
         }
@@ -143,9 +137,6 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
             break;
           case "multipart/form-data":
             args = [body.fields, body.files] as Arguments[];
-            break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
             break;
           case "application/octet-stream":
             args = [body.data];

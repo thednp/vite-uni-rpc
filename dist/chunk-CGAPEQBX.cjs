@@ -1,18 +1,18 @@
-import {
-  defaultMiddlewareOptions,
-  defaultRPCOptions,
-  scanForServerFiles,
-  serverFunctionsMap
-} from "./chunk-EUSB4D3V.js";
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+
+
+
+var _chunkU3JW6AGWcjs = require('./chunk-U3JW6AGW.cjs');
 
 // src/express/helpers.ts
-import { Buffer } from "buffer";
-import formidable from "formidable";
+var _buffer = require('buffer');
+var _formidable = require('formidable'); var _formidable2 = _interopRequireDefault(_formidable);
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"]?.toLowerCase() || "";
+    const contentType = _optionalChain([req, 'access', _ => _.headers, 'access', _2 => _2["content-type"], 'optionalAccess', _3 => _3.toLowerCase, 'call', _4 => _4()]) || "";
     if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
+      const form = _formidable2.default.call(void 0, { multiples: true });
       form.parse(req, (err, fields, files) => {
         if (err) return reject(err);
         resolve({ contentType: "multipart/form-data", fields, files });
@@ -32,7 +32,7 @@ var readBody = (req) => {
       if (contentType.includes("octet-stream")) {
         resolve({
           contentType: "application/octet-stream",
-          data: Buffer.concat(chunks)
+          data: _buffer.Buffer.concat(chunks)
         });
         return;
       }
@@ -42,11 +42,6 @@ var readBody = (req) => {
         } catch (_e) {
           reject(new Error("Invalid JSON"));
         }
-        return;
-      }
-      if (contentType.includes("urlencoded")) {
-        const data = Object.fromEntries(new URLSearchParams(body));
-        resolve({ contentType: "application/x-www-form-urlencoded", data });
         return;
       }
       resolve({ contentType: "text/plain", data: body });
@@ -61,9 +56,12 @@ var isExpressResponse = (res) => {
   return "json" in res && "send" in res;
 };
 var getRequestDetails = (request) => {
-  const url = isExpressRequest(request) ? request.originalUrl : request.url;
+  const rawUrl = isExpressRequest(request) ? request.originalUrl : request.url;
+  const url = new URL(rawUrl, "http://localhost");
   return {
-    url,
+    url: url.pathname,
+    search: url.search,
+    searchParams: url.searchParams,
     headers: request.headers,
     method: request.method
   };
@@ -115,7 +113,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ...defaultMiddlewareOptions,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -129,11 +127,11 @@ var createMiddleware = (initialOptions = {}) => {
   const middlewareHandler = async (req, res, next) => {
     const { url } = getRequestDetails(req);
     const { sendResponse, setHeader } = getResponseDetails(res);
-    if (serverFunctionsMap.size === 0) {
-      await scanForServerFiles();
+    if (_chunkU3JW6AGWcjs.serverFunctionsMap.size === 0) {
+      await _chunkU3JW6AGWcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
-      return next?.();
+      return _optionalChain([next, 'optionalCall', _5 => _5()]);
     }
     try {
       if (onRequest) {
@@ -141,10 +139,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return next?.();
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _6 => _6()]);
       }
-      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
-        return next?.();
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _7 => _7.startsWith, 'call', _8 => _8(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _9 => _9()]);
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -158,7 +156,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      next?.();
+      _optionalChain([next, 'optionalCall', _10 => _10()]);
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -178,8 +176,8 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    ..._chunkU3JW6AGWcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunkU3JW6AGWcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -188,11 +186,11 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const { url } = getRequestDetails(req);
       const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
-      if (!url?.startsWith(`/${rpcPreffix}`)) {
-        return next?.();
+      if (!_optionalChain([url, 'optionalAccess', _11 => _11.startsWith, 'call', _12 => _12(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _13 => _13()]);
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkU3JW6AGWcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         sendResponse(
           404,
@@ -210,9 +208,6 @@ var createRPCMiddleware = (initialOptions = {}) => {
           case "multipart/form-data":
             args = [body.fields, body.files];
             break;
-          case "application/x-www-form-urlencoded":
-            args = [body.data];
-            break;
           case "application/octet-stream":
             args = [body.data];
             break;
@@ -229,12 +224,12 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-export {
-  readBody,
-  isExpressRequest,
-  isExpressResponse,
-  getRequestDetails,
-  getResponseDetails,
-  createMiddleware,
-  createRPCMiddleware
-};
+
+
+
+
+
+
+
+
+exports.readBody = readBody; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.getRequestDetails = getRequestDetails; exports.getResponseDetails = getResponseDetails; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
