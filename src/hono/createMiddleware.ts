@@ -5,6 +5,7 @@ import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
 import type { Arguments, JsonValue } from "../types.d.ts";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
 import type { HonoMiddlewareFn } from "./types.d.ts";
+import { readBody } from "./helpers.ts";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();
@@ -120,12 +121,7 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
       const { path } = c.req;
       const { rpcPreffix } = options;
 
-      if (!rpcPreffix || rpcPreffix.length === 0) {
-        await next();
-        return;
-      }
-
-      if (rpcPreffix && !path.startsWith(`/${rpcPreffix}`)) {
+      if (!rpcPreffix || !path.startsWith(`/${rpcPreffix}`)) {
         await next();
         return;
       }
@@ -138,8 +134,26 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
       }
 
       try {
-        const body = await c.req.text();
-        const args: Arguments[] = body ? JSON.parse(body) : [];
+        const body = await readBody(c);
+        let args: Arguments[];
+
+        switch (body.contentType) {
+          case "application/json":
+            args = body.data as Arguments[];
+            break;
+          case "multipart/form-data":
+            args = [body.fields, body.files] as Arguments[];
+            break;
+          case "application/x-www-form-urlencoded":
+            args = [body.data];
+            break;
+          case "application/octet-stream":
+            args = [body.data];
+            break;
+          default:
+            args = [body.data];
+        }
+
         const result = await serverFunction.fn(...args) as JsonValue;
         return c.json({ data: result }, 200);
       } catch (err) {

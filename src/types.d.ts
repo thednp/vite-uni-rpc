@@ -2,6 +2,7 @@
 import type { ExpressMiddlewareFn, ExpressMiddlewareHooks } from "./express";
 import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono";
 import type { FastifyMiddlewareFn, FastifyMiddlewareHooks } from "./fastify";
+import type { Buffer } from "node:buffer";
 
 export interface FrameworkHooks {
   express: ExpressMiddlewareHooks;
@@ -15,10 +16,31 @@ export interface FrameworkMiddlewareFn {
   fastify: FastifyMiddlewareFn;
 }
 
+export type ContentType =
+  | "multipart/form-data"
+  | "application/json"
+  | "text/plain"
+  | "application/octet-stream"
+  | "application/x-www-form-urlencoded";
+
+export type BodyResult =
+  | {
+    contentType: "multipart/form-data";
+    fields: Record<string, unknown>;
+    files: Record<string, unknown>;
+  }
+  | { contentType: "application/json"; data: Arguments[] }
+  | { contentType: "text/plain"; data: string }
+  | { contentType: "application/octet-stream"; data: Buffer }
+  | {
+    contentType: "application/x-www-form-urlencoded";
+    data: Record<string, FormDataEntryValue>;
+  };
+
 export interface ServerFunctionOptions {
   ttl: number;
   invalidateKeys: string | RegExp | RegExp[] | string[];
-  // contentType: string; // TO DO
+  contentType: ContentType;
 }
 
 // primitives and their compositions

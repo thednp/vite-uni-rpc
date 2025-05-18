@@ -1,18 +1,67 @@
 // src/express/helpers.ts
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { Buffer } from "node:buffer";
 import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { JsonValue } from "../types";
+import formidable from "formidable";
+import type { BodyResult, JsonValue } from "../types";
 
 export const readBody = (
   req: ExpressRequest | IncomingMessage,
-): Promise<string> => {
-  return new Promise((resolve) => {
+): Promise<BodyResult> => {
+  return new Promise((resolve, reject) => {
+    const contentType = req.headers["content-type"]?.toLowerCase() || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      const form = formidable({ multiples: true });
+      form.parse(req, (err, fields, files) => {
+        if (err) return reject(err);
+        resolve({ contentType: "multipart/form-data", fields, files });
+      });
+      return;
+    }
+
     let body = "";
-    req.on("data", (chunk: string) => body += chunk);
-    req.on("end", () => resolve(body));
+    const chunks: Buffer[] = [];
+
+    req.on("data", (chunk) => {
+      if (contentType.includes("octet-stream")) {
+        chunks.push(chunk);
+      } else {
+        body += chunk.toString();
+      }
+    });
+
+    req.on("end", () => {
+      if (contentType.includes("octet-stream")) {
+        resolve({
+          contentType: "application/octet-stream",
+          data: Buffer.concat(chunks),
+        });
+        return;
+      }
+
+      if (contentType.includes("json")) {
+        try {
+          resolve({ contentType: "application/json", data: JSON.parse(body) });
+        } catch (_e) {
+          reject(new Error("Invalid JSON"));
+        }
+        return;
+      }
+
+      if (contentType.includes("urlencoded")) {
+        const data = Object.fromEntries(new URLSearchParams(body));
+        resolve({ contentType: "application/x-www-form-urlencoded", data });
+        return;
+      }
+
+      resolve({ contentType: "text/plain", data: body });
+    });
+
+    req.on("error", reject);
   });
 };
 

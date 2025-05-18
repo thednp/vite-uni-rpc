@@ -1,7 +1,8 @@
-import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-C_r3ksoN.js';
+import { A as Arguments, S as ServerFnEntry, a as ServerFunctionOptions, b as ServerFunction, R as RpcPluginOptions } from './types.d-D2uBkBK0.js';
 import { ResolvedConfig, ViteDevServer } from 'vite';
 import 'hono';
 import 'fastify';
+import 'node:buffer';
 
 declare function createServerFunction<TArgs extends Arguments[] = Arguments[], TResult = unknown>(name: string, fn: ServerFnEntry<TArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): ServerFnEntry<TArgs, TResult>;
 
@@ -18,9 +19,10 @@ type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
     server?: Partial<ResolvedConfig["server"]>;
 };
 declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
-declare const getClientModules: (options: RpcPluginOptions) => string;
+declare const getClientModules: (initialOptions: RpcPluginOptions) => string;
 
 declare const defaultServerFnOptions: {
+    contentType: "application/json";
     ttl: number;
     invalidateKeys: never[];
 };

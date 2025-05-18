@@ -5,7 +5,7 @@ import type {
 } from "./types";
 
 export const defaultServerFnOptions = {
-  // contentType: "application/json",
+  contentType: "application/json",
   ttl: 10 * 1000, // 10s
   invalidateKeys: [],
 } satisfies ServerFunctionOptions;

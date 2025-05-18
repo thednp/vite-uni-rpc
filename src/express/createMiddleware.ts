@@ -42,15 +42,6 @@ export const createMiddleware: ExpressMiddlewareFn = (
     throw new Error(`The middleware name "${name}" is already used.`);
   }
 
-  // Check for configuration conflict
-  if (path && rpcPreffix) {
-    throw new Error(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
-        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. " +
-        "Skipping middleware registration..",
-    );
-  }
-
   const middlewareHandler = async (
     req: IncomingMessage | ExpressRequest,
     res: ServerResponse | ExpressResponse,
@@ -127,7 +118,6 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
 ) => {
   const options = {
     ...defaultMiddlewareOptions,
-    // RPC middleware needs to have the RPC preffix
     rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...initialOptions,
   };
@@ -160,7 +150,25 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
 
       try {
         const body = await readBody(req);
-        const args = JSON.parse(body || "[]") as Arguments[];
+        let args: Arguments[];
+
+        switch (body.contentType) {
+          case "application/json":
+            args = body.data as Arguments[];
+            break;
+          case "multipart/form-data":
+            args = [body.fields, body.files] as Arguments[];
+            break;
+          case "application/x-www-form-urlencoded":
+            args = [body.data];
+            break;
+          case "application/octet-stream":
+            args = [body.data];
+            break;
+          default:
+            args = [body.data];
+        }
+
         const result = await serverFunction.fn(...args) as JsonValue;
         sendResponse(200, { data: result });
       } catch (err) {

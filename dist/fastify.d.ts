@@ -1,10 +1,13 @@
-import { F as FastifyMiddlewareFn } from './types.d-C_r3ksoN.js';
-export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-C_r3ksoN.js';
+import { F as FastifyMiddlewareFn, B as BodyResult } from './types.d-D2uBkBK0.js';
+export { f as FastifyMiddlewareHooks, e as FastifyMiddlewareOptions, g as RpcFastifyPluginOptions } from './types.d-D2uBkBK0.js';
+import { FastifyRequest } from 'fastify';
 import 'vite';
 import 'hono';
-import 'fastify';
+import 'node:buffer';
 
 declare const createMiddleware: FastifyMiddlewareFn;
 declare const createRPCMiddleware: FastifyMiddlewareFn;
 
-export { FastifyMiddlewareFn, createMiddleware, createRPCMiddleware };
+declare const readBody: (req: FastifyRequest) => Promise<BodyResult>;
+
+export { FastifyMiddlewareFn, createMiddleware, createRPCMiddleware, readBody };

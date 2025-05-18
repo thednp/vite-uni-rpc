@@ -1,6 +1,7 @@
 import { Connect } from 'vite';
 import { Context, Next, MiddlewareHandler } from 'hono';
 import { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from 'fastify';
+import { Buffer } from 'node:buffer';
 
 type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
 
@@ -83,10 +84,31 @@ interface FrameworkHooks {
   fastify: FastifyMiddlewareHooks;
 }
 
+type ContentType =
+  | "multipart/form-data"
+  | "application/json"
+  | "text/plain"
+  | "application/octet-stream"
+  | "application/x-www-form-urlencoded";
+
+type BodyResult =
+  | {
+    contentType: "multipart/form-data";
+    fields: Record<string, unknown>;
+    files: Record<string, unknown>;
+  }
+  | { contentType: "application/json"; data: Arguments[] }
+  | { contentType: "text/plain"; data: string }
+  | { contentType: "application/octet-stream"; data: Buffer }
+  | {
+    contentType: "application/x-www-form-urlencoded";
+    data: Record<string, FormDataEntryValue>;
+  };
+
 interface ServerFunctionOptions {
   ttl: number;
   invalidateKeys: string | RegExp | RegExp[] | string[];
-  // contentType: string; // TO DO
+  contentType: ContentType;
 }
 
 // primitives and their compositions
@@ -344,4 +366,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { Arguments as A, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, ExpressMiddlewareOptions as c, ExpressMiddlewareHooks as d, FastifyMiddlewareOptions as e, FastifyMiddlewareHooks as f, RpcFastifyPluginOptions as g, HonoMiddlewareOptions as h, HonoMiddlewareHooks as i };
+export type { Arguments as A, BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonValue as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFunctionOptions as a, ServerFunction as b, ExpressMiddlewareOptions as c, ExpressMiddlewareHooks as d, FastifyMiddlewareOptions as e, FastifyMiddlewareHooks as f, RpcFastifyPluginOptions as g, HonoMiddlewareOptions as h, HonoMiddlewareHooks as i };

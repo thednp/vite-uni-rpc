@@ -1,7 +1,8 @@
 import { Plugin } from 'vite';
-import { R as RpcPluginOptions } from './types.d-C_r3ksoN.cjs';
+import { R as RpcPluginOptions } from './types.d-D2uBkBK0.cjs';
 import 'hono';
 import 'fastify';
+import 'node:buffer';
 
 /**
  * Utility to define `vite-uni-rpc` configuration file similar to vite.

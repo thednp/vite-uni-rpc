@@ -1,16 +1,16 @@
-import {
-  __commonJS,
-  __require,
-  __toESM,
-  defaultMiddlewareOptions,
-  defaultRPCOptions,
-  scanForServerFiles,
-  serverFunctionsMap
-} from "./chunk-GZNUZ7DY.js";
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
-// src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/_u64.js
-var require_u64 = __commonJS({
-  "src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/_u64.js"(exports) {
+
+
+
+
+
+
+var _chunkHEGFZJIOcjs = require('./chunk-HEGFZJIO.cjs');
+
+// src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/_u64.js
+var require_u64 = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/_u64.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.toBig = exports.shrSL = exports.shrSH = exports.rotrSL = exports.rotrSH = exports.rotrBL = exports.rotrBH = exports.rotr32L = exports.rotr32H = exports.rotlSL = exports.rotlSH = exports.rotlBL = exports.rotlBH = exports.add5L = exports.add5H = exports.add4L = exports.add4H = exports.add3L = exports.add3H = void 0;
@@ -104,20 +104,20 @@ var require_u64 = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/cryptoNode.js
-var require_cryptoNode = __commonJS({
-  "src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/cryptoNode.js"(exports) {
+// src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/cryptoNode.js
+var require_cryptoNode = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/cryptoNode.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.crypto = void 0;
-    var nc = __require("crypto");
+    var nc = _chunkHEGFZJIOcjs.__require.call(void 0, "crypto");
     exports.crypto = nc && typeof nc === "object" && "webcrypto" in nc ? nc.webcrypto : nc && typeof nc === "object" && "randomBytes" in nc ? nc : void 0;
   }
 });
 
-// src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/utils.js
-var require_utils = __commonJS({
-  "src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/utils.js"(exports) {
+// src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/utils.js
+var require_utils = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/utils.js"(exports) {
     "use strict";
     /*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -358,9 +358,9 @@ var require_utils = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/sha3.js
-var require_sha3 = __commonJS({
-  "src/hono/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/sha3.js"(exports) {
+// src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/sha3.js
+var require_sha3 = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/sha3.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shake256 = exports.shake128 = exports.keccak_512 = exports.keccak_384 = exports.keccak_256 = exports.keccak_224 = exports.sha3_512 = exports.sha3_384 = exports.sha3_256 = exports.sha3_224 = exports.Keccak = void 0;
@@ -560,9 +560,9 @@ var require_sha3 = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/src/index.js
-var require_src = __commonJS({
-  "src/hono/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/src/index.js"(exports, module) {
+// src/express/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/src/index.js
+var require_src = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/src/index.js"(exports, module) {
     "use strict";
     var { sha3_512: sha3 } = require_sha3();
     var defaultLength = 24;
@@ -642,9 +642,9 @@ var require_src = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/index.js
-var require_cuid2 = __commonJS({
-  "src/hono/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/index.js"(exports, module) {
+// src/express/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/index.js
+var require_cuid2 = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/index.js"(exports, module) {
     "use strict";
     var { createId: createId2, init: init4, getConstants, isCuid } = require_src();
     module.exports.createId = createId2;
@@ -654,9 +654,9 @@ var require_cuid2 = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js
-var require_wrappy = __commonJS({
-  "src/hono/node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js"(exports, module) {
+// src/express/node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js
+var require_wrappy = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/wrappy@1.0.2/node_modules/wrappy/wrappy.js"(exports, module) {
     "use strict";
     module.exports = wrappy;
     function wrappy(fn, cb) {
@@ -685,9 +685,9 @@ var require_wrappy = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/asap@2.0.6/node_modules/asap/raw.js
-var require_raw = __commonJS({
-  "src/hono/node_modules/.pnpm/asap@2.0.6/node_modules/asap/raw.js"(exports, module) {
+// src/express/node_modules/.pnpm/asap@2.0.6/node_modules/asap/raw.js
+var require_raw = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/asap@2.0.6/node_modules/asap/raw.js"(exports, module) {
     "use strict";
     var domain;
     var hasSetImmediate = typeof setImmediate === "function";
@@ -725,7 +725,7 @@ var require_raw = __commonJS({
       var parentDomain = process.domain;
       if (parentDomain) {
         if (!domain) {
-          domain = __require("domain");
+          domain = _chunkHEGFZJIOcjs.__require.call(void 0, "domain");
         }
         domain.active = process.domain = null;
       }
@@ -741,9 +741,9 @@ var require_raw = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/asap@2.0.6/node_modules/asap/asap.js
-var require_asap = __commonJS({
-  "src/hono/node_modules/.pnpm/asap@2.0.6/node_modules/asap/asap.js"(exports, module) {
+// src/express/node_modules/.pnpm/asap@2.0.6/node_modules/asap/asap.js
+var require_asap = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/asap@2.0.6/node_modules/asap/asap.js"(exports, module) {
     "use strict";
     var rawAsap = require_raw();
     var freeTasks = [];
@@ -786,9 +786,9 @@ var require_asap = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/dezalgo@1.0.4/node_modules/dezalgo/dezalgo.js
-var require_dezalgo = __commonJS({
-  "src/hono/node_modules/.pnpm/dezalgo@1.0.4/node_modules/dezalgo/dezalgo.js"(exports, module) {
+// src/express/node_modules/.pnpm/dezalgo@1.0.4/node_modules/dezalgo/dezalgo.js
+var require_dezalgo = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/dezalgo@1.0.4/node_modules/dezalgo/dezalgo.js"(exports, module) {
     "use strict";
     var wrappy = require_wrappy();
     module.exports = wrappy(dezalgo2);
@@ -812,9 +812,9 @@ var require_dezalgo = __commonJS({
   }
 });
 
-// src/hono/node_modules/.pnpm/once@1.4.0/node_modules/once/once.js
-var require_once = __commonJS({
-  "src/hono/node_modules/.pnpm/once@1.4.0/node_modules/once/once.js"(exports, module) {
+// src/express/node_modules/.pnpm/once@1.4.0/node_modules/once/once.js
+var require_once = _chunkHEGFZJIOcjs.__commonJS.call(void 0, {
+  "src/express/node_modules/.pnpm/once@1.4.0/node_modules/once/once.js"(exports, module) {
     "use strict";
     var wrappy = require_wrappy();
     module.exports = wrappy(once2);
@@ -857,18 +857,14 @@ var require_once = __commonJS({
   }
 });
 
-// src/hono/createMiddleware.ts
-import { createMiddleware as createHonoMiddleware } from "hono/factory";
+// src/express/helpers.ts
+var _buffer = require('buffer');
 
-// src/hono/helpers.ts
-import { Buffer as Buffer2 } from "buffer";
-import { createMiddleware } from "hono/factory";
-
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/PersistentFile.js
-import fs from "fs";
-import crypto from "crypto";
-import { EventEmitter } from "events";
-var PersistentFile = class extends EventEmitter {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/PersistentFile.js
+var _fs = require('fs'); var _fs2 = _interopRequireDefault(_fs);
+var _crypto = require('crypto'); var _crypto2 = _interopRequireDefault(_crypto);
+var _events = require('events');
+var PersistentFile = class extends _events.EventEmitter {
   constructor({ filepath, newFilename, originalFilename, mimetype, hashAlgorithm }) {
     super();
     this.lastModifiedDate = null;
@@ -876,13 +872,13 @@ var PersistentFile = class extends EventEmitter {
     this.size = 0;
     this._writeStream = null;
     if (typeof this.hashAlgorithm === "string") {
-      this.hash = crypto.createHash(this.hashAlgorithm);
+      this.hash = _crypto2.default.createHash(this.hashAlgorithm);
     } else {
       this.hash = null;
     }
   }
   open() {
-    this._writeStream = fs.createWriteStream(this.filepath);
+    this._writeStream = _fs2.default.createWriteStream(this.filepath);
     this._writeStream.on("error", (err) => {
       this.emit("error", err);
     });
@@ -933,17 +929,17 @@ var PersistentFile = class extends EventEmitter {
     this._writeStream.destroy();
     const filepath = this.filepath;
     setTimeout(function() {
-      fs.unlink(filepath, () => {
+      _fs2.default.unlink(filepath, () => {
       });
     }, 1);
   }
 };
 var PersistentFile_default = PersistentFile;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/VolatileFile.js
-import { createHash } from "crypto";
-import { EventEmitter as EventEmitter2 } from "events";
-var VolatileFile = class extends EventEmitter2 {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/VolatileFile.js
+
+
+var VolatileFile = class extends _events.EventEmitter {
   constructor({ filepath, newFilename, originalFilename, mimetype, hashAlgorithm, createFileWriteStream }) {
     super();
     this.lastModifiedDate = null;
@@ -951,7 +947,7 @@ var VolatileFile = class extends EventEmitter2 {
     this.size = 0;
     this._writeStream = null;
     if (typeof this.hashAlgorithm === "string") {
-      this.hash = createHash(this.hashAlgorithm);
+      this.hash = _crypto.createHash.call(void 0, this.hashAlgorithm);
     } else {
       this.hash = null;
     }
@@ -1007,17 +1003,17 @@ var VolatileFile = class extends EventEmitter2 {
 };
 var VolatileFile_default = VolatileFile;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/Formidable.js
-var import_cuid2 = __toESM(require_cuid2(), 1);
-var import_dezalgo = __toESM(require_dezalgo(), 1);
-var import_once = __toESM(require_once(), 1);
-import { EventEmitter as EventEmitter3 } from "events";
-import fsPromises from "fs/promises";
-import os from "os";
-import path from "path";
-import { StringDecoder } from "string_decoder";
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/Formidable.js
+var import_cuid2 = _chunkHEGFZJIOcjs.__toESM.call(void 0, require_cuid2(), 1);
+var import_dezalgo = _chunkHEGFZJIOcjs.__toESM.call(void 0, require_dezalgo(), 1);
+var import_once = _chunkHEGFZJIOcjs.__toESM.call(void 0, require_once(), 1);
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/FormidableError.js
+var _promises = require('fs/promises'); var _promises2 = _interopRequireDefault(_promises);
+var _os = require('os'); var _os2 = _interopRequireDefault(_os);
+var _path = require('path'); var _path2 = _interopRequireDefault(_path);
+var _string_decoder = require('string_decoder');
+
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/FormidableError.js
 var missingPlugin = 1e3;
 var pluginFunction = 1001;
 var aborted = 1002;
@@ -1046,9 +1042,9 @@ var FormidableError = class extends Error {
 };
 var FormidableError_default = FormidableError;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Dummy.js
-import { Transform } from "stream";
-var DummyParser = class extends Transform {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Dummy.js
+var _stream = require('stream');
+var DummyParser = class extends _stream.Transform {
   constructor(incomingForm, options = {}) {
     super();
     this.globalOptions = { ...options };
@@ -1062,8 +1058,8 @@ var DummyParser = class extends Transform {
 };
 var Dummy_default = DummyParser;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Multipart.js
-import { Transform as Transform2 } from "stream";
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Multipart.js
+
 var s = 0;
 var STATE = {
   PARSER_UNINITIALIZED: s++,
@@ -1096,7 +1092,7 @@ var STATES = {};
 Object.keys(STATE).forEach((stateName) => {
   STATES[stateName] = STATE[stateName];
 });
-var MultipartParser = class _MultipartParser extends Transform2 {
+var MultipartParser = class _MultipartParser extends _stream.Transform {
   constructor(options = {}) {
     super({ readableObjectMode: true });
     this.boundary = null;
@@ -1362,9 +1358,9 @@ MultipartParser.stateToString = (stateNumber) => {
 };
 var Multipart_default = Object.assign(MultipartParser, { STATES });
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/OctetStream.js
-import { PassThrough } from "stream";
-var OctetStreamParser = class extends PassThrough {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/OctetStream.js
+
+var OctetStreamParser = class extends _stream.PassThrough {
   constructor(options = {}) {
     super();
     this.globalOptions = { ...options };
@@ -1372,7 +1368,7 @@ var OctetStreamParser = class extends PassThrough {
 };
 var OctetStream_default = OctetStreamParser;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/octetstream.js
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/octetstream.js
 var octetStreamType = "octet-stream";
 async function plugin(formidable2, options) {
   const self = this || formidable2;
@@ -1432,9 +1428,9 @@ async function init(_self, _opts) {
   return this;
 }
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Querystring.js
-import { Transform as Transform3 } from "stream";
-var QuerystringParser = class extends Transform3 {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/Querystring.js
+
+var QuerystringParser = class extends _stream.Transform {
   constructor(options = {}) {
     super({ readableObjectMode: true });
     this.globalOptions = { ...options };
@@ -1460,7 +1456,7 @@ var QuerystringParser = class extends Transform3 {
 };
 var Querystring_default = QuerystringParser;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/querystring.js
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/querystring.js
 var querystringType = "urlencoded";
 function plugin2(formidable2, options) {
   const self = this || formidable2;
@@ -1483,8 +1479,8 @@ function init2(_self, _opts) {
   return this;
 }
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/multipart.js
-import { Stream } from "stream";
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/multipart.js
+
 var multipartType = "multipart";
 function plugin3(formidable2, options) {
   const self = this || formidable2;
@@ -1517,7 +1513,7 @@ function createInitMultipart(boundary) {
     parser.initWithBoundary(boundary);
     parser.on("data", async ({ name, buffer, start, end }) => {
       if (name === "partBegin") {
-        part = new Stream();
+        part = new (0, _stream.Stream)();
         part.readable = true;
         part.headers = {};
         part.name = null;
@@ -1620,9 +1616,9 @@ function createInitMultipart(boundary) {
   };
 }
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/JSON.js
-import { Transform as Transform4 } from "stream";
-var JSONParser = class extends Transform4 {
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/parsers/JSON.js
+
+var JSONParser = class extends _stream.Transform {
   constructor(options = {}) {
     super({ readableObjectMode: true });
     this.chunks = [];
@@ -1646,7 +1642,7 @@ var JSONParser = class extends Transform4 {
 };
 var JSON_default = JSONParser;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/json.js
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/plugins/json.js
 var jsonType = "json";
 function plugin4(formidable2, options) {
   const self = this || formidable2;
@@ -1668,8 +1664,8 @@ function init3(_self, _opts) {
   this._parser = parser;
 }
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/Formidable.js
-var CUID2_FINGERPRINT = `${process.env.NODE_ENV}-${os.platform()}-${os.hostname()}`;
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/Formidable.js
+var CUID2_FINGERPRINT = `${process.env.NODE_ENV}-${_os2.default.platform()}-${_os2.default.hostname()}`;
 var createId = (0, import_cuid2.init)({ length: 25, fingerprint: CUID2_FINGERPRINT.toLowerCase() });
 var DEFAULT_OPTIONS = {
   maxFields: 1e3,
@@ -1683,7 +1679,7 @@ var DEFAULT_OPTIONS = {
   keepExtensions: false,
   encoding: "utf-8",
   hashAlgorithm: false,
-  uploadDir: os.tmpdir(),
+  uploadDir: _os2.default.tmpdir(),
   enabledPlugins: [plugin, plugin2, plugin3, plugin4],
   fileWriteStreamHandler: null,
   defaultInvalidName: "invalid-name",
@@ -1711,23 +1707,23 @@ var decorateForceSequential = function(promiseCreator) {
   };
 };
 var createNecessaryDirectoriesAsync = decorateForceSequential(function(filePath) {
-  const directoryname = path.dirname(filePath);
-  return fsPromises.mkdir(directoryname, { recursive: true });
+  const directoryname = _path2.default.dirname(filePath);
+  return _promises2.default.mkdir(directoryname, { recursive: true });
 });
 var invalidExtensionChar = (c) => {
   const code = c.charCodeAt(0);
   return !(code === 46 || // .
   code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122);
 };
-var IncomingForm = class extends EventEmitter3 {
+var IncomingForm = class extends _events.EventEmitter {
   constructor(options = {}) {
     super();
     this.options = { ...DEFAULT_OPTIONS, ...options };
     if (!this.options.maxTotalFileSize) {
       this.options.maxTotalFileSize = this.options.maxFileSize;
     }
-    const dir = path.resolve(
-      this.options.uploadDir || this.options.uploaddir || os.tmpdir()
+    const dir = _path2.default.resolve(
+      this.options.uploadDir || this.options.uploaddir || _os2.default.tmpdir()
     );
     this.uploaddir = dir;
     this.uploadDir = dir;
@@ -1915,7 +1911,7 @@ var IncomingForm = class extends EventEmitter3 {
     }
     if (!part.mimetype) {
       let value = "";
-      const decoder = new StringDecoder(
+      const decoder = new (0, _string_decoder.StringDecoder)(
         part.transferEncoding || this.options.encoding
       );
       part.on("data", (buffer) => {
@@ -2128,10 +2124,10 @@ var IncomingForm = class extends EventEmitter3 {
     if (!str) {
       return "";
     }
-    const basename = path.basename(str);
+    const basename = _path2.default.basename(str);
     const firstDot = basename.indexOf(".");
     const lastDot = basename.lastIndexOf(".");
-    let rawExtname = path.extname(basename);
+    let rawExtname = _path2.default.extname(basename);
     if (firstDot !== lastDot) {
       rawExtname = basename.slice(firstDot);
     }
@@ -2148,9 +2144,9 @@ var IncomingForm = class extends EventEmitter3 {
     return filtered;
   }
   _joinDirectoryName(name) {
-    const newPath = path.join(this.uploadDir, name);
+    const newPath = _path2.default.join(this.uploadDir, name);
     if (!newPath.startsWith(this.uploadDir)) {
-      return path.join(this.uploadDir, this.options.defaultInvalidName);
+      return _path2.default.join(this.uploadDir, this.options.defaultInvalidName);
     }
     return newPath;
   }
@@ -2161,7 +2157,7 @@ var IncomingForm = class extends EventEmitter3 {
         let ext = "";
         let name = this.options.defaultInvalidName;
         if (part.originalFilename) {
-          ({ ext, name } = path.parse(part.originalFilename));
+          ({ ext, name } = _path2.default.parse(part.originalFilename));
           if (this.options.keepExtensions !== true) {
             ext = "";
           }
@@ -2223,92 +2219,109 @@ var IncomingForm = class extends EventEmitter3 {
 };
 var Formidable_default = IncomingForm;
 
-// src/hono/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/index.js
+// src/express/node_modules/.pnpm/formidable@3.5.4/node_modules/formidable/src/index.js
 var formidable = (...args) => new Formidable_default(...args);
 var { enabledPlugins } = DEFAULT_OPTIONS;
 var src_default = formidable;
 
-// src/hono/helpers.ts
-var viteMiddleware = (vite) => {
-  return createMiddleware((c, next) => {
-    return new Promise((resolve) => {
-      if (typeof Bun === "undefined") {
-        vite.middlewares(c.env.incoming, c.env.outgoing, () => resolve(next()));
+// src/express/helpers.ts
+var readBody = (req) => {
+  return new Promise((resolve, reject) => {
+    const contentType = _optionalChain([req, 'access', _2 => _2.headers, 'access', _3 => _3["content-type"], 'optionalAccess', _4 => _4.toLowerCase, 'call', _5 => _5()]) || "";
+    if (contentType.includes("multipart/form-data")) {
+      const form = src_default({ multiples: true });
+      form.parse(req, (err, fields, files) => {
+        if (err) return reject(err);
+        resolve({ contentType: "multipart/form-data", fields, files });
+      });
+      return;
+    }
+    let body = "";
+    const chunks = [];
+    req.on("data", (chunk) => {
+      if (contentType.includes("octet-stream")) {
+        chunks.push(chunk);
+      } else {
+        body += chunk.toString();
+      }
+    });
+    req.on("end", () => {
+      if (contentType.includes("octet-stream")) {
+        resolve({
+          contentType: "application/octet-stream",
+          data: _buffer.Buffer.concat(chunks)
+        });
         return;
       }
-      let sent = false;
-      const headers = new Headers();
-      vite.middlewares(
-        {
-          url: new URL(c.req.path, "http://localhost").pathname,
-          method: c.req.raw.method,
-          headers: Object.fromEntries(
-            c.req.raw.headers
-          )
-        },
-        {
-          setHeader(name, value) {
-            headers.set(name, value);
-            return this;
-          },
-          end(body) {
-            sent = true;
-            resolve(
-              // @ts-expect-error - weird
-              c.body(body, c.res.status, headers)
-            );
-          }
-        },
-        () => sent || resolve(next())
-      );
+      if (contentType.includes("json")) {
+        try {
+          resolve({ contentType: "application/json", data: JSON.parse(body) });
+        } catch (_e) {
+          reject(new Error("Invalid JSON"));
+        }
+        return;
+      }
+      if (contentType.includes("urlencoded")) {
+        const data = Object.fromEntries(new URLSearchParams(body));
+        resolve({ contentType: "application/x-www-form-urlencoded", data });
+        return;
+      }
+      resolve({ contentType: "text/plain", data: body });
     });
+    req.on("error", reject);
   });
 };
-var readBody = async (c) => {
-  const contentType = c.req.header("content-type")?.toLowerCase() || "";
-  if (contentType.includes("multipart/form-data")) {
-    const form = src_default({ multiples: true });
-    return new Promise((resolve, reject) => {
-      form.parse(c.env.incoming, (err, fields, files) => {
-        if (err) return reject(err);
-        resolve({
-          contentType: "multipart/form-data",
-          fields,
-          files
-        });
-      });
-    });
-  }
-  if (contentType.includes("octet-stream")) {
-    const buffer = await c.req.arrayBuffer();
-    return {
-      contentType: "application/octet-stream",
-      data: Buffer2.from(buffer)
-    };
-  }
-  if (contentType.includes("json")) {
-    const data = await c.req.json();
-    return {
-      contentType: "application/json",
-      data
-    };
-  }
-  if (contentType.includes("urlencoded")) {
-    const formData = await c.req.formData();
-    const data = Object.fromEntries(formData);
-    return {
-      contentType: "application/x-www-form-urlencoded",
-      data
-    };
-  }
-  const text = await c.req.text();
-  return { contentType: "text/plain", data: text };
+var isExpressRequest = (req) => {
+  return "originalUrl" in req;
+};
+var isExpressResponse = (res) => {
+  return "json" in res && "send" in res;
+};
+var getRequestDetails = (request) => {
+  const url = isExpressRequest(request) ? request.originalUrl : request.url;
+  return {
+    url,
+    headers: request.headers,
+    method: request.method
+  };
+};
+var getResponseDetails = (response) => {
+  const isResponseSent = response.headersSent || response.writableEnded;
+  const setHeader = (name, value) => {
+    if (isExpressResponse(response)) {
+      response.header(name, value);
+    } else {
+      response.setHeader(name, value);
+    }
+  };
+  const setStatusCode = (code) => {
+    if (isExpressResponse(response)) {
+      response.status(code);
+    } else {
+      response.statusCode = code;
+    }
+  };
+  const sendResponse = (code, output) => {
+    setStatusCode(code);
+    if (isExpressResponse(response)) {
+      response.send(JSON.stringify(output));
+    } else {
+      response.end(JSON.stringify(output));
+    }
+  };
+  return {
+    isResponseSent,
+    setHeader,
+    statusCode: response.statusCode,
+    setStatusCode,
+    sendResponse
+  };
 };
 
-// src/hono/createMiddleware.ts
+// src/express/createMiddleware.ts
 var middlewareCount = 0;
 var middleWareStack = /* @__PURE__ */ new Set();
-var createMiddleware2 = (initialOptions = {}) => {
+var createMiddleware = (initialOptions = {}) => {
   const {
     name: middlewareName,
     rpcPreffix,
@@ -2319,7 +2332,7 @@ var createMiddleware2 = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ...defaultMiddlewareOptions,
+    ..._chunkHEGFZJIOcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -2330,61 +2343,51 @@ var createMiddleware2 = (initialOptions = {}) => {
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
   }
-  if (path2 && rpcPreffix) {
-    throw new Error(
-      'Configuration conflict: Both "path" and "rpcPreffix" are provided. The middleware expects either "path" for general middleware or "rpcPreffix" for RPC middleware, but not both. Skipping middleware registration..'
-    );
-  }
-  const middlewareHandler = createHonoMiddleware(
-    async (c, next) => {
-      const { path: pathname } = c.req;
-      if (serverFunctionsMap.size === 0) {
-        await scanForServerFiles();
+  const middlewareHandler = async (req, res, next) => {
+    const { url } = getRequestDetails(req);
+    const { sendResponse, setHeader } = getResponseDetails(res);
+    if (_chunkHEGFZJIOcjs.serverFunctionsMap.size === 0) {
+      await _chunkHEGFZJIOcjs.scanForServerFiles.call(void 0, );
+    }
+    if (!handler) {
+      return _optionalChain([next, 'optionalCall', _6 => _6()]);
+    }
+    try {
+      if (onRequest) {
+        await onRequest(req);
       }
-      if (!handler) {
-        await next();
+      if (path2) {
+        const matcher = typeof path2 === "string" ? new RegExp(path2) : path2;
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _7 => _7()]);
+      }
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _8 => _8.startsWith, 'call', _10 => _10(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _11 => _11()]);
+      }
+      if (headers) {
+        Object.entries(headers).forEach(([key, value]) => {
+          setHeader(key, value);
+        });
+      }
+      if (handler) {
+        await handler(req, res, next);
+        if (onResponse) {
+          await onResponse(res);
+        }
         return;
       }
-      try {
-        if (onRequest) {
-          await onRequest(c);
-        }
-        if (path2) {
-          const matcher = typeof path2 === "string" ? new RegExp(path2) : path2;
-          if (!matcher.test(pathname || "")) {
-            await next();
-            return;
-          }
-        }
-        if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
-          await next();
-          return;
-        }
-        if (headers) {
-          Object.entries(headers).forEach(([key, value]) => {
-            c.header(key, value);
-          });
-        }
-        if (handler) {
-          const result = await handler(c, next);
-          if (onResponse) {
-            await onResponse(c);
-          }
-          return result;
-        }
-        await next();
-      } catch (error) {
-        if (onResponse) {
-          await onResponse(c);
-        }
-        if (onError) {
-          await onError(error, c);
-        } else {
-          return c.json({ error: "Internal Server Error" }, 500);
-        }
+      _optionalChain([next, 'optionalCall', _12 => _12()]);
+    } catch (error) {
+      if (onResponse) {
+        await onResponse(res);
+      }
+      if (onError) {
+        onError(error, req, res);
+      } else {
+        console.error("Middleware error:", String(error));
+        sendResponse(500, { error: "Internal Server Error" });
       }
     }
-  );
+  };
   Object.defineProperty(middlewareHandler, "name", {
     value: name
   });
@@ -2392,26 +2395,30 @@ var createMiddleware2 = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    ..._chunkHEGFZJIOcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunkHEGFZJIOcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
-  return createMiddleware2({
+  return createMiddleware({
     ...options,
-    handler: async (c, next) => {
-      const { path: path2 } = c.req;
+    handler: async (req, res, next) => {
+      const { url } = getRequestDetails(req);
+      const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
-      if (!rpcPreffix || !path2.startsWith(`/${rpcPreffix}`)) {
-        await next();
+      if (!_optionalChain([url, 'optionalAccess', _13 => _13.startsWith, 'call', _14 => _14(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _15 => _15()]);
+      }
+      const functionName = url.replace(`/${rpcPreffix}/`, "");
+      const serverFunction = _chunkHEGFZJIOcjs.serverFunctionsMap.get(functionName);
+      if (!serverFunction) {
+        sendResponse(
+          404,
+          { error: `Function "${functionName}" not found` }
+        );
         return;
       }
-      const functionName = path2.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = serverFunctionsMap.get(functionName);
-      if (!serverFunction) {
-        return c.json({ error: `Function "${functionName}" not found` }, 404);
-      }
       try {
-        const body = await readBody(c);
+        const body = await readBody(req);
         let args;
         switch (body.contentType) {
           case "application/json":
@@ -2430,17 +2437,21 @@ var createRPCMiddleware = (initialOptions = {}) => {
             args = [body.data];
         }
         const result = await serverFunction.fn(...args);
-        return c.json({ data: result }, 200);
+        sendResponse(200, { data: result });
       } catch (err) {
         console.error(String(err));
-        return c.json({ error: "Internal Server Error" }, 500);
+        sendResponse(500, { error: "Internal Server Error" });
       }
     }
   });
 };
-export {
-  createMiddleware2 as createMiddleware,
-  createRPCMiddleware,
-  readBody,
-  viteMiddleware
-};
+
+
+
+
+
+
+
+
+
+exports.readBody = readBody; exports.isExpressRequest = isExpressRequest; exports.isExpressResponse = isExpressResponse; exports.getRequestDetails = getRequestDetails; exports.getResponseDetails = getResponseDetails; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;

@@ -1,18 +1,18 @@
 import {
   createRPCMiddleware
-} from "./chunk-RCGVWQPS.js";
+} from "./chunk-FOBXEI4N.js";
 import {
   defaultRPCOptions,
   getClientModules,
   scanForServerFiles
-} from "./chunk-GSKE4CT4.js";
+} from "./chunk-GZNUZ7DY.js";
 
 // src/index.ts
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import colors from "picocolors";
-import { resolve } from "node:path";
-import process from "node:process";
-import { existsSync } from "node:fs";
+import { resolve } from "path";
+import process from "process";
+import { existsSync } from "fs";
 var defineConfig = (uniConfig) => {
   return mergeConfig(defaultRPCOptions, uniConfig);
 };

@@ -1,10 +1,10 @@
 import {
   createRPCMiddleware
-} from "../chunk-3WRZYA7Z.js";
+} from "../chunk-2FD4Q4QK.js";
 import {
   __commonJS,
   __toESM
-} from "../chunk-GSKE4CT4.js";
+} from "../chunk-GZNUZ7DY.js";
 
 // src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js
 var require_getPluginName = __commonJS({

@@ -15,10 +15,12 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 
 ### Examples
 
-* [SPA](https://github.com/thednp/vite-uni-rpc/tree/main/examples/spa): a simple Single Page App with a `node:http` proxy to reply to RPC calls, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/spa)
-* [Express](https://github.com/thednp/vite-uni-rpc/tree/main/examples/express): a simple Server Side Rendering app with `express` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/express)
-* [Fastify](https://github.com/thednp/vite-uni-rpc/tree/main/examples/fastify): a simple Server Side Rendering app with `fastify` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/fastify)
-* [Hono](https://github.com/thednp/vite-uni-rpc/tree/main/examples/hono): a simple Server Side Rendering app with `hono` backend, [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/hono)
+| Example             | Source Code                                                                   | Try online                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| SPA - node:http     | [SPA](https://github.com/thednp/vite-uni-rpc/tree/main/examples/spa)          | [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/spa)     |            
+| Express             | [Express](https://github.com/thednp/vite-uni-rpc/tree/main/examples/express)  | [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/express) |
+| Fastify             | [Fastify](https://github.com/thednp/vite-uni-rpc/tree/main/examples/fastify)  | [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/fastify) |
+| Hono                | [Hono](https://github.com/thednp/vite-uni-rpc/tree/main/examples/hono)        | [StackBlitz](https://stackblitz.com/fork/github/thednp/vite-uni-rpc/tree/main/examples/hono)    |
 
 
 ### Installation
@@ -39,12 +41,12 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 
 ### TO DO
 
-- [x] Add examples
+- [ ] Add/update examples examples
 - [x] Add SPA support
 - [x] Add wiki
+- [x] Test bun
+- [x] Add `contentType` option to `createServerFunction`, currently supporting: `multipart/form-data`, `application/json`, `text/plain`, `application/octet-stream`, `application/x-www-form-urlencoded`;
 - [ ] Add koa adapter
-- [ ] Test bun
-- [ ] Add `multipart/form-data` support via `contentType` option
 - [ ] Add Github tooling/workflows
 - [ ] Add tests
 

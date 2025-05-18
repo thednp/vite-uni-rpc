@@ -8,6 +8,7 @@ import { scanForServerFiles, serverFunctionsMap } from "../utils";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
 import type { Arguments, JsonValue } from "../types";
 import type { FastifyMiddlewareFn } from "./types";
+import { readBody } from "./helpers";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();
@@ -35,15 +36,6 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
   }
   if (middleWareStack.has(name)) {
     throw new Error(`The middleware name "${name}" is already used.`);
-  }
-
-  // Check for configuration conflict
-  if (path && rpcPreffix) {
-    throw new Error(
-      "Configuration conflict: Both 'path' and 'rpcPreffix' are provided. " +
-        "The middleware expects either 'path' for general middleware or 'rpcPreffix' for RPC middleware, but not both. " +
-        "Skipping middleware registration..",
-    );
   }
 
   return async (
@@ -117,13 +109,11 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
   };
 };
 
-// Create RPC middleware
 export const createRPCMiddleware: FastifyMiddlewareFn = (
   initialOptions = {},
 ) => {
   const options = {
     ...defaultMiddlewareOptions,
-    // RPC middleware needs to have the RPC prefix
     rpcPreffix: defaultRPCOptions.rpcPreffix,
     ...initialOptions,
   };
@@ -136,7 +126,7 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
       done: HookHandlerDoneFunction,
     ) => {
       const { url } = req;
-      const pathname = url?.split("?")[0]; // Extract pathname without query params
+      const pathname = url?.split("?")[0];
       const { rpcPreffix } = options;
 
       if (!pathname?.startsWith(`/${rpcPreffix}`)) {
@@ -155,12 +145,31 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
       }
 
       try {
-        const args = req.body as Arguments[];
+        const body = await readBody(req);
+        let args: Arguments[];
+
+        switch (body.contentType) {
+          case "application/json":
+            args = body.data as Arguments[];
+            break;
+          case "multipart/form-data":
+            args = [body.fields, body.files] as Arguments[];
+            break;
+          case "application/x-www-form-urlencoded":
+            args = [body.data];
+            break;
+          case "application/octet-stream":
+            args = [body.data];
+            break;
+          default:
+            args = [body.data];
+        }
+
         const result = await serverFunction.fn(...args) as JsonValue;
         reply.status(200).send({ data: result });
       } catch (err) {
         console.error(String(err));
-        reply.status(500).send({ error: `Internal Server Error` });
+        reply.status(500).send({ error: "Internal Server Error" });
       }
     },
   });
