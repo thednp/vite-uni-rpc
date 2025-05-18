@@ -1,5 +1,5 @@
 import { PluginOption } from 'vite';
-import { R as RpcPluginOptions } from './types.d-D2uBkBK0.cjs';
+import { R as RpcPluginOptions } from './types.d-CFin5vbM.cjs';
 import 'hono';
 import 'fastify';
 import 'node:buffer';

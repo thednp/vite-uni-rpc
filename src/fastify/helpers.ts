@@ -2,7 +2,7 @@
 import { FastifyRequest } from "fastify";
 import { Buffer } from "node:buffer";
 import formidable from "formidable";
-import { BodyResult } from "../types";
+import { Arguments, BodyResult } from "../types";
 
 export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
   return new Promise((resolve, reject) => {
@@ -17,6 +17,13 @@ export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
           fields,
           files,
         });
+      });
+      return;
+    }
+    if (contentType.includes("json")) {
+      resolve({
+        contentType: "application/json",
+        data: req.body as Arguments | Arguments[],
       });
       return;
     }
@@ -38,18 +45,6 @@ export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
           contentType: "application/octet-stream",
           data: Buffer.concat(chunks),
         });
-        return;
-      }
-
-      if (contentType.includes("json")) {
-        try {
-          resolve({
-            contentType: "application/json",
-            data: JSON.parse(body),
-          });
-        } catch (_e) {
-          reject(new Error("Invalid JSON"));
-        }
         return;
       }
 

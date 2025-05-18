@@ -29,7 +29,7 @@ export type BodyResult =
     fields: Record<string, unknown>;
     files: Record<string, unknown>;
   }
-  | { contentType: "application/json"; data: Arguments[] }
+  | { contentType: "application/json"; data: Arguments | Arguments[] }
   | { contentType: "text/plain"; data: string }
   | { contentType: "application/octet-stream"; data: Buffer }
   | {

@@ -10,7 +10,7 @@ importers:
     dependencies:
       vite-uni-rpc:
         specifier: github:thednp/vite-uni-rpc
-        version: https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/b553d52fb2b15f56bdc36b27e3251903a6693c52
+        version: https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/83831ab3f617ba3e995f001845774d6670bdfd7c
     devDependencies:
       typescript:
         specifier: ~5.8.3
@@ -326,8 +326,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  vite-uni-rpc@https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/b553d52fb2b15f56bdc36b27e3251903a6693c52:
-    resolution: {tarball: https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/b553d52fb2b15f56bdc36b27e3251903a6693c52}
+  vite-uni-rpc@https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/83831ab3f617ba3e995f001845774d6670bdfd7c:
+    resolution: {tarball: https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/83831ab3f617ba3e995f001845774d6670bdfd7c}
     version: 0.0.1
 
   vite@6.3.5:
@@ -591,7 +591,7 @@ snapshots:
 
   typescript@5.8.3: {}
 
-  vite-uni-rpc@https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/b553d52fb2b15f56bdc36b27e3251903a6693c52:
+  vite-uni-rpc@https://codeload.github.com/thednp/vite-uni-rpc/tar.gz/83831ab3f617ba3e995f001845774d6670bdfd7c:
     dependencies:
       vite: 6.3.5
     transitivePeerDependencies:

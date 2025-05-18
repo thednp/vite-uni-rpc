@@ -150,7 +150,9 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
 
         switch (body.contentType) {
           case "application/json":
-            args = body.data as Arguments[];
+            args = Array.isArray(body.data)
+              ? body.data
+              : [body.data] as Arguments[];
             break;
           case "multipart/form-data":
             args = [body.fields, body.files] as Arguments[];

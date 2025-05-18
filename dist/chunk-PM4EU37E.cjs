@@ -1,18 +1,18 @@
-import {
-  defaultMiddlewareOptions,
-  defaultRPCOptions,
-  scanForServerFiles,
-  serverFunctionsMap
-} from "./chunk-EUSB4D3V.js";
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+
+
+
+var _chunkMTFPKUGWcjs = require('./chunk-MTFPKUGW.cjs');
 
 // src/fastify/helpers.ts
-import { Buffer } from "buffer";
-import formidable from "formidable";
+var _buffer = require('buffer');
+var _formidable = require('formidable'); var _formidable2 = _interopRequireDefault(_formidable);
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"]?.toLowerCase() || "";
+    const contentType = _optionalChain([req, 'access', _ => _.headers, 'access', _2 => _2["content-type"], 'optionalAccess', _3 => _3.toLowerCase, 'call', _4 => _4()]) || "";
     if (contentType.includes("multipart/form-data")) {
-      const form = formidable({ multiples: true });
+      const form = _formidable2.default.call(void 0, { multiples: true });
       form.parse(req.raw, (err, fields, files) => {
         if (err) return reject(err);
         resolve({
@@ -20,6 +20,13 @@ var readBody = (req) => {
           fields,
           files
         });
+      });
+      return;
+    }
+    if (contentType.includes("json")) {
+      resolve({
+        contentType: "application/json",
+        data: req.body
       });
       return;
     }
@@ -36,19 +43,8 @@ var readBody = (req) => {
       if (contentType.includes("octet-stream")) {
         resolve({
           contentType: "application/octet-stream",
-          data: Buffer.concat(chunks)
+          data: _buffer.Buffer.concat(chunks)
         });
-        return;
-      }
-      if (contentType.includes("json")) {
-        try {
-          resolve({
-            contentType: "application/json",
-            data: JSON.parse(body)
-          });
-        } catch (_e) {
-          reject(new Error("Invalid JSON"));
-        }
         return;
       }
       if (contentType.includes("urlencoded")) {
@@ -78,7 +74,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ...defaultMiddlewareOptions,
+    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -91,8 +87,8 @@ var createMiddleware = (initialOptions = {}) => {
   }
   return async (req, reply, done) => {
     const [pathname] = req.url.split("?");
-    if (serverFunctionsMap.size === 0) {
-      await scanForServerFiles();
+    if (_chunkMTFPKUGWcjs.serverFunctionsMap.size === 0) {
+      await _chunkMTFPKUGWcjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       done();
@@ -109,7 +105,7 @@ var createMiddleware = (initialOptions = {}) => {
           return;
         }
       }
-      if (rpcPreffix && !pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (rpcPreffix && !_optionalChain([pathname, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(`/${rpcPreffix}`)])) {
         done();
         return;
       }
@@ -141,22 +137,22 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    ..._chunkMTFPKUGWcjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunkMTFPKUGWcjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
     ...options,
     handler: async (req, reply, done) => {
       const { url } = req;
-      const pathname = url?.split("?")[0];
+      const pathname = _optionalChain([url, 'optionalAccess', _7 => _7.split, 'call', _8 => _8("?"), 'access', _9 => _9[0]]);
       const { rpcPreffix } = options;
-      if (!pathname?.startsWith(`/${rpcPreffix}`)) {
+      if (!_optionalChain([pathname, 'optionalAccess', _10 => _10.startsWith, 'call', _11 => _11(`/${rpcPreffix}`)])) {
         done();
         return;
       }
       const functionName = pathname.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = serverFunctionsMap.get(functionName);
+      const serverFunction = _chunkMTFPKUGWcjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
           error: `Function "${functionName}" was not found`
@@ -168,7 +164,7 @@ var createRPCMiddleware = (initialOptions = {}) => {
         let args;
         switch (body.contentType) {
           case "application/json":
-            args = body.data;
+            args = Array.isArray(body.data) ? body.data : [body.data];
             break;
           case "multipart/form-data":
             args = [body.fields, body.files];
@@ -192,8 +188,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-export {
-  readBody,
-  createMiddleware,
-  createRPCMiddleware
-};
+
+
+
+
+exports.readBody = readBody; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
