@@ -102,9 +102,9 @@ function rpcPlugin(devOptions = {}) {
     enforce: "pre",
     // Plugin methods
     async configResolved(resolvedConfig) {
-      config = resolvedConfig;
       const uniConfig = await loadRPCConfig();
       options = mergeConfig(uniConfig, devOptions);
+      config = resolvedConfig;
     },
     async buildStart() {
       await scanForServerFiles(config, viteServer);

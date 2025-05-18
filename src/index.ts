@@ -1,7 +1,7 @@
 import type {
   ConfigEnv,
   Connect,
-  Plugin,
+  PluginOption,
   ResolvedConfig,
   ViteDevServer,
 } from "vite";
@@ -123,7 +123,7 @@ async function loadRPCConfig(configFile?: string) {
 
 function rpcPlugin(
   devOptions: Partial<RpcPluginOptions> = {},
-): Plugin {
+): PluginOption {
   let options: RpcPluginOptions;
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;

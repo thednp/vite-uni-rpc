@@ -102,9 +102,9 @@ function rpcPlugin(devOptions = {}) {
     enforce: "pre",
     // Plugin methods
     async configResolved(resolvedConfig) {
-      config = resolvedConfig;
       const uniConfig = await loadRPCConfig();
       options = _vite.mergeConfig.call(void 0, uniConfig, devOptions);
+      config = resolvedConfig;
     },
     async buildStart() {
       await _chunkMTFPKUGWcjs.scanForServerFiles.call(void 0, config, viteServer);

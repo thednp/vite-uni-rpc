@@ -1,4 +1,4 @@
-import { Plugin } from 'vite';
+import { PluginOption } from 'vite';
 import { R as RpcPluginOptions } from './types.d-D2uBkBK0.cjs';
 import 'hono';
 import 'fastify';
@@ -14,6 +14,6 @@ declare const defineConfig: (uniConfig: Partial<RpcPluginOptions>) => RpcPluginO
  * @param configFile an optional parameter to specify a file within your project scope
  */
 declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions>;
-declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): Plugin;
+declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): PluginOption;
 
 export { RpcPluginOptions, rpcPlugin as default, defineConfig, loadRPCConfig };
