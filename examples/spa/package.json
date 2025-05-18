@@ -14,6 +14,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "vite-uni-rpc": "github:thednp/vite-uni-rpc"
+    "vite-uni-rpc": "github:thednp/vite-uni-rpc",
+    "formidable": "^3.5.4"
   }
 }

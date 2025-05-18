@@ -1,6 +1,5 @@
 import type {
   ConfigEnv,
-  Connect,
   PluginOption,
   ResolvedConfig,
   ViteDevServer,
@@ -162,19 +161,17 @@ function rpcPlugin(
         map: null,
       };
     },
-
     configureServer(server) {
       viteServer = server;
       const { adapter: _adapter, ...rest } = options;
       // in dev mode we always use express/connect adapter
       server.middlewares.use(
-        createRPCMiddleware(rest) as Connect.NextHandleFunction,
+        createRPCMiddleware(rest),
       );
     },
   };
 }
 
-export { defineConfig, loadRPCConfig, type RpcPluginOptions };
 export { rpcPlugin as default };
-
+export { defineConfig, loadRPCConfig, type RpcPluginOptions };
 export {};

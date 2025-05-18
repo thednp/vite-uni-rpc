@@ -6,6 +6,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { loadRPCConfig } from 'vite-uni-rpc';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const MODE = process.env.MODE || "development";
 const port = Number(process.env.PORT) || 5173;
 const base = process.env.BASE || '/';
 const root = process.env.ROOT || process.cwd();
@@ -79,7 +80,7 @@ serve(
     port,
   },
   (info) => {
-    console.log(`Server started at http://localhost:${info.port}`);
+    console.log(`  ➜  Server started in "${MODE}" mode at http://localhost:${info.port}`);
   }
 );
 

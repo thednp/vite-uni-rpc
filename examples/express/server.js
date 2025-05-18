@@ -3,6 +3,7 @@ import express from 'express'
 
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
+const MODE = process.env.MODE || "development"
 const port = process.env.PORT || 5173
 const base = process.env.BASE || '/'
 const root = process.env.ROOT || process.cwd()
@@ -75,5 +76,5 @@ app.use('*all', async (req, res) => {
 
 // Start http server
 app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`)
+  console.log(`  ➜  Server started in "${MODE}" mode at http://localhost:${port}`)
 })
