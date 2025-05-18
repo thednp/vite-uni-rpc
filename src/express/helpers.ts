@@ -10,7 +10,7 @@ export const readBody = (
   req: ExpressRequest | IncomingMessage,
 ): Promise<BodyResult> => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"]?.toLowerCase() || "";
+    // const contentType = req.headers["content-type"]?.toLowerCase() || "";
 
     let body = "";
     req.on("data", (chunk) => {
@@ -18,13 +18,10 @@ export const readBody = (
     });
 
     req.on("end", () => {
-      if (contentType.includes("json")) {
-        try {
-          resolve({ contentType: "application/json", data: JSON.parse(body) });
-        } catch (_e) {
-          reject(new Error("Invalid JSON"));
-        }
-        return;
+      try {
+        resolve({ contentType: "application/json", data: JSON.parse(body) });
+      } catch (_e) {
+        reject(new Error("Invalid JSON"));
       }
 
       resolve({ contentType: "text/plain", data: body });

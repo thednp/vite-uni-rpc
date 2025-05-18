@@ -1,6 +1,6 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
-var _chunkRK77AXOIcjs = require('../chunk-RK77AXOI.cjs');
+var _chunkOWSKBCNUcjs = require('../chunk-OWSKBCNU.cjs');
 
 
 
@@ -99,7 +99,7 @@ var require_plugin = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
 // src/fastify/plugin.ts
 var import_fastify_plugin = _chunk2P4UAVG6cjs.__toESM.call(void 0, require_plugin(), 1);
 var RpcPlugin = (fastify, initialOptions = {}, done) => {
-  const rpcMiddleware = _chunkRK77AXOIcjs.createRPCMiddleware.call(void 0, initialOptions);
+  const rpcMiddleware = _chunkOWSKBCNUcjs.createRPCMiddleware.call(void 0, initialOptions);
   fastify.addHook("preHandler", async (request, reply) => {
     const next = () => new Promise((resolve) => {
       rpcMiddleware(request, reply, resolve);

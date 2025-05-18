@@ -1,6 +1,6 @@
 import {
   createRPCMiddleware
-} from "../chunk-OCB2TKPW.js";
+} from "../chunk-GP6IIBEC.js";
 import {
   __commonJS,
   __toESM

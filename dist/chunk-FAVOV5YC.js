@@ -8,19 +8,15 @@ import {
 // src/express/helpers.ts
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"]?.toLowerCase() || "";
     let body = "";
     req.on("data", (chunk) => {
       body += chunk.toString();
     });
     req.on("end", () => {
-      if (contentType.includes("json")) {
-        try {
-          resolve({ contentType: "application/json", data: JSON.parse(body) });
-        } catch (_e) {
-          reject(new Error("Invalid JSON"));
-        }
-        return;
+      try {
+        resolve({ contentType: "application/json", data: JSON.parse(body) });
+      } catch (_e) {
+        reject(new Error("Invalid JSON"));
       }
       resolve({ contentType: "text/plain", data: body });
     });
@@ -178,8 +174,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(req);
-        const [first, ...args] = Array.isArray(body.data) ? [void 0, ...body.data] : [body.data];
-        const result = await serverFunction.fn(first, ...args);
+        const args = Array.isArray(body.data) ? body.data : [body.data];
+        const result = await serverFunction.fn(void 0, ...args);
         sendResponse(200, { data: result });
       } catch (err) {
         console.error(String(err));

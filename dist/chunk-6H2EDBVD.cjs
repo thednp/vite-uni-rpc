@@ -8,19 +8,15 @@ var _chunk2P4UAVG6cjs = require('./chunk-2P4UAVG6.cjs');
 // src/express/helpers.ts
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = _optionalChain([req, 'access', _ => _.headers, 'access', _2 => _2["content-type"], 'optionalAccess', _3 => _3.toLowerCase, 'call', _4 => _4()]) || "";
     let body = "";
     req.on("data", (chunk) => {
       body += chunk.toString();
     });
     req.on("end", () => {
-      if (contentType.includes("json")) {
-        try {
-          resolve({ contentType: "application/json", data: JSON.parse(body) });
-        } catch (_e) {
-          reject(new Error("Invalid JSON"));
-        }
-        return;
+      try {
+        resolve({ contentType: "application/json", data: JSON.parse(body) });
+      } catch (_e) {
+        reject(new Error("Invalid JSON"));
       }
       resolve({ contentType: "text/plain", data: body });
     });
@@ -109,7 +105,7 @@ var createMiddleware = (initialOptions = {}) => {
       await _chunk2P4UAVG6cjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
-      return _optionalChain([next, 'optionalCall', _5 => _5()]);
+      return _optionalChain([next, 'optionalCall', _ => _()]);
     }
     try {
       if (onRequest) {
@@ -117,10 +113,10 @@ var createMiddleware = (initialOptions = {}) => {
       }
       if (path) {
         const matcher = typeof path === "string" ? new RegExp(path) : path;
-        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _6 => _6()]);
+        if (!matcher.test(url || "")) return _optionalChain([next, 'optionalCall', _2 => _2()]);
       }
-      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _7 => _7.startsWith, 'call', _8 => _8(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _9 => _9()]);
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _3 => _3.startsWith, 'call', _4 => _4(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _5 => _5()]);
       }
       if (headers) {
         Object.entries(headers).forEach(([key, value]) => {
@@ -134,7 +130,7 @@ var createMiddleware = (initialOptions = {}) => {
         }
         return;
       }
-      _optionalChain([next, 'optionalCall', _10 => _10()]);
+      _optionalChain([next, 'optionalCall', _6 => _6()]);
     } catch (error) {
       if (onResponse) {
         await onResponse(res);
@@ -164,8 +160,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const { url } = getRequestDetails(req);
       const { sendResponse } = getResponseDetails(res);
       const { rpcPreffix } = options;
-      if (!_optionalChain([url, 'optionalAccess', _11 => _11.startsWith, 'call', _12 => _12(`/${rpcPreffix}`)])) {
-        return _optionalChain([next, 'optionalCall', _13 => _13()]);
+      if (!_optionalChain([url, 'optionalAccess', _7 => _7.startsWith, 'call', _8 => _8(`/${rpcPreffix}`)])) {
+        return _optionalChain([next, 'optionalCall', _9 => _9()]);
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
       const serverFunction = _chunk2P4UAVG6cjs.serverFunctionsMap.get(functionName);
@@ -178,8 +174,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(req);
-        const [first, ...args] = Array.isArray(body.data) ? [void 0, ...body.data] : [body.data];
-        const result = await serverFunction.fn(first, ...args);
+        const args = Array.isArray(body.data) ? body.data : [body.data];
+        const result = await serverFunction.fn(void 0, ...args);
         sendResponse(200, { data: result });
       } catch (err) {
         console.error(String(err));

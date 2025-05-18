@@ -161,8 +161,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(c);
-        const [first, ...args] = Array.isArray(body.data) ? [void 0, ...body.data] : [body.data];
-        const result = await serverFunction.fn(first, ...args);
+        const args = Array.isArray(body.data) ? body.data : [body.data];
+        const result = await serverFunction.fn(void 0, ...args);
         return c.json({ data: result }, 200);
       } catch (err) {
         console.error(String(err));

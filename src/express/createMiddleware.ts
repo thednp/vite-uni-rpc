@@ -150,10 +150,13 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
 
       try {
         const body = await readBody(req);
-        const [first, ...args] = Array.isArray(body.data)
-          ? [undefined, ...body.data]
-          : [body.data];
-        const result = await serverFunction.fn(first, ...args) as JsonValue;
+        // const [first, ...args] = Array.isArray(body.data)
+        //   ? [undefined, ...body.data]
+        //   : [body.data];
+        // const result = await serverFunction.fn(first, ...args) as JsonValue;
+        const args = Array.isArray(body.data) ? body.data : [body.data];
+        const result = await serverFunction.fn(undefined, ...args) as JsonValue;
+
         sendResponse(200, { data: result });
       } catch (err) {
         console.error(String(err));

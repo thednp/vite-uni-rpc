@@ -1,14 +1,14 @@
-import {
-  defaultMiddlewareOptions,
-  defaultRPCOptions,
-  scanForServerFiles,
-  serverFunctionsMap
-} from "./chunk-CDDXHG4W.js";
+"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+
+
+
+
+var _chunk2P4UAVG6cjs = require('./chunk-2P4UAVG6.cjs');
 
 // src/fastify/helpers.ts
 var readBody = (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"]?.toLowerCase() || "";
+    const contentType = _optionalChain([req, 'access', _ => _.headers, 'access', _2 => _2["content-type"], 'optionalAccess', _3 => _3.toLowerCase, 'call', _4 => _4()]) || "";
     if (contentType.includes("json")) {
       resolve({
         contentType: "application/json",
@@ -41,7 +41,7 @@ var createMiddleware = (initialOptions = {}) => {
     onResponse,
     onError
   } = {
-    ...defaultMiddlewareOptions,
+    ..._chunk2P4UAVG6cjs.defaultMiddlewareOptions,
     ...initialOptions
   };
   let name = middlewareName;
@@ -55,8 +55,8 @@ var createMiddleware = (initialOptions = {}) => {
   const middlewareHandler = async (req, reply, done) => {
     const reqUrl = new URL(req.url, "http://localhost");
     const url = reqUrl.pathname;
-    if (serverFunctionsMap.size === 0) {
-      await scanForServerFiles();
+    if (_chunk2P4UAVG6cjs.serverFunctionsMap.size === 0) {
+      await _chunk2P4UAVG6cjs.scanForServerFiles.call(void 0, );
     }
     if (!handler) {
       done();
@@ -73,7 +73,7 @@ var createMiddleware = (initialOptions = {}) => {
           return;
         }
       }
-      if (rpcPreffix && !url?.startsWith(`/${rpcPreffix}`)) {
+      if (rpcPreffix && !_optionalChain([url, 'optionalAccess', _5 => _5.startsWith, 'call', _6 => _6(`/${rpcPreffix}`)])) {
         done();
         return;
       }
@@ -109,8 +109,8 @@ var createMiddleware = (initialOptions = {}) => {
 };
 var createRPCMiddleware = (initialOptions = {}) => {
   const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
+    ..._chunk2P4UAVG6cjs.defaultMiddlewareOptions,
+    rpcPreffix: _chunk2P4UAVG6cjs.defaultRPCOptions.rpcPreffix,
     ...initialOptions
   };
   return createMiddleware({
@@ -119,12 +119,12 @@ var createRPCMiddleware = (initialOptions = {}) => {
       const reqUrl = new URL(req.url, "http://localhost");
       const url = reqUrl.pathname;
       const { rpcPreffix } = options;
-      if (!url?.startsWith(`/${rpcPreffix}`)) {
+      if (!_optionalChain([url, 'optionalAccess', _7 => _7.startsWith, 'call', _8 => _8(`/${rpcPreffix}`)])) {
         done();
         return;
       }
       const functionName = url.replace(`/${rpcPreffix}/`, "");
-      const serverFunction = serverFunctionsMap.get(functionName);
+      const serverFunction = _chunk2P4UAVG6cjs.serverFunctionsMap.get(functionName);
       if (!serverFunction) {
         reply.status(404).send({
           error: `Function "${functionName}" was not found`
@@ -133,8 +133,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
       }
       try {
         const body = await readBody(req);
-        const [first, ...args] = Array.isArray(body.data) ? [void 0, ...body.data] : [body.data];
-        const result = await serverFunction.fn(first, ...args);
+        const args = Array.isArray(body.data) ? body.data : [body.data];
+        const result = await serverFunction.fn(void 0, ...args);
         reply.status(200).send({ data: result });
       } catch (err) {
         console.error(String(err));
@@ -144,8 +144,8 @@ var createRPCMiddleware = (initialOptions = {}) => {
   });
 };
 
-export {
-  readBody,
-  createMiddleware,
-  createRPCMiddleware
-};
+
+
+
+
+exports.readBody = readBody; exports.createMiddleware = createMiddleware; exports.createRPCMiddleware = createRPCMiddleware;
