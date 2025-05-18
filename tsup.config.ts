@@ -14,7 +14,7 @@ export default defineConfig({
     ops.legalComments = "inline";
   },
   format: ['esm', 'cjs'],
-  external: ['vite', "hono", "fastify", "express", "picocolors"],
+  external: ['vite', "hono", "fastify", "express", "formidable", "picocolors"],
   dts: true,
   splitting: true,
   clean: true,
