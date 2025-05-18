@@ -93,17 +93,18 @@ async function loadRPCConfig(configFile) {
     return defaultRPCOptions;
   }
 }
-async function rpcPlugin(devOptions = {}) {
-  const uniConfig = await loadRPCConfig();
-  const options = mergeConfig(uniConfig, devOptions);
+function rpcPlugin(devOptions = {}) {
+  let options;
   let config;
   let viteServer;
   return {
     name: "vite-uni-rpc",
     enforce: "pre",
     // Plugin methods
-    configResolved(resolvedConfig) {
+    async configResolved(resolvedConfig) {
       config = resolvedConfig;
+      const uniConfig = await loadRPCConfig();
+      options = mergeConfig(uniConfig, devOptions);
     },
     async buildStart() {
       await scanForServerFiles(config, viteServer);

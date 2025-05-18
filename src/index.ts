@@ -121,11 +121,10 @@ async function loadRPCConfig(configFile?: string) {
   }
 }
 
-async function rpcPlugin(
+function rpcPlugin(
   devOptions: Partial<RpcPluginOptions> = {},
-): Promise<Plugin> {
-  const uniConfig = await loadRPCConfig();
-  const options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
+): Plugin {
+  let options: RpcPluginOptions;
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
 
@@ -133,7 +132,9 @@ async function rpcPlugin(
     name: "vite-uni-rpc",
     enforce: "pre",
     // Plugin methods
-    configResolved(resolvedConfig) {
+    async configResolved(resolvedConfig) {
+      const uniConfig = await loadRPCConfig();
+      options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
       config = resolvedConfig;
     },
     async buildStart() {

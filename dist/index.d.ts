@@ -14,6 +14,6 @@ declare const defineConfig: (uniConfig: Partial<RpcPluginOptions>) => RpcPluginO
  * @param configFile an optional parameter to specify a file within your project scope
  */
 declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions>;
-declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): Promise<Plugin>;
+declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): Plugin;
 
 export { RpcPluginOptions, rpcPlugin as default, defineConfig, loadRPCConfig };
