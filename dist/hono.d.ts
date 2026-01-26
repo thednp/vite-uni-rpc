@@ -1,5 +1,5 @@
-import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-BWNcqI2h.js';
-export { l as HonoMiddlewareHooks, k as HonoMiddlewareOptions } from './types.d-BWNcqI2h.js';
+import { H as HonoMiddlewareFn, B as BodyResult } from './types.d-DSKMH2Du.js';
+export { k as HonoMiddlewareHooks, l as HonoMiddlewareOptions } from './types.d-DSKMH2Du.js';
 import * as hono from 'hono';
 import { Context } from 'hono';
 import { ViteDevServer } from 'vite';
@@ -16,7 +16,7 @@ declare const createRPCMiddleware: HonoMiddlewareFn;
  */
 declare const viteMiddleware: (vite: ViteDevServer) => hono.MiddlewareHandler<{
     Bindings: HttpBindings;
-}, string, {}>;
+}, string, {}, Response>;
 declare const readBody: (c: Context) => Promise<BodyResult>;
 
 export { HonoMiddlewareFn, createMiddleware, createRPCMiddleware, readBody, viteMiddleware };

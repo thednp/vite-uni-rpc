@@ -357,4 +357,4 @@ interface MiddlewareOptions<
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 
-export type { BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonObject as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFnArgs as a, ServerFunctionOptions as b, JsonPrimitive as c, JsonValue as d, ServerFunction as e, ExpressMiddlewareOptions as f, ExpressMiddlewareHooks as g, FastifyMiddlewareOptions as h, FastifyMiddlewareHooks as i, RpcFastifyPluginOptions as j, HonoMiddlewareOptions as k, HonoMiddlewareHooks as l };
+export type { BodyResult as B, ExpressMiddlewareFn as E, FastifyMiddlewareFn as F, HonoMiddlewareFn as H, JsonPrimitive as J, MiddlewareOptions as M, RpcPluginOptions$1 as R, ServerFnEntry as S, ServerFnArgs as a, ServerFunctionOptions as b, JsonObject as c, JsonValue as d, ServerFunction as e, ExpressMiddlewareHooks as f, ExpressMiddlewareOptions as g, FastifyMiddlewareHooks as h, FastifyMiddlewareOptions as i, RpcFastifyPluginOptions as j, HonoMiddlewareHooks as k, HonoMiddlewareOptions as l };

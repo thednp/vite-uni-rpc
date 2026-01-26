@@ -9,10 +9,10 @@ import colors from "picocolors";
 import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
-import { getClientModules, scanForServerFiles } from "./utils";
-import { createRPCMiddleware } from "./express/createMiddleware";
-import { defaultRPCOptions } from "./options";
-import type { RpcPluginOptions } from "./types";
+import { getClientModules, scanForServerFiles } from "./utils.ts";
+import { createRPCMiddleware } from "./express/createMiddleware.ts";
+import { defaultRPCOptions } from "./options.ts";
+import type { RpcPluginOptions } from "./types.d.ts";
 
 /**
  * Utility to define `vite-uni-rpc` configuration file similar to vite.
@@ -50,7 +50,9 @@ async function loadRPCConfig(configFile?: string) {
       if (!existsSync(configFilePath)) {
         console.warn(
           `  ${colors.redBright("⚠︎")} The specified RPC config file ${
-            colors.redBright(colors.bold(configFile))
+            colors.redBright(
+              colors.bold(configFile),
+            )
           } cannot be found, loading the defaults..`,
         );
         RPCConfig = defaultRPCOptions;
@@ -61,7 +63,9 @@ async function loadRPCConfig(configFile?: string) {
       if (result) {
         console.log(
           `  ${colors.yellow("⚡︎")} Succesfully loaded your ${
-            colors.green(colors.bold(configFile))
+            colors.green(
+              colors.bold(configFile),
+            )
           } file!`,
         );
         RPCConfig = mergeConfig(
@@ -99,7 +103,9 @@ async function loadRPCConfig(configFile?: string) {
         ) as RpcPluginOptions;
         console.log(
           `  ${colors.yellow("⚡︎")} Succesfully loaded ${
-            colors.green(colors.bold(file))
+            colors.green(
+              colors.bold(file),
+            )
           } file`,
         );
 
@@ -120,9 +126,7 @@ async function loadRPCConfig(configFile?: string) {
   }
 }
 
-function rpcPlugin(
-  devOptions: Partial<RpcPluginOptions> = {},
-) {
+function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
   let options: RpcPluginOptions;
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
@@ -165,9 +169,7 @@ function rpcPlugin(
       viteServer = server;
       const { adapter: _adapter, ...rest } = options;
       // in dev mode we always use express/connect adapter
-      server.middlewares.use(
-        createRPCMiddleware(rest),
-      );
+      server.middlewares.use(createRPCMiddleware(rest));
     },
   } satisfies PluginOption;
 }

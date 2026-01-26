@@ -1,5 +1,5 @@
 import type { Connect } from "vite";
-import type { MiddlewareOptions, RpcPluginOptions } from "../types";
+import type { MiddlewareOptions, RpcPluginOptions } from "../types.d.ts";
 
 export type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
 

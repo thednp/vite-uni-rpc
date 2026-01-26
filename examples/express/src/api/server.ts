@@ -1,4 +1,6 @@
 import { createServerFunction } from "vite-uni-rpc/server";
+import { normalizeValue } from "../util/helpers";
+import * as v from "valibot";
 
 export const sayHi = createServerFunction(
   "say-hi",
@@ -9,21 +11,24 @@ export const sayHi = createServerFunction(
   { ttl: 5000 }
 );
 
+const AddSchema = v.object({
+  a: v.number(),
+  b: v.number(),
+});
+
 export const add = createServerFunction(
   "add-numbers",
   async (formData) => {
-    // const formData = args[0] as FormData;
-    console.log("add.formData", formData);
-    // const 
-    // console.log("add.fields", fields);
-    // console.log("add.files",  files);
     await new Promise(res => setTimeout(res, 331));
-    // const a = Number(formData.get("a"));
-    // const b = Number(formData.get("a"));
-    // return a + b;
-    return 3
-  },
-  {
-    ttl: 1,
+    const json = JSON.parse(formData as string);
+    const preparsed = Object.fromEntries(Object.entries(json).map(([key, val]) => 
+      [key, normalizeValue(val)]
+    ))
+    const valid = v.safeParse(AddSchema, preparsed);
+    if ((valid.issues)) {
+      const { nested } = v.flatten(valid.issues);
+      return { error: nested }
+    }
+    return valid.output.a + valid.output.b;
   }
 );

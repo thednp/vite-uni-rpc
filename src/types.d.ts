@@ -1,7 +1,13 @@
 // vite-uni-rpc/src/types.d.ts
-import type { ExpressMiddlewareFn, ExpressMiddlewareHooks } from "./express";
-import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono";
-import type { FastifyMiddlewareFn, FastifyMiddlewareHooks } from "./fastify";
+import type {
+  ExpressMiddlewareFn,
+  ExpressMiddlewareHooks,
+} from "./express/index.ts";
+import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono/index.ts";
+import type {
+  FastifyMiddlewareFn,
+  FastifyMiddlewareHooks,
+} from "./fastify/index.ts";
 
 export interface FrameworkHooks {
   express: ExpressMiddlewareHooks;

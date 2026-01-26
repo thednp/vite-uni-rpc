@@ -1,9 +1,9 @@
-import { S as ServerFnEntry, a as ServerFnArgs, b as ServerFunctionOptions, J as JsonObject, c as JsonPrimitive, d as JsonValue, e as ServerFunction, R as RpcPluginOptions } from './types.d-BWNcqI2h.js';
+import { S as ServerFnEntry, a as ServerFnArgs, b as ServerFunctionOptions, J as JsonPrimitive, c as JsonObject, d as JsonValue, R as RpcPluginOptions, e as ServerFunction } from './types.d-DSKMH2Du.js';
 import { ResolvedConfig, ViteDevServer } from 'vite';
 import 'hono';
 import 'fastify';
 
-declare function createServerFunction<TResult = unknown>(name: string, fn: ServerFnEntry<ServerFnArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): (args_0: JsonObject | JsonPrimitive, ...args: JsonValue[]) => Promise<TResult>;
+declare function createServerFunction<TResult = unknown>(name: string, fn: ServerFnEntry<ServerFnArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): (args_0: JsonPrimitive | JsonObject, ...args: JsonValue[]) => Promise<TResult>;
 
 declare class ServerCache {
     private cache;

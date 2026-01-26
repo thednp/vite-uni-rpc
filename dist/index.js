@@ -36,7 +36,9 @@ async function loadRPCConfig(configFile) {
       const configFilePath = resolve(env.root, configFile);
       if (!existsSync(configFilePath)) {
         console.warn(
-          `  ${colors.redBright("\u26A0\uFE0E")} The specified RPC config file ${colors.redBright(colors.bold(configFile))} cannot be found, loading the defaults..`
+          `  ${colors.redBright("\u26A0\uFE0E")} The specified RPC config file ${colors.redBright(
+            colors.bold(configFile)
+          )} cannot be found, loading the defaults..`
         );
         RPCConfig = defaultRPCOptions;
         return defaultRPCOptions;
@@ -44,7 +46,9 @@ async function loadRPCConfig(configFile) {
       const result = await loadConfigFromFile(env, configFile);
       if (result) {
         console.log(
-          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded your ${colors.green(colors.bold(configFile))} file!`
+          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded your ${colors.green(
+            colors.bold(configFile)
+          )} file!`
         );
         RPCConfig = mergeConfig(
           {
@@ -76,7 +80,9 @@ async function loadRPCConfig(configFile) {
           result.config
         );
         console.log(
-          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded ${colors.green(colors.bold(file))} file`
+          `  ${colors.yellow("\u26A1\uFE0E")} Succesfully loaded ${colors.green(
+            colors.bold(file)
+          )} file`
         );
         return RPCConfig;
       }
@@ -127,9 +133,7 @@ function rpcPlugin(devOptions = {}) {
     configureServer(server) {
       viteServer = server;
       const { adapter: _adapter, ...rest } = options;
-      server.middlewares.use(
-        createRPCMiddleware(rest)
-      );
+      server.middlewares.use(createRPCMiddleware(rest));
     }
   };
 }

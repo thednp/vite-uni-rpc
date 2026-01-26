@@ -12,16 +12,17 @@
     "start": "NODE_ENV=production node server"
   },
   "dependencies": {
-    "compression": "^1.8.0",
-    "express": "^5.1.0",
+    "compression": "^1.8.1",
+    "express": "^5.2.1",
     "formidable": "^3.5.4",
-    "sirv": "^3.0.1",
-    "vite-uni-rpc": "github:thednp/vite-uni-rpc",
-    "vite": "^6.3.5"
+    "sirv": "^3.0.2",
+    "valibot": "^1.2.0",
+    "vite": "^7.3.1",
+    "vite-uni-rpc": "link:../.."
   },
   "devDependencies": {
-    "@types/express": "^5.0.2",
-    "@types/node": "^22.15.18",
-    "typescript": "~5.8.3"
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "typescript": "~5.9.3"
   }
 }

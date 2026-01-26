@@ -6,12 +6,12 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import type { Connect } from "vite";
-import { scanForServerFiles } from "../utils";
-import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
-import { getRequestDetails, getResponseDetails, readBody } from "./helpers";
-import { serverFunctionsMap } from "../utils";
-import type { JsonValue } from "../types";
-import type { ExpressMiddlewareFn } from "./types";
+import { scanForServerFiles } from "../utils.ts";
+import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
+import { getRequestDetails, getResponseDetails, readBody } from "./helpers.ts";
+import { serverFunctionsMap } from "../utils.ts";
+import type { JsonValue } from "../types.d.ts";
+import type { ExpressMiddlewareFn } from "./types.d.ts";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();

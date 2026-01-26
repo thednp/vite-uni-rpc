@@ -1,3 +1,3 @@
-export * from "./createMiddleware";
-export * from "./helpers";
-export type * from "./types";
+export * from "./createMiddleware.ts";
+export * from "./helpers.ts";
+export type * from "./types.d.ts";

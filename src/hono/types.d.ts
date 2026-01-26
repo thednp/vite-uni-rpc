@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler, Next } from "hono";
-import type { MiddlewareOptions } from "../types";
+import type { MiddlewareOptions } from "../types.d.ts";
 
 export type HonoMiddlewareOptions = MiddlewareOptions<"hono">;
 

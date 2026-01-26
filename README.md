@@ -5,7 +5,7 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 ### Features
 
 - File-level server code isolation without using directives like `'use server'`
-- System wide configuration via vite style config file
+- System wide configuration via vite like config file
 - Automatic RPC generation for server functions
 - Server-side caching with single-flight requests
 - Flexible middleware system with hooks support and adapters for `express`, `fastify` and `hono`

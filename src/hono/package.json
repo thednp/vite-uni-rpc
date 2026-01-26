@@ -8,10 +8,10 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@hono/node-server": "^1.14.1",
-    "hono": "^4.7.10"
+    "@hono/node-server": "^1.19.9",
+    "hono": "^4.11.5"
   },
   "devDependencies": {
-    "@types/formidable": "^3.4.5"
+    "@types/formidable": "^3.4.6"
   }
 }

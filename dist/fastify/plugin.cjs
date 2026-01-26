@@ -6,11 +6,11 @@ var _chunkOWSKBCNUcjs = require('../chunk-OWSKBCNU.cjs');
 
 var _chunk2P4UAVG6cjs = require('../chunk-2P4UAVG6.cjs');
 
-// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/getPluginName.js
 var require_getPluginName = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
-  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
     "use strict";
-    var fpStackTracePattern = /at\s{1}(?:.*\.)?plugin\s{1}.*\n\s*(.*)/;
+    var fpStackTracePattern = /at\s(?:.*\.)?plugin\s.*\n\s*(.*)/;
     var fileNamePattern = /(\w*(\.\w*)*)\..*/;
     module.exports = function getPluginName(fn) {
       if (fn.name.length > 0) return fn.name;
@@ -31,9 +31,9 @@ var require_getPluginName = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
   }
 });
 
-// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/toCamelCase.js
 var require_toCamelCase = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
-  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
     "use strict";
     module.exports = function toCamelCase(name) {
       if (name[0] === "@") {
@@ -46,9 +46,9 @@ var require_toCamelCase = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
   }
 });
 
-// src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js
+// src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/plugin.js
 var require_plugin = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
-  "src/fastify/node_modules/.pnpm/fastify-plugin@5.0.1/node_modules/fastify-plugin/plugin.js"(exports, module) {
+  "src/fastify/node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/plugin.js"(exports, module) {
     "use strict";
     var getPluginName = require_getPluginName();
     var toCamelCase = require_toCamelCase();
@@ -78,9 +78,9 @@ var require_plugin = _chunk2P4UAVG6cjs.__commonJS.call(void 0, {
         autoName = true;
         options.name = getPluginName(fn) + "-auto-" + count++;
       }
-      fn[Symbol.for("skip-override")] = options.encapsulate !== true;
-      fn[Symbol.for("fastify.display-name")] = options.name;
-      fn[Symbol.for("plugin-meta")] = options;
+      fn[/* @__PURE__ */ Symbol.for("skip-override")] = options.encapsulate !== true;
+      fn[/* @__PURE__ */ Symbol.for("fastify.display-name")] = options.name;
+      fn[/* @__PURE__ */ Symbol.for("plugin-meta")] = options;
       if (!fn.default) {
         fn.default = fn;
       }

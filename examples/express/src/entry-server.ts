@@ -13,13 +13,23 @@ export async function render(_url: string) {
       <p>Refresh page after 5s</p>
       <form>
         <h2>Form</h2>
-        <label for="a">A</label>
-        <input id="a" name="a" type="number" placeholder="Value A" />
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label for="a">A</label>
+          <input id="a" name="a" type="number" placeholder="Value A" />
+          <div id="error-a" style="color: red"></div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label for="b">B</label>
+          <input id="b" name="b" type="text" placeholder="Value B" />
+          <div id="error-b" style="color: red"></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label for="output">></label>
+          <output id="output">Result: 0</output>
 
-        <label for="b">B</label>
-        <input id="b" name="b" type="number" placeholder="Value B" />
-        <button type="submit">Add</button>
-        <output>0</output>
+          <button type="submit">Add</button>
+        </div>
       </form>
     </div>
   `

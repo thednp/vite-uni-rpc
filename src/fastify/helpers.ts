@@ -1,6 +1,6 @@
 // vite-uni-rpc/src/fastify/helpers.ts
 import type { FastifyRequest } from "fastify";
-import type { BodyResult, JsonValue } from "../types";
+import type { BodyResult, JsonValue } from "../types.d.ts";
 
 export const readBody = (req: FastifyRequest): Promise<BodyResult> => {
   return new Promise((resolve, reject) => {

@@ -4,11 +4,11 @@ import type {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from "fastify";
-import { scanForServerFiles, serverFunctionsMap } from "../utils";
-import { defaultMiddlewareOptions, defaultRPCOptions } from "../options";
-import type { JsonValue } from "../types";
-import type { FastifyMiddlewareFn } from "./types";
-import { readBody } from "./helpers";
+import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
+import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
+import type { JsonValue } from "../types.d.ts";
+import type { FastifyMiddlewareFn } from "./types.d.ts";
+import { readBody } from "./helpers.ts";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();

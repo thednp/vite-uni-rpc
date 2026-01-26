@@ -2,8 +2,8 @@
 // inspired by https://github.com/royalswe/vike-fastify-boilerplate/blob/main/server/index.ts
 import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
-import type { MiddlewareOptions } from "../types";
-import { createRPCMiddleware } from "./createMiddleware";
+import type { MiddlewareOptions } from "../types.d.ts";
+import { createRPCMiddleware } from "./createMiddleware.ts";
 
 // Define the plugin factory
 const RpcPlugin = (

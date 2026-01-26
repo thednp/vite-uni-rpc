@@ -4,7 +4,7 @@ import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { BodyResult, JsonValue } from "../types";
+import type { BodyResult, JsonValue } from "../types.d.ts";
 
 export const readBody = (
   req: ExpressRequest | IncomingMessage,

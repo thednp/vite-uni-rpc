@@ -2,7 +2,7 @@ import type {
   MiddlewareOptions,
   RpcPluginOptions,
   ServerFunctionOptions,
-} from "./types";
+} from "./types.d.ts";
 
 export const defaultServerFnOptions = {
   contentType: "application/json",

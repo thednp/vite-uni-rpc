@@ -1,6 +1,6 @@
-import { E as ExpressMiddlewareFn, B as BodyResult, d as JsonValue } from './types.d-BWNcqI2h.js';
-export { g as ExpressMiddlewareHooks, f as ExpressMiddlewareOptions } from './types.d-BWNcqI2h.js';
-import * as http from 'http';
+import { E as ExpressMiddlewareFn, d as JsonValue, B as BodyResult } from './types.d-DSKMH2Du.js';
+export { f as ExpressMiddlewareHooks, g as ExpressMiddlewareOptions } from './types.d-DSKMH2Du.js';
+import * as node_http from 'node:http';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Request, Response } from 'express';
 import 'vite';
@@ -17,7 +17,7 @@ declare const getRequestDetails: (request: Request | IncomingMessage) => {
     url: string;
     search: string;
     searchParams: URLSearchParams;
-    headers: http.IncomingHttpHeaders;
+    headers: node_http.IncomingHttpHeaders;
     method: string | undefined;
 };
 declare const getResponseDetails: (response: Response | ServerResponse) => {

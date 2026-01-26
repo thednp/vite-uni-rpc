@@ -1,13 +1,13 @@
 // /vite-uni-rpc/src/createFn.ts
 
-import { serverCache } from "./cache";
+import { serverCache } from "./cache.ts";
 import type {
   ServerFnArgs,
   ServerFnEntry,
   ServerFunctionOptions,
-} from "./types";
-import { serverFunctionsMap } from "./utils";
-import { defaultServerFnOptions } from "./options";
+} from "./types.d.ts";
+import { serverFunctionsMap } from "./utils.ts";
+import { defaultServerFnOptions } from "./options.ts";
 
 export function createServerFunction<
   TResult = unknown,

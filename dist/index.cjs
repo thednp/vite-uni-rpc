@@ -36,7 +36,9 @@ async function loadRPCConfig(configFile) {
       const configFilePath = _path.resolve.call(void 0, env.root, configFile);
       if (!_fs.existsSync.call(void 0, configFilePath)) {
         console.warn(
-          `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} The specified RPC config file ${_picocolors2.default.redBright(_picocolors2.default.bold(configFile))} cannot be found, loading the defaults..`
+          `  ${_picocolors2.default.redBright("\u26A0\uFE0E")} The specified RPC config file ${_picocolors2.default.redBright(
+            _picocolors2.default.bold(configFile)
+          )} cannot be found, loading the defaults..`
         );
         RPCConfig = _chunk2P4UAVG6cjs.defaultRPCOptions;
         return _chunk2P4UAVG6cjs.defaultRPCOptions;
@@ -44,7 +46,9 @@ async function loadRPCConfig(configFile) {
       const result = await _vite.loadConfigFromFile.call(void 0, env, configFile);
       if (result) {
         console.log(
-          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded your ${_picocolors2.default.green(_picocolors2.default.bold(configFile))} file!`
+          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded your ${_picocolors2.default.green(
+            _picocolors2.default.bold(configFile)
+          )} file!`
         );
         RPCConfig = _vite.mergeConfig.call(void 0, 
           {
@@ -76,7 +80,9 @@ async function loadRPCConfig(configFile) {
           result.config
         );
         console.log(
-          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded ${_picocolors2.default.green(_picocolors2.default.bold(file))} file`
+          `  ${_picocolors2.default.yellow("\u26A1\uFE0E")} Succesfully loaded ${_picocolors2.default.green(
+            _picocolors2.default.bold(file)
+          )} file`
         );
         return RPCConfig;
       }
@@ -127,9 +133,7 @@ function rpcPlugin(devOptions = {}) {
     configureServer(server) {
       viteServer = server;
       const { adapter: _adapter, ...rest } = options;
-      server.middlewares.use(
-        _chunk2VXOMJPKcjs.createRPCMiddleware.call(void 0, rest)
-      );
+      server.middlewares.use(_chunk2VXOMJPKcjs.createRPCMiddleware.call(void 0, rest));
     }
   };
 }

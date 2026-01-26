@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import type { BodyResult } from "../types";
+import type { BodyResult } from "../types.d.ts";
 
 /**
  * Creates a hono compatible middleware for a given vite development server.

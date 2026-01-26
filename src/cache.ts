@@ -1,13 +1,16 @@
 // /vite-uni-rpc/src/cache.ts
-import { type CacheEntry } from "./types";
-import { defaultServerFnOptions } from "./options";
+import type { CacheEntry } from "./types.d.ts";
+import { defaultServerFnOptions } from "./options.ts";
 
 export class ServerCache {
-  private cache: Map<string, CacheEntry<unknown>> = new Map<string, {
-    data: unknown;
-    timestamp: number;
-    promise?: Promise<unknown>;
-  }>();
+  private cache: Map<string, CacheEntry<unknown>> = new Map<
+    string,
+    {
+      data: unknown;
+      timestamp: number;
+      promise?: Promise<unknown>;
+    }
+  >();
 
   async get<T>(
     key: string,
@@ -18,7 +21,7 @@ export class ServerCache {
     const now = Date.now();
 
     if (entry?.promise) return entry.promise;
-    if (entry?.data && (now - entry.timestamp) < ttl) return await entry.data;
+    if (entry?.data && now - entry.timestamp < ttl) return await entry.data;
 
     const promise = fetcher().then((data) => {
       this.cache.set(key, { data, timestamp: now });

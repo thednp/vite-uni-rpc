@@ -3,7 +3,7 @@ import type {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from "fastify";
-import { type MiddlewareOptions } from "../types";
+import { type MiddlewareOptions } from "../types.d.ts";
 
 export type FastifyMiddlewareOptions = MiddlewareOptions<"fastify">;
 

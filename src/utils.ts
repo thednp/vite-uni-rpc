@@ -8,7 +8,7 @@ import type {
   ServerFnEntry,
   ServerFunction,
   ServerFunctionOptions,
-} from "./types";
+} from "./types.d.ts";
 
 export const serverFunctionsMap = new Map<
   string,
