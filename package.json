@@ -13,50 +13,26 @@
   "license": "MIT",
   "author": "thednp",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.cts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
-    },
-    "./server": {
-      "types": "./dist/server.d.ts",
-      "require": "./dist/server.cjs",
-      "import": "./dist/server.js"
-    },
-    "./express": {
-      "types": "./dist/express.d.ts",
-      "require": "./dist/express.cjs",
-      "import": "./dist/express.js"
-    },
-    "./hono": {
-      "types": "./dist/hono.d.ts",
-      "require": "./dist/hono.cjs",
-      "import": "./dist/hono.js"
-    },
-    "./fastify": {
-      "types": "./dist/fastify.d.ts",
-      "require": "./dist/fastify.cjs",
-      "import": "./dist/fastify.js"
-    },
-    "./fastify/plugin": {
-      "types": "./dist/fastify/plugin.d.ts",
-      "require": "./dist/fastify/plugin.cjs",
-      "import": "./dist/fastify/plugin.js"
-    },
+    ".": "./dist/index.mjs",
+    "./express": "./dist/express/express.mjs",
+    "./fastify": "./dist/fastify/fastify.mjs",
+    "./fastify/plugin": "./dist/fastify/plugin/fastify/plugin.mjs",
+    "./hono": "./dist/hono/hono.mjs",
+    "./server": "./dist/server/server.mjs",
     "./package.json": "./package.json"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "badges": "npx -p dependency-version-badge update-badge vitest vite",
     "format": "deno fmt src",
+    "dev": "cd examples/express && pnpm up && pnpm dev",
     "lint": "pnpm lint:ts && pnpm check:ts",
     "lint:ts": "deno lint src",
     "fix:ts": "deno lint src --fix",
@@ -66,16 +42,17 @@
     "up:root": "pnpm up",
     "upd": "pnpm up:examples && pnpm up:src && pnpm up:root",
     "prepublishOnly": "pnpm upd && pnpm lint && pnpm check:ts && pnpm format && pnpm build",
-    "build": "tsup"
+    "build": "tsdown"
   },
   "dependencies": {
-    "vite": "^7.3.1"
+    "vite": "6.4.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.1.0",
     "picocolors": "^1.1.1",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "tsdown": "^0.20.1",
+    "typescript": "^5.9.3",
+    "vite-plugin-strip-comments": "^0.0.9"
   }
 }

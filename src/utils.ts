@@ -10,10 +10,7 @@ import type {
   ServerFunctionOptions,
 } from "./types.d.ts";
 
-export const serverFunctionsMap = new Map<
-  string,
-  ServerFunction
->();
+export const serverFunctionsMap = new Map<string, ServerFunction>();
 
 export const functionMappings = new Map<string, string>();
 
@@ -27,18 +24,19 @@ export const scanForServerFiles = async (
 ) => {
   functionMappings.clear();
   let server = devServer;
-  const config = !initialCfg && !devServer || !initialCfg
-    ? {
-      // always scan relative to the real root
-      root: process.cwd(),
-      base: process.env.BASE || "/",
-      server: { middlewareMode: true },
-    }
-    : {
-      ...initialCfg,
-      // always scan relative to the real root
-      root: process.cwd(),
-    };
+  const config =
+    (!initialCfg && !devServer) || !initialCfg
+      ? {
+          // always scan relative to the real root
+          root: process.cwd(),
+          base: process.env.BASE || "/",
+          server: { middlewareMode: true },
+        }
+      : {
+          ...initialCfg,
+          // always scan relative to the real root
+          root: process.cwd(),
+        };
 
   if (!server) {
     const { createServer } = await import("vite");
@@ -50,12 +48,7 @@ export const scanForServerFiles = async (
     });
   }
 
-  const svFiles = [
-    "server.ts",
-    "server.js",
-    "server.mjs",
-    "server.mts",
-  ];
+  const svFiles = ["server.ts", "server.js", "server.mjs", "server.mts"];
   const apiDir = join(config.root, "src", "api");
   const files = (await readdir(apiDir, { withFileTypes: true }))
     .filter((f) => svFiles.some((fn) => f.name.includes(fn)))
@@ -64,9 +57,7 @@ export const scanForServerFiles = async (
   for (const file of files) {
     try {
       // Transform TypeScript to JavaScript using the loaded transform function
-      const moduleExports = await server.ssrLoadModule(
-        file,
-      ) as Record<
+      const moduleExports = (await server.ssrLoadModule(file)) as Record<
         string,
         ServerFnEntry
       >;
@@ -83,10 +74,7 @@ export const scanForServerFiles = async (
       // Examine each export
       for (const [exportName, exportValue] of moduleEntries) {
         for (const [registeredName, serverFn] of serverFunctionsMap.entries()) {
-          if (
-            serverFn.name === registeredName &&
-            serverFn.fn === exportValue
-          ) {
+          if (serverFn.name === registeredName && serverFn.fn === exportValue) {
             functionMappings.set(registeredName, exportName);
           }
         }
@@ -127,13 +115,17 @@ const getModule = (
   }
 
   return `
-  export const ${fnEntry} = async (...args) => {
+  export const ${fnEntry} = async function ${fnEntry}(...args) {
+  // export const ${fnEntry} = async (...args) => {
+    const controller = new AbortController();
+    this.cancel = () => controller.abort();
     ${bodyHandling}
     const response = await fetch('/${options.rpcPreffix}/${fnName}', {
       method: 'POST',
       headers: headers,
       credentials: 'include',
       body: body,
+      signal: controller.signal,
     });
     return await handleResponse(response);
   }`;
@@ -143,21 +135,19 @@ export const getClientModules = (initialOptions: RpcPluginOptions) => {
   return `
 // Client-side RPC modules
 const handleResponse = async (response) => {
-if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
-const result = await response.json();
-if (result.error) throw new Error(result.error);
-return result.data;
+  if (!response.ok) throw new Error('Fetch error: ' + response.statusText);
+  const result = await response.json();
+  if (result.error) throw new Error(result.error);
+  return result.data;
 }
-${
-    Array.from(functionMappings.entries())
-      .map(([registeredName, exportName]) =>
-        getModule(registeredName, exportName, {
-          ...initialOptions,
-          ...(serverFunctionsMap.get(registeredName)
-            ?.options as ServerFunctionOptions || {}),
-        })
-      )
-      .join("\n")
-  }
+${Array.from(functionMappings.entries())
+  .map(([registeredName, exportName]) =>
+    getModule(registeredName, exportName, {
+      ...initialOptions,
+      ...((serverFunctionsMap.get(registeredName)
+        ?.options as ServerFunctionOptions) || {}),
+    }),
+  )
+  .join("\n")}
 `.trim();
 };

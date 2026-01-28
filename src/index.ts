@@ -1,9 +1,4 @@
-import type {
-  ConfigEnv,
-  PluginOption,
-  ResolvedConfig,
-  ViteDevServer,
-} from "vite";
+import type { ConfigEnv, Plugin, ResolvedConfig, ViteDevServer } from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import colors from "picocolors";
 import { resolve } from "node:path";
@@ -49,11 +44,9 @@ async function loadRPCConfig(configFile?: string) {
       const configFilePath = resolve(env.root, configFile);
       if (!existsSync(configFilePath)) {
         console.warn(
-          `  ${colors.redBright("⚠︎")} The specified RPC config file ${
-            colors.redBright(
-              colors.bold(configFile),
-            )
-          } cannot be found, loading the defaults..`,
+          `  ${colors.redBright("⚠︎")} The specified RPC config file ${colors.redBright(
+            colors.bold(configFile),
+          )} cannot be found, loading the defaults..`,
         );
         RPCConfig = defaultRPCOptions;
         return defaultRPCOptions as RpcPluginOptions;
@@ -62,11 +55,9 @@ async function loadRPCConfig(configFile?: string) {
       const result = await loadConfigFromFile(env, configFile);
       if (result) {
         console.log(
-          `  ${colors.yellow("⚡︎")} Succesfully loaded your ${
-            colors.green(
-              colors.bold(configFile),
-            )
-          } file!`,
+          `  ${colors.yellow("⚡︎")} Succesfully loaded your ${colors.green(
+            colors.bold(configFile),
+          )} file!`,
         );
         RPCConfig = mergeConfig(
           {
@@ -102,11 +93,9 @@ async function loadRPCConfig(configFile?: string) {
           result.config,
         ) as RpcPluginOptions;
         console.log(
-          `  ${colors.yellow("⚡︎")} Succesfully loaded ${
-            colors.green(
-              colors.bold(file),
-            )
-          } file`,
+          `  ${colors.yellow("⚡︎")} Succesfully loaded ${colors.green(
+            colors.bold(file),
+          )} file`,
         );
 
         return RPCConfig;
@@ -136,13 +125,18 @@ function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
     enforce: "pre",
     // Plugin methods
     async configResolved(resolvedConfig) {
-      const uniConfig = await loadRPCConfig();
-      options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
-      config = resolvedConfig;
+      if (!config) {
+        const uniConfig = await loadRPCConfig();
+        options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
+        config = resolvedConfig;
+      }
     },
     async buildStart() {
       // Prepare the server functions
-      await scanForServerFiles(config, viteServer);
+      // console.log("buildStart", { config, viteServer });
+      if (viteServer) {
+        await scanForServerFiles(config, viteServer);
+      }
     },
     async transform(code: string, id: string, ops?: { ssr?: boolean }) {
       // Only transform files with server functions for client builds
@@ -165,13 +159,17 @@ function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
         map: null,
       };
     },
-    configureServer(server) {
-      viteServer = server;
-      const { adapter: _adapter, ...rest } = options;
-      // in dev mode we always use express/connect adapter
-      server.middlewares.use(createRPCMiddleware(rest));
+    async configureServer(server) {
+      if (!viteServer) {
+        viteServer = server;
+        const { adapter: _adapter, ...rest } = options;
+        // console.log("configureServer", { config, viteServer });
+
+        // in dev mode we always use express/connect adapter
+        server.middlewares.use(createRPCMiddleware(rest));
+      }
     },
-  } satisfies PluginOption;
+  } satisfies Plugin<RpcPluginOptions>;
 }
 
 export { rpcPlugin as default };
