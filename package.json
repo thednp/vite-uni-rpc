@@ -32,7 +32,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "badges": "npx -p dependency-version-badge update-badge vitest vite",
     "format": "deno fmt src",
-    "dev": "cd examples/express && pnpm up && pnpm dev",
+    "dev": "cd examples/spa && pnpm up && pnpm dev",
     "lint": "pnpm lint:ts && pnpm check:ts",
     "lint:ts": "deno lint src",
     "fix:ts": "deno lint src --fix",
