@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
-// import rpc from "vite-uni-rpc";
-import rpc from "../../src/index.ts";
+import rpc from "vite-uni-rpc";
+// import rpc from "../../src/index.ts";
 
 export default defineConfig({
   // server: {

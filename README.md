@@ -12,6 +12,8 @@ A Vite plugin for creating server functions with automatic Remote Procedure Call
 - Framework agnostic
 - TypeScript support
 
+> NOTE - this is a work in progress plugin. Do not use in production apps.
+
 
 ### Examples
 
@@ -42,6 +44,7 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 ### TO DO
 
 - [ ] Add/update examples examples
+- [ ] Add AbortController
 - [x] Add SPA support
 - [x] Add wiki
 - [x] Test bun
@@ -49,6 +52,9 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 - [ ] Add koa adapter
 - [ ] Add Github tooling/workflows
 - [ ] Add tests
+
+### To know
+* in dev mode **only** vite dev server and express/connect middleware are available
 
 
 ### Credits

@@ -4,10 +4,14 @@ import type {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from "fastify";
-import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
+// import { scanForServerFiles } from "vite-uni-rpc/server";
+import { serverFunctionsMap, scanForServerFiles } from "vite-uni-rpc/server";
+import type { ServerFunction } from "vite-uni-rpc";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
-import type { JsonValue } from "../types.d.ts";
-import type { FastifyMiddlewareFn } from "./types.d.ts";
+import type {
+  FastifyMiddlewareFn,
+  FastifyMiddlewareOptions,
+} from "./types.d.ts";
 import { readBody } from "./helpers.ts";
 
 let middlewareCount = 0;
@@ -24,10 +28,11 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
     onRequest,
     onResponse,
     onError,
-  } = {
-    ...defaultMiddlewareOptions,
-    ...initialOptions,
-  };
+  } = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    initialOptions,
+  ) as FastifyMiddlewareOptions;
 
   let name = middlewareName;
   if (!name) {
@@ -118,11 +123,12 @@ export const createMiddleware: FastifyMiddlewareFn = (initialOptions = {}) => {
 export const createRPCMiddleware: FastifyMiddlewareFn = (
   initialOptions = {},
 ) => {
-  const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
-    ...initialOptions,
-  };
+  const options = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    { rpcPreffix: defaultRPCOptions.rpcPreffix },
+    initialOptions,
+  ) as FastifyMiddlewareOptions;
 
   return createMiddleware({
     ...options,
@@ -152,9 +158,17 @@ export const createRPCMiddleware: FastifyMiddlewareFn = (
 
       try {
         const body = await readBody(req);
+        const controller = new AbortController();
+        req.raw.on("close", () => controller.abort());
+        req.raw.on("error", () => controller.abort());
         const args = Array.isArray(body.data) ? body.data : [body.data];
-        const result = await serverFunction.fn(undefined, ...args) as JsonValue;
-        reply.status(200).send({ data: result });
+        const data = await // the plugin will do the switcharoo
+        (serverFunction.fn as unknown as ServerFunction)(
+          controller.signal,
+          ...args,
+        );
+        // TO DO: HANDLE cancel + Abort signal
+        reply.status(200).send({ data });
       } catch (err) {
         console.error(String(err));
         reply.status(500).send({ error: "Internal Server Error" });

@@ -1,55 +1,6 @@
 import fp from "fastify-plugin";
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import process from "node:process";
+import { scanForServerFiles, serverFunctionsMap } from "vite-uni-rpc/server";
 
-//#region src/utils.ts
-const serverFunctionsMap = /* @__PURE__ */ new Map();
-const functionMappings = /* @__PURE__ */ new Map();
-const scanForServerFiles = async (initialCfg, devServer) => {
-	functionMappings.clear();
-	let server = devServer;
-	const config = !initialCfg && !devServer || !initialCfg ? {
-		root: process.cwd(),
-		base: process.env.BASE || "/",
-		server: { middlewareMode: true }
-	} : {
-		...initialCfg,
-		root: process.cwd()
-	};
-	if (!server) {
-		const { createServer } = await import("vite");
-		server = await createServer({
-			server: config.server,
-			appType: "custom",
-			base: config.base,
-			root: config.root
-		});
-	}
-	const svFiles = [
-		"server.ts",
-		"server.js",
-		"server.mjs",
-		"server.mts"
-	];
-	const apiDir = join(config.root, "src", "api");
-	const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => join(apiDir, f.name));
-	for (const file of files) try {
-		const moduleExports = await server.ssrLoadModule(file);
-		const moduleEntries = Object.entries(moduleExports);
-		if (!moduleEntries.length) {
-			console.warn("No server function found.");
-			if (!devServer) server.close();
-			return;
-		}
-		for (const [exportName, exportValue] of moduleEntries) for (const [registeredName, serverFn] of serverFunctionsMap.entries()) if (serverFn.name === registeredName && serverFn.fn === exportValue) functionMappings.set(registeredName, exportName);
-		if (!devServer) server.close();
-	} catch (error) {
-		console.error("Error loading file:", file, error);
-	}
-};
-
-//#endregion
 //#region src/options.ts
 const defaultServerFnOptions = {
 	contentType: "application/json",
@@ -104,10 +55,7 @@ const readBody = (req) => {
 let middlewareCount = 0;
 const middleWareStack = /* @__PURE__ */ new Set();
 const createMiddleware = (initialOptions = {}) => {
-	const { name: middlewareName, rpcPreffix, path, headers, handler, onRequest, onResponse, onError } = {
-		...defaultMiddlewareOptions,
-		...initialOptions
-	};
+	const { name: middlewareName, rpcPreffix, path, headers, handler, onRequest, onResponse, onError } = Object.assign({}, defaultMiddlewareOptions, initialOptions);
 	let name = middlewareName;
 	if (!name) {
 		name = "viteRPCMiddleware-" + middlewareCount;
@@ -155,11 +103,7 @@ const createMiddleware = (initialOptions = {}) => {
 	return middlewareHandler;
 };
 const createRPCMiddleware = (initialOptions = {}) => {
-	const options = {
-		...defaultMiddlewareOptions,
-		rpcPreffix: defaultRPCOptions.rpcPreffix,
-		...initialOptions
-	};
+	const options = Object.assign({}, defaultMiddlewareOptions, { rpcPreffix: defaultRPCOptions.rpcPreffix }, initialOptions);
 	return createMiddleware({
 		...options,
 		handler: async (req, reply, done) => {
@@ -177,9 +121,12 @@ const createRPCMiddleware = (initialOptions = {}) => {
 			}
 			try {
 				const body = await readBody(req);
+				const controller = new AbortController();
+				req.raw.on("close", () => controller.abort());
+				req.raw.on("error", () => controller.abort());
 				const args = Array.isArray(body.data) ? body.data : [body.data];
-				const result = await serverFunction.fn(void 0, ...args);
-				reply.status(200).send({ data: result });
+				const data = await serverFunction.fn(controller.signal, ...args);
+				reply.status(200).send({ data });
 			} catch (err) {
 				console.error(String(err));
 				reply.status(500).send({ error: "Internal Server Error" });

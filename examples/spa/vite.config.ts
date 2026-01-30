@@ -1,28 +1,20 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 // import { default as rpc, loadRPCConfig } from "vite-uni-rpc";
 import { default as rpc, loadRPCConfig } from "../../src/index.ts";
 
-export default defineConfig(async ({ isPreview }) => {
+export default defineConfig(async (config) => {
   const rpcConfig = await loadRPCConfig();
   const proxyPort = 3000;
 
-  if (isPreview) {
+  if (config.isPreview) {
     const { startProxyServer } = await import("./server.ts");
     await startProxyServer(proxyPort);
   }
 
   return {
-    plugins: [rpc()],
-    server: {
-      strictPort: true,
-      // hmr: {
-      //   port: 3001, // Use a unique port per app
-      //   clientPort: 3001,
-      // },
-    },
+    plugins: [rpc() as Plugin],
     preview: {
       port: 5173,
-      strictPort: true,
       proxy: {
         [`/${rpcConfig.rpcPreffix}`]: {
           target: `http://localhost:${proxyPort}`,

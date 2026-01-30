@@ -5,7 +5,7 @@ import process from "node:process";
 
 // Constants
 const isProduction = process.env.NODE_ENV === "production";
-const MODE = process.env.MODE || "development";
+const MODE = process.env.NODE_ENV || "development";
 const port = process.env.PORT || 5173;
 const base = process.env.BASE || "/";
 const root = process.env.ROOT || process.cwd();
@@ -30,24 +30,25 @@ if (!isProduction) {
     root,
   });
   app.addHook("onRequest", async (request, reply) => {
-    const next = () => new Promise((resolve) => {
-      vite.middlewares(request.raw, reply.raw, resolve);
-    });
+    const next = () =>
+      new Promise((resolve) => {
+        vite.middlewares(request.raw, reply.raw, resolve);
+      });
     await next();
-  })
+  });
 } else {
   // Load RPC configuration
   const { loadRPCConfig } = await import("vite-uni-rpc");
   const { adapter, ...options } = await loadRPCConfig();
-  
+
   // Register RPC plugin
   await app.register(import("vite-uni-rpc/fastify/plugin"), options);
 
   // Register other middleware
   await app.register(import("@fastify/compress"));
-  await app.register(import('@fastify/static'), {
-    root: root + '/dist/client/assets',
-    prefix: '/assets/',
+  await app.register(import("@fastify/static"), {
+    root: root + "/dist/client/assets",
+    prefix: "/assets/",
   });
 }
 
@@ -89,5 +90,7 @@ app.listen({ port }, (err) => {
     app.log.error(err);
     process.exit(1);
   }
-  console.log(`  ➜  Server started in "${MODE}" mode at http://localhost:${port}`);
+  console.log(
+    `  ➜  Server started in "${MODE}" mode at http://localhost:${port}`,
+  );
 });

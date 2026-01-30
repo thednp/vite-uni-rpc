@@ -6,19 +6,23 @@ import type {
   Response as ExpressResponse,
 } from "express";
 import type { Connect } from "vite";
-import { scanForServerFiles } from "../utils.ts";
+// import { scanForServerFiles } from "vite-uni-rpc/server";
+import { serverFunctionsMap } from "vite-uni-rpc/server";
+// import { serverFunctionsMap, scanForServerFiles } from "../../src/server.ts";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
 import { getRequestDetails, getResponseDetails, readBody } from "./helpers.ts";
-import { serverFunctionsMap } from "../utils.ts";
-import type { JsonValue } from "../types.d.ts";
-import type { ExpressMiddlewareFn } from "./types.d.ts";
+import type {
+  ExpressMiddlewareFn,
+  ExpressMiddlewareOptions,
+} from "./types.d.ts";
+
+// import { JsonArray, JsonValue, ServerFunction } from "../types";
+import type { JsonValue, ServerFunction } from "vite-uni-rpc";
 
 let middlewareCount = 0;
 const middleWareStack = new Set<string>();
 
-export const createMiddleware: ExpressMiddlewareFn = (
-  initialOptions = {},
-) => {
+export const createMiddleware: ExpressMiddlewareFn = (initialOptions = {}) => {
   const {
     name: middlewareName,
     rpcPreffix,
@@ -28,10 +32,11 @@ export const createMiddleware: ExpressMiddlewareFn = (
     onRequest,
     onResponse,
     onError,
-  } = {
-    ...defaultMiddlewareOptions,
-    ...initialOptions,
-  };
+  } = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    initialOptions,
+  ) as ExpressMiddlewareOptions;
 
   let name = middlewareName;
   if (!name) {
@@ -51,10 +56,10 @@ export const createMiddleware: ExpressMiddlewareFn = (
     const { sendResponse, setHeader } = getResponseDetails(res);
     // When serving from production server, it's a good idea to
     // scan for server files and populate the serverFunctionsMap
-    if (serverFunctionsMap.size === 0) {
-      // Let the utility use its own defaults
-      await scanForServerFiles();
-    }
+    // if (serverFunctionsMap.size === 0) {
+    //   // Let the utility use its own defaults
+    //   await scanForServerFiles();
+    // }
     // No need to continue when no handler provided
     if (!handler) {
       return next?.();
@@ -116,11 +121,12 @@ export const createMiddleware: ExpressMiddlewareFn = (
 export const createRPCMiddleware: ExpressMiddlewareFn = (
   initialOptions = {},
 ) => {
-  const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
-    ...initialOptions,
-  };
+  const options = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    { rpcPreffix: defaultRPCOptions.rpcPreffix },
+    initialOptions,
+  ) as ExpressMiddlewareOptions;
 
   return createMiddleware({
     ...options,
@@ -141,19 +147,46 @@ export const createRPCMiddleware: ExpressMiddlewareFn = (
       const serverFunction = serverFunctionsMap.get(functionName);
 
       if (!serverFunction) {
-        sendResponse(
-          404,
-          { error: `Function "${functionName}" not found` },
-        );
+        sendResponse(404, { error: `Function "${functionName}" not found` });
         return;
       }
 
+      // console.log((req as ExpressRequest).app);
+
       try {
-        const body = await readBody(req);
+        const controller = new AbortController();
+        req.addListener("close", (e) => {
+          console.log("Operation Aborted", e);
+          controller.abort("Operation Aborted");
+        });
+        req.addListener("error", (e) => {
+          console.log("Request Error", e);
+
+          // controller.abort("Request Error");
+        });
+        const body = await readBody(req, controller.signal);
+
+        // const signal = req.headers["signal"] as AbortSignal | undefined;
         const args = Array.isArray(body.data) ? body.data : [body.data];
-        const result = await serverFunction.fn(...args) as JsonValue;
-        sendResponse(200, { data: result });
+        const result = await ((serverFunction.fn as unknown as ServerFunction)(
+          controller.signal,
+          ...args,
+        ) as Promise<JsonValue>);
+
+        console.log("express.middleware", result);
+        // sendResponse(200, { data: result });
+        if (!res.headersSent) {
+          sendResponse(200, { data: result });
+        }
       } catch (err) {
+        // ✅ Detect abort errors
+        // if (err instanceof Error && err.message.includes("abort")) {
+        //   console.log("✅ Request cancelled by client");
+        //   if (!res.headersSent) {
+        //     sendResponse(408, { error: "Request cancelled" });
+        //   }
+        //   return;
+        // }
         console.error(String(err));
         sendResponse(500, { error: "Internal Server Error" });
       }

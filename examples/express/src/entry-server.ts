@@ -1,8 +1,15 @@
-import { sayHi } from "./api"
+// import { sayHi } from "./api";
+// import type { ServerFunction } from "vite-uni-rpc";
 
 export async function render(_url: string) {
-  const greeting = await sayHi("John Doe");
-  console.log(`SSR greeting "${greeting}"`);
+  // const controller = new AbortController();
+  // // // const cancel = (reason: string) => controller.abort(reason);
+  // const greeting = await (sayHi as unknown as ServerFunction)(
+  //   controller.signal,
+  //   "John Doe",
+  // );
+
+  // console.log(`SSR greeting "${greeting}"`);
 
   const html = `
     <div>
@@ -18,7 +25,7 @@ export async function render(_url: string) {
           <input id="a" name="a" type="number" placeholder="Value A" />
           <div id="error-a" style="color: red"></div>
         </div>
-        
+
         <div style="display: flex; align-items: center; gap: 10px">
           <label for="b">B</label>
           <input id="b" name="b" type="text" placeholder="Value B" />
@@ -32,6 +39,6 @@ export async function render(_url: string) {
         </div>
       </form>
     </div>
-  `
-  return { html }
+  `;
+  return { html };
 }

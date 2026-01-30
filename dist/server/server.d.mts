@@ -1,6 +1,7 @@
 import { Connect, ResolvedConfig, ViteDevServer } from "vite";
+import "vite-uni-rpc";
 import "express";
-import { Context, Next } from "hono";
+import { Context, MiddlewareHandler } from "hono";
 import { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from "fastify";
 
 //#region src/express/types.d.ts
@@ -13,7 +14,8 @@ interface ExpressMiddlewareHooks {
 //#endregion
 //#region src/hono/types.d.ts
 interface HonoMiddlewareHooks {
-  handler: (c: Context, next: Next) => Promise<void>;
+  // handler: ((c: Context, next: Next) => Promise<void>);
+  handler: MiddlewareHandler;
   onRequest: (c: Context) => Promise<void>;
   onResponse: (c: Context) => Promise<void>;
   onError: (error: unknown, c: Context) => Promise<void>;
@@ -46,25 +48,15 @@ type JsonObject = {
 };
 type JsonArray = JsonValue[];
 type JsonValue = JsonPrimitive | JsonArray | JsonObject;
-// Keep these as a refference
-// Date strings are common in APIs
-// export type ISODateString = string; // for dates in ISO format
-// Special types that might be useful
-// export type Base64String = string; // for binary data encoded as base64
-// export type URLString = string; // for URLs
-// export type EmailString = string; // for email addresses
-// export type RPCValue =
-//   | JsonValue
-//   | Date // will be serialized as ISOString
-//   | Uint8Array // will be serialized as base64
-//   | File // for file uploads
-//   | Blob // for binary data
-//   | URLSearchParams; // for query parameters
-type ServerFnArgs = [JsonObject | JsonPrimitive, ...JsonArray];
-type ServerFnEntry<TArgs extends ServerFnArgs = JsonArray, TResult = never> = (...args: TArgs) => Promise<TResult>;
-interface ServerFunction {
+type ServerFunction<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (signal: AbortSignal, ...args: TArgs) => Promise<TResult>;
+type ServerFunctionInit<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (...args: TArgs) => Promise<TResult>;
+type ClientFunction<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (...args: TArgs) => {
+  data: Promise<TResult>;
+  cancel: (reason: string) => void;
+};
+interface ServerFnEntry {
   name: string;
-  fn: ServerFnEntry;
+  fn: ServerFunction<never, never> | ClientFunction<never, never>;
   options?: ServerFunctionOptions;
 }
 /**
@@ -73,7 +65,7 @@ interface ServerFunction {
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
  */
-interface RpcPluginOptions$1 {
+interface RpcPluginOptions {
   // RPC Middleware Options
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -156,7 +148,7 @@ interface RpcPluginOptions$1 {
    */
   onResponse?: MiddlewareOptions["onResponse"];
 }
-interface MiddlewareOptions<A extends RpcPluginOptions$1["adapter"] = "express"> {
+interface MiddlewareOptions<A extends RpcPluginOptions["adapter"] = "express"> {
   /**
    * RPC middlewares would like to have a name, specifically for _express_,
    * to help identify them within vite's stack;
@@ -274,8 +266,18 @@ interface MiddlewareOptions<A extends RpcPluginOptions$1["adapter"] = "express">
   onResponse?: FrameworkHooks[A]["onResponse"];
 }
 //#endregion
-//#region src/createFn.d.ts
-declare function createServerFunction<TResult = unknown>(name: string, fn: ServerFnEntry<ServerFnArgs, TResult>, initialOptions?: Partial<ServerFunctionOptions>): (args_0: JsonObject | JsonPrimitive, ...args: JsonValue[]) => Promise<TResult>;
+//#region src/functionsMap.d.ts
+declare const serverFunctionsMap: Map<string, ServerFnEntry>;
+declare const functionMappings: Map<string, string>;
+//#endregion
+//#region src/scanForServerFiles.d.ts
+type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
+  server?: Partial<ResolvedConfig["server"]>;
+};
+declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
+//#endregion
+//#region src/createFunction.d.ts
+declare function createServerFunction<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue>(name: string, fn: ServerFunctionInit<TArgs, TResult>, fnOptions?: Partial<ServerFunctionOptions>): ClientFunction<TArgs, TResult>;
 //#endregion
 //#region src/cache.d.ts
 declare class ServerCache {
@@ -285,14 +287,8 @@ declare class ServerCache {
 }
 declare const serverCache: ServerCache;
 //#endregion
-//#region src/utils.d.ts
-declare const serverFunctionsMap: Map<string, ServerFunction>;
-declare const functionMappings: Map<string, string>;
-type ScanConfig = Pick<ResolvedConfig, "root" | "base"> & {
-  server?: Partial<ResolvedConfig["server"]>;
-};
-declare const scanForServerFiles: (initialCfg?: ScanConfig, devServer?: ViteDevServer) => Promise<void>;
-declare const getClientModules: (initialOptions: RpcPluginOptions$1) => string;
+//#region src/getClientModules.d.ts
+declare const getClientModules: (initialOptions: RpcPluginOptions) => string;
 //#endregion
 //#region src/options.d.ts
 declare const defaultServerFnOptions: {

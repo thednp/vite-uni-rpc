@@ -1,5 +1,5 @@
 import type { Connect } from "vite";
-import type { MiddlewareOptions, RpcPluginOptions } from "../types.d.ts";
+import type { MiddlewareOptions, RpcPluginOptions } from "vite-uni-rpc";
 
 export type ExpressMiddlewareOptions = MiddlewareOptions<"express">;
 
@@ -20,10 +20,6 @@ export interface ExpressMiddlewareHooks {
     req: IncomingMessage | ExpressRequest,
     res: ServerResponse | ExpressResponse,
   ) => Promise<void>;
-  onRequest: (
-    req: IncomingMessage | ExpressRequest,
-  ) => Promise<void>;
-  onResponse: (
-    res: ServerResponse | ExpressResponse,
-  ) => Promise<void>;
+  onRequest: (req: IncomingMessage | ExpressRequest) => Promise<void>;
+  onResponse: (res: ServerResponse | ExpressResponse) => Promise<void>;
 }

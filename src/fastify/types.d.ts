@@ -3,7 +3,7 @@ import type {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from "fastify";
-import { type MiddlewareOptions } from "../types.d.ts";
+import type { MiddlewareOptions, RpcPluginOptions } from "vite-uni-rpc";
 
 export type FastifyMiddlewareOptions = MiddlewareOptions<"fastify">;
 
@@ -24,12 +24,8 @@ export interface FastifyMiddlewareHooks {
     req: FastifyRequest,
     res: FastifyReply,
   ) => Promise<void>;
-  onRequest: (
-    req: FastifyRequest,
-  ) => Promise<void>;
-  onResponse: (
-    res: FastifyReply,
-  ) => Promise<void>;
+  onRequest: (req: FastifyRequest) => Promise<void>;
+  onResponse: (res: FastifyReply) => Promise<void>;
 }
 
 // Define the plugin function

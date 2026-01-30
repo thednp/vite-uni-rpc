@@ -4,30 +4,64 @@ import type {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from "express";
-import type { BodyResult, JsonValue } from "../types.d.ts";
+import type { BodyResult, JsonValue } from "vite-uni-rpc";
 
+// src/express/helpers.ts
 export const readBody = (
   req: ExpressRequest | IncomingMessage,
+  signal?: AbortSignal,
 ): Promise<BodyResult> => {
   return new Promise((resolve, reject) => {
-    // const contentType = req.headers["content-type"]?.toLowerCase() || "";
-
     let body = "";
-    req.on("data", (chunk) => {
-      body += chunk.toString();
-    });
 
-    req.on("end", () => {
+    // ✅ Check if already aborted
+    if (signal?.aborted) {
+      reject("Request aborted");
+      return;
+    }
+
+    // ✅ Listen for abort during body reading
+    const onAbort = () => {
+      reject("Request aborted");
+      // Clean up listeners
+      req.removeListener("data", onData);
+      req.removeListener("end", onEnd);
+      req.removeListener("error", onError);
+    };
+
+    if (signal) {
+      signal.addEventListener("abort", onAbort);
+    }
+
+    const onData = (chunk: Buffer) => {
+      body += chunk.toString();
+    };
+
+    const onEnd = () => {
+      // Clean up abort listener
+      if (signal) {
+        signal.removeEventListener("abort", onAbort);
+      }
+
       try {
         resolve({ contentType: "application/json", data: JSON.parse(body) });
       } catch (_e) {
-        reject(new Error("Invalid JSON"));
+        // If JSON parse fails, treat as text
+        resolve({ contentType: "text/plain", data: body });
       }
+    };
 
-      resolve({ contentType: "text/plain", data: body });
-    });
+    const onError = (err: Error) => {
+      // Clean up abort listener
+      if (signal) {
+        signal.removeEventListener("abort", onAbort);
+      }
+      reject(err);
+    };
 
-    req.on("error", reject);
+    req.on("data", onData);
+    req.on("end", onEnd);
+    req.on("error", onError);
   });
 };
 
@@ -46,8 +80,9 @@ export const isExpressResponse = (
 export const getRequestDetails = (
   request: ExpressRequest | IncomingMessage,
 ) => {
-  const rawUrl =
-    (isExpressRequest(request) ? request.originalUrl : request.url) as string;
+  const rawUrl = (
+    isExpressRequest(request) ? request.originalUrl : request.url
+  ) as string;
   const url = new URL(rawUrl, "http://localhost");
 
   return {
@@ -62,8 +97,7 @@ export const getRequestDetails = (
 export const getResponseDetails = (
   response: ExpressResponse | ServerResponse,
 ) => {
-  const isResponseSent = response.headersSent ||
-    response.writableEnded;
+  const isResponseSent = response.headersSent || response.writableEnded;
 
   const setHeader = (name: string, value: string) => {
     if (isExpressResponse(response)) {
@@ -81,10 +115,7 @@ export const getResponseDetails = (
     }
   };
 
-  const sendResponse = (
-    code: number,
-    output: Record<string, JsonValue>,
-  ) => {
+  const sendResponse = (code: number, output: Record<string, JsonValue>) => {
     setStatusCode(code);
 
     if (isExpressResponse(response)) {

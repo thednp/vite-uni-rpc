@@ -1,54 +1,5 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import process from "node:process";
+import { serverFunctionsMap } from "vite-uni-rpc/server";
 
-//#region src/utils.ts
-const serverFunctionsMap = /* @__PURE__ */ new Map();
-const functionMappings = /* @__PURE__ */ new Map();
-const scanForServerFiles = async (initialCfg, devServer) => {
-	functionMappings.clear();
-	let server = devServer;
-	const config = !initialCfg && !devServer || !initialCfg ? {
-		root: process.cwd(),
-		base: process.env.BASE || "/",
-		server: { middlewareMode: true }
-	} : {
-		...initialCfg,
-		root: process.cwd()
-	};
-	if (!server) {
-		const { createServer } = await import("vite");
-		server = await createServer({
-			server: config.server,
-			appType: "custom",
-			base: config.base,
-			root: config.root
-		});
-	}
-	const svFiles = [
-		"server.ts",
-		"server.js",
-		"server.mjs",
-		"server.mts"
-	];
-	const apiDir = join(config.root, "src", "api");
-	const files = (await readdir(apiDir, { withFileTypes: true })).filter((f) => svFiles.some((fn) => f.name.includes(fn))).map((f) => join(apiDir, f.name));
-	for (const file of files) try {
-		const moduleExports = await server.ssrLoadModule(file);
-		const moduleEntries = Object.entries(moduleExports);
-		if (!moduleEntries.length) {
-			console.warn("No server function found.");
-			if (!devServer) server.close();
-			return;
-		}
-		for (const [exportName, exportValue] of moduleEntries) for (const [registeredName, serverFn] of serverFunctionsMap.entries()) if (serverFn.name === registeredName && serverFn.fn === exportValue) functionMappings.set(registeredName, exportName);
-		if (!devServer) server.close();
-	} catch (error) {
-		console.error("Error loading file:", file, error);
-	}
-};
-
-//#endregion
 //#region src/options.ts
 const defaultServerFnOptions = {
 	contentType: "application/json",
@@ -75,27 +26,44 @@ const defaultMiddlewareOptions = {
 
 //#endregion
 //#region src/express/helpers.ts
-const readBody = (req) => {
+const readBody = (req, signal) => {
 	return new Promise((resolve, reject) => {
 		let body = "";
-		req.on("data", (chunk) => {
+		if (signal?.aborted) {
+			reject("Request aborted");
+			return;
+		}
+		const onAbort = () => {
+			reject("Request aborted");
+			req.removeListener("data", onData);
+			req.removeListener("end", onEnd);
+			req.removeListener("error", onError);
+		};
+		if (signal) signal.addEventListener("abort", onAbort);
+		const onData = (chunk) => {
 			body += chunk.toString();
-		});
-		req.on("end", () => {
+		};
+		const onEnd = () => {
+			if (signal) signal.removeEventListener("abort", onAbort);
 			try {
 				resolve({
 					contentType: "application/json",
 					data: JSON.parse(body)
 				});
 			} catch (_e) {
-				reject(/* @__PURE__ */ new Error("Invalid JSON"));
+				resolve({
+					contentType: "text/plain",
+					data: body
+				});
 			}
-			resolve({
-				contentType: "text/plain",
-				data: body
-			});
-		});
-		req.on("error", reject);
+		};
+		const onError = (err) => {
+			if (signal) signal.removeEventListener("abort", onAbort);
+			reject(err);
+		};
+		req.on("data", onData);
+		req.on("end", onEnd);
+		req.on("error", onError);
 	});
 };
 const isExpressRequest = (req) => {
@@ -144,10 +112,7 @@ const getResponseDetails = (response) => {
 let middlewareCount = 0;
 const middleWareStack = /* @__PURE__ */ new Set();
 const createMiddleware = (initialOptions = {}) => {
-	const { name: middlewareName, rpcPreffix, path, headers, handler, onRequest, onResponse, onError } = {
-		...defaultMiddlewareOptions,
-		...initialOptions
-	};
+	const { name: middlewareName, rpcPreffix, path, headers, handler, onRequest, onResponse, onError } = Object.assign({}, defaultMiddlewareOptions, initialOptions);
 	let name = middlewareName;
 	if (!name) {
 		name = "viteRPCMiddleware-" + middlewareCount;
@@ -157,7 +122,6 @@ const createMiddleware = (initialOptions = {}) => {
 	const middlewareHandler = async (req, res, next) => {
 		const { url } = getRequestDetails(req);
 		const { sendResponse, setHeader } = getResponseDetails(res);
-		if (serverFunctionsMap.size === 0) await scanForServerFiles();
 		if (!handler) return next?.();
 		try {
 			if (onRequest) await onRequest(req);
@@ -187,11 +151,7 @@ const createMiddleware = (initialOptions = {}) => {
 	return middlewareHandler;
 };
 const createRPCMiddleware = (initialOptions = {}) => {
-	const options = {
-		...defaultMiddlewareOptions,
-		rpcPreffix: defaultRPCOptions.rpcPreffix,
-		...initialOptions
-	};
+	const options = Object.assign({}, defaultMiddlewareOptions, { rpcPreffix: defaultRPCOptions.rpcPreffix }, initialOptions);
 	return createMiddleware({
 		...options,
 		handler: async (req, res, next) => {
@@ -206,9 +166,19 @@ const createRPCMiddleware = (initialOptions = {}) => {
 				return;
 			}
 			try {
-				const body = await readBody(req);
+				const controller = new AbortController();
+				req.addListener("close", (e) => {
+					console.log("Operation Aborted", e);
+					controller.abort("Operation Aborted");
+				});
+				req.addListener("error", (e) => {
+					console.log("Request Error", e);
+				});
+				const body = await readBody(req, controller.signal);
 				const args = Array.isArray(body.data) ? body.data : [body.data];
-				sendResponse(200, { data: await serverFunction.fn(...args) });
+				const result = await serverFunction.fn(controller.signal, ...args);
+				console.log("express.middleware", result);
+				if (!res.headersSent) sendResponse(200, { data: result });
 			} catch (err) {
 				console.error(String(err));
 				sendResponse(500, { error: "Internal Server Error" });

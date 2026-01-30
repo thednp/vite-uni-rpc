@@ -3,7 +3,9 @@ import type {
   ExpressMiddlewareFn,
   ExpressMiddlewareHooks,
 } from "./express/index.ts";
+
 import type { HonoMiddlewareFn, HonoMiddlewareHooks } from "./hono/index.ts";
+
 import type {
   FastifyMiddlewareFn,
   FastifyMiddlewareHooks,
@@ -27,9 +29,7 @@ export type SupportableContentType =
   | "text/plain"
   | "application/octet-stream";
 
-export type ContentType =
-  | "application/json"
-  | "text/plain";
+export type ContentType = "application/json" | "text/plain";
 
 export type BodyResult =
   | { contentType: "application/json"; data: JsonValue }
@@ -64,18 +64,30 @@ export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 //   | Blob // for binary data
 //   | URLSearchParams; // for query parameters
 
-export type ServerFnArgs = [JsonObject | JsonPrimitive, ...JsonArray];
+// export type ServerFnArgs = [JsonObject | JsonPrimitive, ...JsonArray];
+export type ServerFnArgs = [...JsonArray];
 
-export type ServerFnEntry<
-  TArgs extends ServerFnArgs = JsonArray,
-  TResult = never,
-> = (
-  ...args: TArgs
-) => Promise<TResult>;
+export type ServerFunction<
+  TArgs extends JsonArray = JsonArray,
+  TResult extends JsonValue = JsonValue,
+> = (signal: AbortSignal, ...args: TArgs) => Promise<TResult>;
 
-export interface ServerFunction {
+export type ServerFunctionInit<
+  TArgs extends JsonArray = JsonArray,
+  TResult extends JsonValue = JsonValue,
+> = (...args: TArgs) => Promise<TResult>;
+
+export type ClientFunction<
+  TArgs extends JsonArray = JsonArray,
+  TResult extends JsonValue = JsonValue,
+> = (...args: TArgs) => {
+  data: Promise<TResult>;
+  cancel: (reason: string) => void;
+};
+
+export interface ServerFnEntry {
   name: string;
-  fn: ServerFnEntry;
+  fn: ServerFunction<never, never> | ClientFunction<never, never>;
   options?: ServerFunctionOptions;
 }
 

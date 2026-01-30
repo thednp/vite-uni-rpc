@@ -1,10 +1,11 @@
-import { Connect, ResolvedConfig, ViteDevServer } from "vite";
-import * as rollup0 from "rollup";
+import { Connect, PluginOption } from "vite";
+import { MiddlewareOptions as MiddlewareOptions$1, RpcPluginOptions as RpcPluginOptions$1 } from "vite-uni-rpc";
 import "express";
-import { Context, Next } from "hono";
+import { Context, MiddlewareHandler } from "hono";
 import { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from "fastify";
 
 //#region src/express/types.d.ts
+type ExpressMiddlewareFn = <A extends RpcPluginOptions$1["adapter"] = "express">(initialOptions: Partial<MiddlewareOptions$1<A>>) => ExpressMiddlewareHooks["handler"];
 interface ExpressMiddlewareHooks {
   handler: (req: IncomingMessage | ExpressRequest, res: ServerResponse | ExpressResponse, next: Connect.NextFunction | NextFunction) => Promise<void>;
   onError: (error: unknown, req: IncomingMessage | ExpressRequest, res: ServerResponse | ExpressResponse) => Promise<void>;
@@ -14,13 +15,16 @@ interface ExpressMiddlewareHooks {
 //#endregion
 //#region src/hono/types.d.ts
 interface HonoMiddlewareHooks {
-  handler: (c: Context, next: Next) => Promise<void>;
+  // handler: ((c: Context, next: Next) => Promise<void>);
+  handler: MiddlewareHandler;
   onRequest: (c: Context) => Promise<void>;
   onResponse: (c: Context) => Promise<void>;
   onError: (error: unknown, c: Context) => Promise<void>;
 }
+type HonoMiddlewareFn = <A extends RpcPluginOptions$1["adapter"] = "hono">(initialOptions: Partial<MiddlewareOptions$1<A>>) => HonoMiddlewareHooks["handler"];
 //#endregion
 //#region src/fastify/types.d.ts
+type FastifyMiddlewareFn = <A extends RpcPluginOptions$1["adapter"] = "fastify">(initialOptions?: Partial<MiddlewareOptions$1<A>>) => FastifyMiddlewareHooks["handler"];
 interface FastifyMiddlewareHooks {
   handler: (req: FastifyRequest, res: FastifyReply, done: HookHandlerDoneFunction) => Promise<void>;
   onError: (error: unknown, req: FastifyRequest, res: FastifyReply) => Promise<void>;
@@ -34,13 +38,71 @@ interface FrameworkHooks {
   hono: HonoMiddlewareHooks;
   fastify: FastifyMiddlewareHooks;
 }
+interface FrameworkMiddlewareFn {
+  express: ExpressMiddlewareFn;
+  hono: HonoMiddlewareFn;
+  fastify: FastifyMiddlewareFn;
+}
+type SupportableContentType = "multipart/form-data" | "application/json" | "text/plain" | "application/octet-stream";
+type ContentType = "application/json" | "text/plain";
+type BodyResult = {
+  contentType: "application/json";
+  data: JsonValue;
+} | {
+  contentType: "text/plain";
+  data: string;
+};
+interface ServerFunctionOptions {
+  ttl: number;
+  invalidateKeys: string | RegExp | RegExp[] | string[];
+  contentType: ContentType;
+}
+// primitives and their compositions
+type JsonPrimitive = string | number | boolean | null | undefined;
+type JsonObject = {
+  [key: string]: JsonValue | JsonArray;
+};
+type JsonArray = JsonValue[];
+type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+// Keep these as a refference
+// Date strings are common in APIs
+// export type ISODateString = string; // for dates in ISO format
+// Special types that might be useful
+// export type Base64String = string; // for binary data encoded as base64
+// export type URLString = string; // for URLs
+// export type EmailString = string; // for email addresses
+// export type RPCValue =
+//   | JsonValue
+//   | Date // will be serialized as ISOString
+//   | Uint8Array // will be serialized as base64
+//   | File // for file uploads
+//   | Blob // for binary data
+//   | URLSearchParams; // for query parameters
+// export type ServerFnArgs = [JsonObject | JsonPrimitive, ...JsonArray];
+type ServerFnArgs = [...JsonArray];
+type ServerFunction<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (signal: AbortSignal, ...args: TArgs) => Promise<TResult>;
+type ServerFunctionInit<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (...args: TArgs) => Promise<TResult>;
+type ClientFunction<TArgs extends JsonArray = JsonArray, TResult extends JsonValue = JsonValue> = (...args: TArgs) => {
+  data: Promise<TResult>;
+  cancel: (reason: string) => void;
+};
+interface ServerFnEntry {
+  name: string;
+  fn: ServerFunction<never, never> | ClientFunction<never, never>;
+  options?: ServerFunctionOptions;
+}
+interface CacheEntry<T> {
+  data?: T;
+  timestamp: number;
+  promise?: Promise<T>;
+}
 /**
  * ### vite-uni-rpc
  * The plugin configuration allows for granular control of your
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
  */
-interface RpcPluginOptions$1 {
+interface RpcPluginOptions {
   // RPC Middleware Options
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -123,7 +185,7 @@ interface RpcPluginOptions$1 {
    */
   onResponse?: MiddlewareOptions["onResponse"];
 }
-interface MiddlewareOptions<A extends RpcPluginOptions$1["adapter"] = "express"> {
+interface MiddlewareOptions<A extends RpcPluginOptions["adapter"] = "express"> {
   /**
    * RPC middlewares would like to have a name, specifically for _express_,
    * to help identify them within vite's stack;
@@ -246,25 +308,13 @@ interface MiddlewareOptions<A extends RpcPluginOptions$1["adapter"] = "express">
  * Utility to define `vite-uni-rpc` configuration file similar to vite.
  * @param uniConfig a system wide RPC configuration
  */
-declare const defineConfig: (uniConfig: Partial<RpcPluginOptions$1>) => RpcPluginOptions$1;
+declare const defineConfig: (uniConfig: Partial<RpcPluginOptions>) => RpcPluginOptions;
 /**
  * Utility to load `vite-uni-rpc` configuration file system wide.
  * @param configFile an optional parameter to specify a file within your project scope
  */
-declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions$1>;
-declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions$1>): {
-  name: string;
-  enforce: "pre";
-  configResolved(this: void, resolvedConfig: ResolvedConfig): Promise<void>;
-  buildStart(this: rollup0.PluginContext): Promise<void>;
-  transform(this: rollup0.TransformPluginContext, code: string, id: string, ops?: {
-    ssr?: boolean;
-  }): Promise<{
-    code: string;
-    map: null;
-  } | null>;
-  configureServer(this: void, server: ViteDevServer): Promise<void>;
-};
+declare function loadRPCConfig(configFile?: string): Promise<RpcPluginOptions>;
+declare function rpcPlugin(devOptions?: Partial<RpcPluginOptions>): PluginOption;
 //#endregion
-export { type RpcPluginOptions$1 as RpcPluginOptions, rpcPlugin as default, defineConfig, loadRPCConfig };
+export { BodyResult, CacheEntry, ClientFunction, ContentType, FrameworkHooks, FrameworkMiddlewareFn, JsonArray, JsonObject, JsonPrimitive, JsonValue, MiddlewareOptions, RpcPluginOptions, ServerFnArgs, ServerFnEntry, ServerFunction, ServerFunctionInit, ServerFunctionOptions, SupportableContentType, rpcPlugin as default, defineConfig, loadRPCConfig };
 //# sourceMappingURL=index.d.mts.map

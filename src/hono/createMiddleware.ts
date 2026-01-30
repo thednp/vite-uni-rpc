@@ -1,10 +1,11 @@
 // src/hono/createMiddleware.ts
 import type { Context, Next } from "hono";
 import { createMiddleware as createHonoMiddleware } from "hono/factory";
-import { scanForServerFiles, serverFunctionsMap } from "../utils.ts";
-import type { JsonValue } from "../types.d.ts";
+// import { scanForServerFiles } from "vite-uni-rpc/server";
+import { serverFunctionsMap, scanForServerFiles } from "vite-uni-rpc/server";
+import type { ServerFunction } from "vite-uni-rpc";
 import { defaultMiddlewareOptions, defaultRPCOptions } from "../options.ts";
-import type { HonoMiddlewareFn } from "./types.d.ts";
+import type { HonoMiddlewareFn, HonoMiddlewareOptions } from "./types.d.ts";
 import { readBody } from "./helpers.ts";
 
 let middlewareCount = 0;
@@ -20,10 +21,11 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
     onRequest,
     onResponse,
     onError,
-  } = {
-    ...defaultMiddlewareOptions,
-    ...initialOptions,
-  };
+  } = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    initialOptions,
+  ) as HonoMiddlewareOptions;
 
   let name = middlewareName;
   if (!name) {
@@ -44,7 +46,7 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
       }
 
       if (!handler) {
-        await (next());
+        await next();
         return;
       }
 
@@ -87,9 +89,9 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
           await onResponse(c);
         }
         if (onError) {
-          await (onError(error as Error, c));
+          await onError(error as Error, c);
         } else {
-          return (c.json({ error: "Internal Server Error" }, 500));
+          return c.json({ error: "Internal Server Error" }, 500);
         }
       }
     },
@@ -103,11 +105,12 @@ export const createMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
 };
 
 export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
-  const options = {
-    ...defaultMiddlewareOptions,
-    rpcPreffix: defaultRPCOptions.rpcPreffix,
-    ...initialOptions,
-  };
+  const options = Object.assign(
+    {},
+    defaultMiddlewareOptions,
+    { rpcPreffix: defaultRPCOptions.rpcPreffix },
+    initialOptions,
+  ) as HonoMiddlewareOptions;
 
   return createMiddleware({
     ...options,
@@ -116,8 +119,9 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
       const { rpcPreffix } = options;
 
       if (!rpcPreffix || !path.startsWith(`/${rpcPreffix}`)) {
-        await next();
-        return;
+        return await next();
+        // return;
+        // return c.json({ error: `Invalid configuration` }, 404);
       }
 
       const functionName = path.replace(`/${rpcPreffix}/`, "");
@@ -129,8 +133,17 @@ export const createRPCMiddleware: HonoMiddlewareFn = (initialOptions = {}) => {
 
       try {
         const body = await readBody(c);
+        const controller = new AbortController();
+        c.req.raw.signal.addEventListener("abort", () => {
+          controller.abort();
+        });
         const args = Array.isArray(body.data) ? body.data : [body.data];
-        const result = await serverFunction.fn(undefined, ...args) as JsonValue;
+        const result = await (serverFunction.fn as unknown as ServerFunction)(
+          controller.signal,
+          ...args,
+        );
+        // TO DO: HANDLE cancel + Abort signal
+
         return c.json({ data: result }, 200);
       } catch (err) {
         console.error(String(err));

@@ -32,20 +32,20 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "badges": "npx -p dependency-version-badge update-badge vitest vite",
     "format": "deno fmt src",
-    "dev": "cd examples/spa && pnpm dev",
+    "dev": "cd examples/spa && pnpm up && pnpm dev",
     "lint": "pnpm lint:ts && pnpm check:ts",
     "lint:ts": "deno lint src",
     "fix:ts": "deno lint src --fix",
     "check:ts": "tsc -noEmit",
     "up:examples": "pnpm update -r --latest --filter \"./examples/*\"",
     "up:src": "pnpm update -r --latest --filter \"./src/*\"",
-    "up:root": "pnpm up",
+    "up:root": "pnpm up --latest",
     "upd": "pnpm up:examples && pnpm up:src && pnpm up:root",
     "prepublishOnly": "pnpm upd && pnpm lint && pnpm check:ts && pnpm format && pnpm build",
     "build": "tsdown"
   },
   "dependencies": {
-    "vite": "6.4.1"
+    "vite": "^7.3.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

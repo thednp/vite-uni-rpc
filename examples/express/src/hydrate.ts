@@ -2,11 +2,13 @@ import { sayHi, add } from "./api";
 import { getError, isValiError } from "./util/helpers";
 
 export const setupGreeting = async (target: HTMLHeadingElement) => {
-  const greeting = await sayHi("Jane Doe");
+  const { data, cancel } = sayHi("Jane Doe");
+  target.onmouseenter = () => cancel("Aborted");
+  const greeting = await data;
   console.log(`API responded with "${greeting}"`);
 
   target.innerText = greeting;
-}
+};
 
 export const setupForm = async (target: HTMLFormElement) => {
   target.addEventListener("submit", async (e) => {
@@ -18,15 +20,20 @@ export const setupForm = async (target: HTMLFormElement) => {
     const payload = JSON.stringify(Object.fromEntries(formData.entries()));
     console.log("setupForm.formData", formData);
     // console.log(result)
-    const result = await add(payload);
-    if (typeof result === "object" && "error" in result && isValiError(result.error)) {
+    const { data } = add(payload);
+    const result = await data;
+    if (
+      typeof result === "object" &&
+      "error" in result &&
+      isValiError(result.error)
+    ) {
       output.textContent = "Result: Error";
-      errorDivA.textContent = getError(result.error, 'a');
-      errorDivB.textContent = getError(result.error, 'b');
+      errorDivA.textContent = getError(result.error, "a");
+      errorDivB.textContent = getError(result.error, "b");
     } else {
       output.textContent = "Result: " + String(result);
       errorDivA.innerHTML = "";
       errorDivB.innerHTML = "";
     }
-  })
-}
+  });
+};

@@ -1,13 +1,27 @@
-import type { ConfigEnv, Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import type {
+  ConfigEnv,
+  // Plugin,
+  PluginOption,
+  ResolvedConfig,
+  // UserConfig,
+  ViteDevServer,
+} from "vite";
 import { loadConfigFromFile, mergeConfig, transformWithEsbuild } from "vite";
 import colors from "picocolors";
 import { resolve } from "node:path";
 import process from "node:process";
 import { existsSync } from "node:fs";
-import { getClientModules, scanForServerFiles } from "./utils.ts";
+// import { getClientModules } from "./utils.ts";
 import { createRPCMiddleware } from "./express/createMiddleware.ts";
+// import { createRPCMiddleware } from "vite-uni-rpc/express";
 import { defaultRPCOptions } from "./options.ts";
 import type { RpcPluginOptions } from "./types.d.ts";
+
+import {
+  scanForServerFiles,
+  serverFunctionsMap,
+  getClientModules,
+} from "vite-uni-rpc/server";
 
 /**
  * Utility to define `vite-uni-rpc` configuration file similar to vite.
@@ -115,7 +129,7 @@ async function loadRPCConfig(configFile?: string) {
   }
 }
 
-function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
+function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}): PluginOption {
   let options: RpcPluginOptions;
   let config: ResolvedConfig;
   let viteServer: ViteDevServer;
@@ -125,17 +139,37 @@ function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
     enforce: "pre",
     // Plugin methods
     async configResolved(resolvedConfig) {
-      if (!config) {
-        const uniConfig = await loadRPCConfig();
-        options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
-        config = resolvedConfig;
-      }
+      // if (!config) {
+      const uniConfig = await loadRPCConfig();
+      options = mergeConfig(uniConfig, devOptions) as RpcPluginOptions;
+      config = resolvedConfig;
+      // }
     },
+    async configureServer(server) {
+      viteServer = server;
+      const { adapter: _adapter, ...rest } = options;
+      // console.log("configureServer", { config, viteServer });
+      // ✅ Scan BEFORE registering middleware
+      //
+      // await scanForServerFiles(config, viteServer);
+      if (serverFunctionsMap.size === 0) {
+        await scanForServerFiles(config, viteServer);
+      }
+
+      // in dev mode we always use express/connect adapter
+      server.middlewares.use(createRPCMiddleware(rest));
+    },
+
+    // async sharedDuringBuild(server) {
+    //   if (server && config) {
+    //     await scanForServerFiles(config, server);
+    //   }
+    // },
     async buildStart() {
       // Prepare the server functions
       // console.log("buildStart", { config, viteServer });
-      if (viteServer) {
-        await scanForServerFiles(config, viteServer);
+      if (!viteServer && config) {
+        await scanForServerFiles(config);
       }
     },
     async transform(code: string, id: string, ops?: { ssr?: boolean }) {
@@ -149,6 +183,14 @@ function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
         return null;
       }
 
+      if (serverFunctionsMap.size === 0) {
+        await scanForServerFiles(config);
+      }
+      console.log(
+        "before transformWithEsbuild(getClientModules(options))",
+        serverFunctionsMap,
+      );
+
       const result = await transformWithEsbuild(getClientModules(options), id, {
         loader: "js",
         target: "es2020",
@@ -159,19 +201,10 @@ function rpcPlugin(devOptions: Partial<RpcPluginOptions> = {}) {
         map: null,
       };
     },
-    async configureServer(server) {
-      if (!viteServer) {
-        viteServer = server;
-        const { adapter: _adapter, ...rest } = options;
-        // console.log("configureServer", { config, viteServer });
-
-        // in dev mode we always use express/connect adapter
-        server.middlewares.use(createRPCMiddleware(rest));
-      }
-    },
-  } satisfies Plugin<RpcPluginOptions>;
+  } satisfies PluginOption;
 }
 
 export { rpcPlugin as default };
-export { defineConfig, loadRPCConfig, type RpcPluginOptions };
+export { defineConfig, loadRPCConfig };
+export type * from "./types.d.ts";
 export {};

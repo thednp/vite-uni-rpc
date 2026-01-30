@@ -5,11 +5,13 @@
   "types": "types.d.ts",
   "peerDependencies": {
     "@hono/node-server": "^1.14.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-uni-rpc": "*"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
-    "hono": "^4.11.5"
+    "hono": "^4.11.7",
+    "vite-uni-rpc": "link:../.."
   },
   "devDependencies": {
     "@types/formidable": "^3.4.6"

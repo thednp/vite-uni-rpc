@@ -4,10 +4,21 @@ import strip from "vite-plugin-strip-comments";
 const sharedCfg: UserConfig = {
   target: "esnext",
   format: ["esm"],
-  external: ["vite", "hono", "fastify", "express", "formidable", "picocolors"],
-  treeshake: true,
+  external: [
+    "node",
+    "vite",
+    "hono",
+    "fastify",
+    "express",
+    "formidable",
+    "picocolors",
+    "vite-uni-rpc",
+    "vite-uni-rpc/server",
+  ],
+  // treeshake: true,
   plugins: [strip({ type: "keep-jsdoc" })],
   exports: true,
+  // dts: true,
   dts: {
     sourcemap: true,
     sideEffects: false,
@@ -21,17 +32,11 @@ export default defineConfig([
     ...sharedCfg,
     clean: true,
     entry: {
-      index: "src/index.ts",
-    },
-    outDir: "dist",
-  },
-  {
-    ...sharedCfg,
-    entry: {
       server: "src/server.ts",
     },
     outDir: "dist/server",
   },
+
   {
     ...sharedCfg,
     entry: {
@@ -59,5 +64,13 @@ export default defineConfig([
       hono: "src/hono/index.ts",
     },
     outDir: "dist/hono",
+  },
+  // vite plugin last
+  {
+    ...sharedCfg,
+    entry: {
+      index: "src/index.ts",
+    },
+    outDir: "dist",
   },
 ]);

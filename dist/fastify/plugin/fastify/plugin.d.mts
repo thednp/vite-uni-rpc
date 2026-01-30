@@ -1,7 +1,8 @@
-import { Connect } from "vite";
 import { FastifyInstance, FastifyReply, FastifyRequest, HookHandlerDoneFunction } from "fastify";
+import { Connect } from "vite";
+import "vite-uni-rpc";
 import "express";
-import { Context, Next } from "hono";
+import { Context, MiddlewareHandler } from "hono";
 
 //#region src/express/types.d.ts
 interface ExpressMiddlewareHooks {
@@ -13,7 +14,8 @@ interface ExpressMiddlewareHooks {
 //#endregion
 //#region src/hono/types.d.ts
 interface HonoMiddlewareHooks {
-  handler: (c: Context, next: Next) => Promise<void>;
+  // handler: ((c: Context, next: Next) => Promise<void>);
+  handler: MiddlewareHandler;
   onRequest: (c: Context) => Promise<void>;
   onResponse: (c: Context) => Promise<void>;
   onError: (error: unknown, c: Context) => Promise<void>;
@@ -39,7 +41,7 @@ interface FrameworkHooks {
  * application RPC calls. The default settings are optimized for development
  * environments while providing a secure foundation for production use.
  */
-interface RpcPluginOptions$1 {
+interface RpcPluginOptions {
   // RPC Middleware Options
   /**
    * RPC prefix without leading slash (e.g. "__rpc")
@@ -122,7 +124,7 @@ interface RpcPluginOptions$1 {
    */
   onResponse?: MiddlewareOptions["onResponse"];
 }
-interface MiddlewareOptions<A extends RpcPluginOptions$1["adapter"] = "express"> {
+interface MiddlewareOptions<A extends RpcPluginOptions["adapter"] = "express"> {
   /**
    * RPC middlewares would like to have a name, specifically for _express_,
    * to help identify them within vite's stack;
