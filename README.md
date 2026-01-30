@@ -45,6 +45,7 @@ Please refer to the [Wiki](https://github.com/thednp/vite-uni-rpc/wiki) for guid
 
 - [ ] Add/update examples examples
 - [ ] Add AbortController
+- [ ] Fix `The plugin "vite:dep-scan" was triggered by this import server/server.mjs:1:29:       1 │ import { createServer } from "vite";`
 - [x] Add SPA support
 - [x] Add wiki
 - [x] Test bun
